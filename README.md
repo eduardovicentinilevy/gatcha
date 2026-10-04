@@ -124,12 +124,18 @@ Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoj
 
 ## Rodando localmente
 
+Pré-requisitos: **Node.js 22+** e um **PostgreSQL** (o jeito mais fácil é o Docker Desktop).
+
 ```bash
-cp .env.example .env          # ajuste DATABASE_URL
-npm install                   # instala API + site (Vite, React) de uma vez
-npm run migrate:dev
-npm run dev
+npm install          # instala API + site
+npm run db:up        # sobe o Postgres do docker-compose.yml (pula se já tiver um Postgres)
+npm run migrate:dev  # cria as tabelas (cria o .env na primeira vez)
+npm run dev          # API em http://localhost:8080
+npm run web:dev      # em outro terminal: site em http://localhost:5173
 ```
+
+- O `.env` é criado automaticamente a partir do `.env.example` e **nunca vai para o Git**. Se o seu Postgres não for o do Docker, ajuste a `DATABASE_URL` nele.
+- Se o banco estiver desligado ou sem tabelas, a API avisa no terminal logo ao subir, com o comando que resolve.
 
 Testes (unitários sempre; integração quando `TEST_DATABASE_URL` estiver definida):
 

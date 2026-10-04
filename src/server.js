@@ -10,7 +10,21 @@ import { logger, serializarErro } from './lib/logger.js';
 
 const servidor = criarApp().listen(config.port, () => {
   logger.info('API Gatchá no ar', { porta: config.port, ambiente: config.env });
+  verificarBanco();
 });
+
+/** Avisa logo no boot se o banco estiver inacessível, em vez de só na primeira reserva. */
+async function verificarBanco() {
+  try {
+    await pool.query('SELECT 1 FROM reservas LIMIT 1');
+  } catch (err) {
+    const dica =
+      err.code === '42P01'
+        ? 'Tabelas não encontradas: rode `npm run migrate:dev`.'
+        : 'Banco inacessível: confira a DATABASE_URL no .env e se o Postgres está rodando (`npm run db:up` com Docker).';
+    logger.error(dica, { erro: { codigo: err.code, mensagem: err.message } });
+  }
+}
 
 /**
  * Graceful shutdown: o Cloud Run envia SIGTERM e dá ~10s antes do SIGKILL.

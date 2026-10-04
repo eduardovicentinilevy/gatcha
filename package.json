@@ -10,11 +10,14 @@
   },
   "scripts": {
     "start": "node src/server.js",
+    "predev": "node scripts/preparar-dev.js",
     "dev": "node --watch --env-file=.env src/server.js",
     "web:dev": "npm --prefix web run dev",
     "build": "npm run web:build",
     "web:build": "npm --prefix web run build",
+    "db:up": "docker compose up -d --wait",
     "migrate": "node scripts/migrate.js",
+    "premigrate:dev": "node scripts/preparar-dev.js",
     "migrate:dev": "node --env-file=.env scripts/migrate.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
     "postinstall": "npm --prefix web ci --no-audit --no-fund"
