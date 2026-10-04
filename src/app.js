@@ -58,8 +58,14 @@ export function criarApp() {
   app.use('/api', rotasDeReservas);
 
   if (config.http.servirFrontend) {
-    const pasta = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web/public');
-    app.use(express.static(pasta, { extensions: ['html'], index: 'index.html' }));
+    // Serve o build do React (cd web && npm run build). SPA: rotas que não são
+    // arquivo nem /api caem no index.html (ex.: /privacidade).
+    const pasta = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web/dist');
+    app.use(express.static(pasta));
+    app.use((req, res, next) => {
+      if (req.method !== 'GET' || req.path.startsWith('/api') || path.extname(req.path)) return next();
+      res.sendFile(path.join(pasta, 'index.html'), (err) => err && next());
+    });
   }
 
   app.use(rotaNaoEncontrada);

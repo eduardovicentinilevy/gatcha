@@ -8,15 +8,36 @@ Node.js 22 + Express 5 + PostgreSQL, hospedada no Google Cloud Run.
 
 ## Site (front-end)
 
-HTML, CSS e JavaScript puro em `web/public/` — sem etapa de build, publicado no Firebase Hosting.
-Identidade visual derivada do avatar: verde matchá `#6BA305`, traço branco do gato-tigela (`img/logo.svg`) e fundo tinta `#0D1117`.
+React 19 + Vite em `web/`, publicado no Firebase Hosting.
+Identidade visual derivada do avatar: verde matchá `#6BA305`, traço branco do gato-tigela (`LogoGato.jsx`) e fundo tinta `#0D1117`.
 
-- **Seções:** início, cardápio (filtro por categoria), gatil + reserva em 4 passos, adoção (formulário "Quero conhecer" em `<dialog>`) e visite; mais `/privacidade` (LGPD).
-- **Reserva:** grade de vagas por duração e tamanho do grupo; em 409 recarrega a grade automaticamente; trava duplo envio.
-- **Segurança:** todo conteúdo dinâmico entra via `textContent` (nunca `innerHTML`); CSP estrita sem `unsafe-inline` e demais cabeçalhos em `firebase.json`; `/api/**` reescrito para o Cloud Run (mesma origem, sem CORS; use `TRUST_PROXY=2`).
-- **Prévia:** enquanto `/api/cardapio` e `/api/gatos` não existem, o site mostra itens ilustrativos com aviso visível (`js/dados-exemplo.js`).
-- **Dev local:** `SERVIR_FRONTEND=true npm run dev` serve o site e a API juntos em `http://localhost:8080`.
-- **Deploy:** `firebase deploy --only hosting`.
+> **Não abra `web/index.html` direto no navegador** (`file://`): ele precisa do Vite para compilar o JSX. Use um dos modos abaixo.
+
+```bash
+# Modo 1 — desenvolvimento com recarga instantânea (dois terminais)
+npm run dev            # API em http://localhost:8080
+npm run web:dev        # site em http://localhost:5173 (repassa /api para a 8080)
+
+# Modo 2 — site + API juntos, como em produção
+npm run web:build      # gera web/dist
+SERVIR_FRONTEND=true npm run dev   # tudo em http://localhost:8080
+```
+
+```
+web/src/
+├── App.jsx                 # página inicial ou /privacidade
+├── api.js                  # cliente da API (timeout, cancelamento, ErroApi)
+├── config.js               # preços, horários e limites (PROVISÓRIOS)
+├── util.js                 # datas no fuso do café, formatação, normalização
+└── components/
+    ├── Reserva.jsx         # 4 passos; recarrega a grade em 409; trava duplo envio
+    ├── Adocao.jsx          # galeria + <dialog> "Quero conhecer"
+    └── Topo, Hero, Cardapio, Gatil, Visite, Rodape, Privacidade, Campo, LogoGato
+```
+
+- **Segurança:** o React escapa todo texto dinâmico (nenhum `dangerouslySetInnerHTML`); CSP estrita sem `unsafe-inline` e demais cabeçalhos em `firebase.json`; `/api/**` reescrito para o Cloud Run (mesma origem, sem CORS; use `TRUST_PROXY=2`).
+- **Prévia:** enquanto `/api/cardapio` e `/api/gatos` não existem, o site mostra itens ilustrativos com aviso visível (`src/dados-exemplo.js`).
+- **Deploy:** `npm run web:build && firebase deploy --only hosting`.
 
 ## Arquitetura
 

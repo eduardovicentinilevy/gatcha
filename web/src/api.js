@@ -1,6 +1,6 @@
 /**
- * Cliente da API Gatchá. Mesma origem (Firebase Hosting reescreve /api para o
- * Cloud Run), então não há CORS nem credenciais em jogo.
+ * Cliente da API Gatchá. Mesma origem (o Firebase Hosting reescreve /api para o
+ * Cloud Run; em dev, o proxy do Vite faz o mesmo), então não há CORS.
  */
 import { CONFIG } from './config.js';
 
@@ -30,9 +30,10 @@ const MENSAGENS_PADRAO = {
   503: 'O sistema está ocupado agora. Tente de novo em alguns segundos.',
 };
 
-async function requisitar(metodo, caminho, corpo) {
+async function requisitar(metodo, caminho, corpo, sinalExterno) {
   const controle = new AbortController();
   const timer = setTimeout(() => controle.abort(), CONFIG.timeoutMs);
+  sinalExterno?.addEventListener('abort', () => controle.abort());
   let resposta;
   try {
     resposta = await fetch(CONFIG.apiBase + caminho, {
@@ -43,7 +44,8 @@ async function requisitar(metodo, caminho, corpo) {
       credentials: 'same-origin',
       cache: 'no-store',
     });
-  } catch {
+  } catch (erro) {
+    if (sinalExterno?.aborted) throw erro; // cancelado pelo componente: não é erro de rede
     throw new ErroApi(0, 'SEM_CONEXAO', MENSAGENS_PADRAO[0]);
   } finally {
     clearTimeout(timer);
@@ -59,9 +61,9 @@ async function requisitar(metodo, caminho, corpo) {
 }
 
 export const api = {
-  horarios: (data) => requisitar('GET', `/horarios?data=${encodeURIComponent(data)}`),
+  horarios: (data, sinal) => requisitar('GET', `/horarios?data=${encodeURIComponent(data)}`, undefined, sinal),
   criarReserva: (dados) => requisitar('POST', '/reservas', dados),
-  cardapio: () => requisitar('GET', '/cardapio'),
-  gatos: () => requisitar('GET', '/gatos'),
+  cardapio: (sinal) => requisitar('GET', '/cardapio', undefined, sinal),
+  gatos: (sinal) => requisitar('GET', '/gatos', undefined, sinal),
   registrarInteresse: (dados) => requisitar('POST', '/interesses', dados),
 };
