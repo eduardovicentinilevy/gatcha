@@ -12,6 +12,8 @@ React 19 + Vite em `web/`, publicado no Firebase Hosting.
 Identidade visual derivada do avatar: verde matchá `#6BA305`, traço branco do gato-tigela (`LogoGato.jsx`) e fundo tinta `#0D1117`.
 
 > **Não abra `web/index.html` direto no navegador** (`file://`): ele precisa do Vite para compilar o JSX. Use um dos modos abaixo.
+>
+> **Não digite `vite` direto no terminal** — no Windows isso dá *"'vite' não é reconhecido como um comando interno"*. O Vite fica dentro do projeto: use `npm run web:dev` (na raiz) ou `npm run dev` (dentro de `web/`). Se as dependências do site não estiverem instaladas, esses comandos instalam sozinhos na primeira vez.
 
 ```bash
 # Modo 1 — desenvolvimento com recarga instantânea (dois terminais)
