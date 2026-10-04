@@ -6,6 +6,8 @@
  *   contexto -> helmet -> CORS -> rate limit -> parser JSON -> rotas -> 404 -> error handler
  * O rate limit vem ANTES do parser para não gastar CPU com corpo de quem já foi barrado.
  */
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -54,6 +56,11 @@ export function criarApp() {
   app.use(express.json({ limit: '10kb', strict: true }));
 
   app.use('/api', rotasDeReservas);
+
+  if (config.http.servirFrontend) {
+    const pasta = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web/public');
+    app.use(express.static(pasta, { extensions: ['html'], index: 'index.html' }));
+  }
 
   app.use(rotaNaoEncontrada);
   app.use(tratadorDeErros);

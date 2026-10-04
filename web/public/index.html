@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gatchá · Cat café de matchá na República</title>
+  <meta name="description" content="Cat café especializado em matchá na Galeria Metrópole, em São Paulo. Reserve seu horário no gatil e conheça os gatos para adoção.">
+  <meta name="theme-color" content="#0D1117">
+  <meta name="gatcha-api" content="/api">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/estilo.css">
+  <script type="module" src="/js/main.js"></script>
+</head>
+<body>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+  <header class="topo">
+    <div class="topo__barra container">
+      <a class="marca" href="#inicio" aria-label="Gatchá, início">
+        <img src="/img/logo.svg" alt="" width="40" height="40">
+        <span>Gatchá</span>
+      </a>
+      <button class="menu-botao" type="button" aria-expanded="false" aria-controls="menu-principal">
+        <span class="sr">Abrir menu</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <nav id="menu-principal" class="menu" aria-label="Principal">
+        <a href="#cardapio">Cardápio</a>
+        <a href="#gatil">Gatil</a>
+        <a href="#adocao">Adoção</a>
+        <a href="#visite">Visite</a>
+      </nav>
+      <a class="botao botao--pequeno topo__cta" href="#reserva">Reservar</a>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <!-- ===================== INÍCIO ===================== -->
+    <section id="inicio" class="hero">
+      <div class="container hero__grade">
+        <div class="hero__texto">
+          <p class="selo">Galeria Metrópole · República · SP</p>
+          <h1>Matchá, café e gatos esperando um lar.</h1>
+          <p class="hero__sub">Reserve seu horário no gatil pelo celular em menos de um minuto e conheça antes quem vai te receber.</p>
+          <div class="hero__acoes">
+            <a class="botao" href="#reserva">Reservar o gatil</a>
+            <a class="botao botao--contorno-claro" href="#adocao">Ver os gatos</a>
+          </div>
+        </div>
+        <div class="hero__arte" aria-hidden="true">
+          <div class="hero__anel"><img src="/img/logo.svg" alt="" width="280" height="280"></div>
+        </div>
+      </div>
+      <ul class="destaques container" aria-label="Destaques">
+        <li><strong>Matchá de verdade</strong><span>Bebidas quentes e geladas preparadas na hora.</span></li>
+        <li><strong>Gatil com vagas limitadas</strong><span>Sessões de 15 ou 30 minutos, sem aperto.</span></li>
+        <li><strong>Adoção responsável</strong><span>Em parceria com a ONG Abrigo São Gabriel.</span></li>
+      </ul>
+    </section>
+
+    <!-- ===================== CARDÁPIO ===================== -->
+    <section id="cardapio" class="secao" aria-labelledby="titulo-cardapio">
+      <div class="container">
+        <header class="secao__topo">
+          <p class="sobretitulo">Cardápio</p>
+          <h2 id="titulo-cardapio">Do matchá cerimonial ao pão de queijo</h2>
+        </header>
+        <div class="filtros" role="group" aria-label="Filtrar por categoria" data-filtros-cardapio></div>
+        <ul class="cardapio" data-lista-cardapio aria-live="polite"></ul>
+        <p class="nota" data-nota-cardapio hidden></p>
+      </div>
+    </section>
+
+    <!-- ===================== GATIL E RESERVA ===================== -->
+    <section id="gatil" class="secao secao--verde" aria-labelledby="titulo-gatil">
+      <div class="container">
+        <header class="secao__topo">
+          <p class="sobretitulo">Gatil</p>
+          <h2 id="titulo-gatil">Um tempo com os gatos</h2>
+          <p>O espaço é dos gatos: as vagas por horário são limitadas para que eles fiquem tranquilos. Pagamento no local.</p>
+        </header>
+
+        <div class="gatil__grade">
+          <div class="precos" data-precos></div>
+          <div class="regras">
+            <h3>Regras do espaço</h3>
+            <ul>
+              <li>Higienize as mãos antes de entrar.</li>
+              <li>Gato dormindo não se acorda; colo só se ele quiser.</li>
+              <li>Não ofereça comida nem bebida aos gatos.</li>
+              <li>Crianças sempre acompanhadas de um adulto.</li>
+              <li>Fotos sem flash.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Widget de reserva -->
+        <div id="reserva" class="reserva" data-reserva>
+          <form id="form-reserva" class="reserva__form" novalidate data-form-reserva>
+            <fieldset class="passo">
+              <legend><span class="passo__n">1</span> Escolha o dia</legend>
+              <div class="dias" role="group" aria-label="Dia da visita" data-dias></div>
+            </fieldset>
+
+            <fieldset class="passo passo--linha">
+              <legend><span class="passo__n">2</span> Duração e pessoas</legend>
+              <div class="alternador" role="radiogroup" aria-label="Duração">
+                <label><input type="radio" name="duracao_min" value="15" checked> 15 min</label>
+                <label><input type="radio" name="duracao_min" value="30"> 30 min</label>
+              </div>
+              <div class="contador" data-contador>
+                <button type="button" data-menos aria-label="Menos uma pessoa">−</button>
+                <output name="pessoas" aria-live="polite" data-pessoas>1</output>
+                <span class="contador__rotulo" data-pessoas-rotulo>pessoa</span>
+                <button type="button" data-mais aria-label="Mais uma pessoa">+</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="passo">
+              <legend><span class="passo__n">3</span> Escolha o horário</legend>
+              <div class="horarios" role="group" aria-label="Horário" data-horarios aria-busy="false"></div>
+              <p class="nota" data-nota-horarios></p>
+            </fieldset>
+
+            <fieldset class="passo" data-passo-dados>
+              <legend><span class="passo__n">4</span> Seus dados</legend>
+              <div class="campos">
+                <div class="campo">
+                  <label for="r-nome">Nome</label>
+                  <input id="r-nome" name="nome" autocomplete="name" required minlength="2" maxlength="100">
+                  <p class="campo__erro" data-erro="nome"></p>
+                </div>
+                <div class="campo">
+                  <label for="r-telefone">Celular com DDD</label>
+                  <input id="r-telefone" name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(11) 91234-5678" required maxlength="20">
+                  <p class="campo__erro" data-erro="telefone"></p>
+                </div>
+                <div class="campo campo--largo">
+                  <label for="r-email">E-mail</label>
+                  <input id="r-email" name="email" type="email" inputmode="email" autocomplete="email" required maxlength="254">
+                  <p class="campo__erro" data-erro="email"></p>
+                </div>
+                <label class="aceite campo--largo">
+                  <input type="checkbox" name="aceite" required>
+                  <span>Li o <a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a> e autorizo o uso do meu nome e contato para esta reserva.</span>
+                </label>
+                <p class="campo__erro campo--largo" data-erro="aceite"></p>
+              </div>
+            </fieldset>
+
+            <div class="reserva__resumo">
+              <p data-resumo>Escolha dia e horário para ver o resumo.</p>
+              <button class="botao botao--grande" type="submit" data-enviar>Confirmar reserva</button>
+            </div>
+            <p class="alerta" role="alert" data-alerta hidden></p>
+          </form>
+
+          <div class="confirmacao" data-confirmacao hidden tabindex="-1">
+            <img src="/img/logo.svg" alt="" width="72" height="72">
+            <h3>Reserva confirmada!</h3>
+            <p>Guarde o seu código e apresente na recepção do gatil.</p>
+            <p class="confirmacao__codigo" data-codigo></p>
+            <p data-confirmacao-resumo></p>
+            <div class="confirmacao__acoes">
+              <button class="botao botao--contorno" type="button" data-copiar>Copiar código</button>
+              <button class="botao" type="button" data-nova>Fazer outra reserva</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ADOÇÃO ===================== -->
+    <section id="adocao" class="secao" aria-labelledby="titulo-adocao">
+      <div class="container">
+        <header class="secao__topo">
+          <p class="sobretitulo">Adoção</p>
+          <h2 id="titulo-adocao">Eles estão procurando uma família</h2>
+          <p>Todos os gatos são castrados, vacinados e acompanhados pela ONG Abrigo São Gabriel. Gostou de alguém? Conte pra gente.</p>
+        </header>
+        <ul class="gatos" data-lista-gatos aria-live="polite"></ul>
+        <p class="nota" data-nota-gatos hidden></p>
+      </div>
+
+      <dialog class="dialogo" data-dialogo-adocao aria-labelledby="titulo-interesse">
+        <form method="dialog" class="dialogo__fechar"><button aria-label="Fechar">×</button></form>
+        <h3 id="titulo-interesse">Quero conhecer <span data-nome-gato></span></h3>
+        <form id="form-interesse" class="campos" novalidate data-form-interesse>
+          <input type="hidden" name="gato_id">
+          <div class="campo campo--largo">
+            <label for="i-nome">Seu nome</label>
+            <input id="i-nome" name="nome" autocomplete="name" required minlength="2" maxlength="100">
+            <p class="campo__erro" data-erro="nome"></p>
+          </div>
+          <div class="campo campo--largo">
+            <label for="i-contato">E-mail ou celular</label>
+            <input id="i-contato" name="contato" autocomplete="email" required maxlength="254">
+            <p class="campo__erro" data-erro="contato"></p>
+          </div>
+          <div class="campo campo--largo">
+            <label for="i-mensagem">Mensagem <span class="opcional">(opcional)</span></label>
+            <textarea id="i-mensagem" name="mensagem" rows="3" maxlength="1000"></textarea>
+          </div>
+          <label class="aceite campo--largo">
+            <input type="checkbox" name="aceite" required>
+            <span>Autorizo o envio dos meus dados à ONG Abrigo São Gabriel para o processo de adoção (<a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a>).</span>
+          </label>
+          <p class="campo__erro campo--largo" data-erro="aceite"></p>
+          <p class="alerta campo--largo" role="alert" data-alerta hidden></p>
+          <button class="botao campo--largo" type="submit">Enviar interesse</button>
+        </form>
+      </dialog>
+    </section>
+
+    <!-- ===================== VISITE ===================== -->
+    <section id="visite" class="secao secao--escura" aria-labelledby="titulo-visite">
+      <div class="container visite">
+        <div>
+          <p class="sobretitulo">Visite</p>
+          <h2 id="titulo-visite">Estamos no 2º piso da Galeria Metrópole</h2>
+          <address>
+            Av. São Luís, 187 · Piso 02, Loja 02<br>
+            República · São Paulo, SP
+          </address>
+          <a class="botao" href="https://www.google.com/maps/search/?api=1&amp;query=Gatch%C3%A1%20Galeria%20Metr%C3%B3pole%20Av.%20S%C3%A3o%20Lu%C3%ADs%20187" target="_blank" rel="noopener noreferrer">Abrir no mapa</a>
+        </div>
+        <dl class="info">
+          <div><dt>Como chegar</dt><dd>Metrô República (linhas 3-Vermelha e 4-Amarela) ou Anhangabaú, a poucos minutos a pé.</dd></div>
+          <div><dt>Horários</dt><dd data-horario-funcionamento>Terça a sábado, das 11h às 19h.</dd></div>
+          <div><dt>Gatil</dt><dd>Sessões de 15 ou 30 minutos, com reserva pelo site.</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div class="container rodape__grade">
+      <a class="marca marca--clara" href="#inicio"><img src="/img/logo.svg" alt="" width="32" height="32"><span>Gatchá</span></a>
+      <p>Cat café de matchá desde 2022 · Gatos para adoção com a ONG Abrigo São Gabriel</p>
+      <a href="/privacidade">Aviso de privacidade</a>
+    </div>
+  </footer>
+</body>
+</html>

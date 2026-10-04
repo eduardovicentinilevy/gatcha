@@ -6,3 +6,5 @@ node_modules
 test
 coverage
 *.md
+web
+firebase.json

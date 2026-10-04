@@ -3,8 +3,20 @@
 API REST do Gatchá Cat Café: reservas do gatil, cardápio e galeria de adoção.
 Node.js 22 + Express 5 + PostgreSQL, hospedada no Google Cloud Run.
 
-> **Status:** módulo de **Reservas** pronto (`GET /api/horarios`, `POST /api/reservas`).
+> **Status:** módulo de **Reservas** pronto (`GET /api/horarios`, `POST /api/reservas`) e **site público** em `web/public`.
 > Próximos módulos: cancelamento por código, e-mail de confirmação, cardápio, adoção, auth JWT e painel admin.
+
+## Site (front-end)
+
+HTML, CSS e JavaScript puro em `web/public/` — sem etapa de build, publicado no Firebase Hosting.
+Identidade visual derivada do avatar: verde matchá `#6BA305`, traço branco do gato-tigela (`img/logo.svg`) e fundo tinta `#0D1117`.
+
+- **Seções:** início, cardápio (filtro por categoria), gatil + reserva em 4 passos, adoção (formulário "Quero conhecer" em `<dialog>`) e visite; mais `/privacidade` (LGPD).
+- **Reserva:** grade de vagas por duração e tamanho do grupo; em 409 recarrega a grade automaticamente; trava duplo envio.
+- **Segurança:** todo conteúdo dinâmico entra via `textContent` (nunca `innerHTML`); CSP estrita sem `unsafe-inline` e demais cabeçalhos em `firebase.json`; `/api/**` reescrito para o Cloud Run (mesma origem, sem CORS; use `TRUST_PROXY=2`).
+- **Prévia:** enquanto `/api/cardapio` e `/api/gatos` não existem, o site mostra itens ilustrativos com aviso visível (`js/dados-exemplo.js`).
+- **Dev local:** `SERVIR_FRONTEND=true npm run dev` serve o site e a API juntos em `http://localhost:8080`.
+- **Deploy:** `firebase deploy --only hosting`.
 
 ## Arquitetura
 

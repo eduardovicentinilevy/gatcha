@@ -91,6 +91,8 @@ const schema = z
     CORS_ORIGINS: lista,
     RATE_LIMIT_PUBLICO_POR_MIN: inteiro(120, 1, 10_000),
     RATE_LIMIT_RESERVAS_POR_15MIN: inteiro(10, 1, 1_000),
+    // Só para desenvolvimento: em produção o site vem do Firebase Hosting.
+    SERVIR_FRONTEND: booleano(false),
 
     // Regras do negócio (valores provisórios até o Gatchá confirmar as pendências)
     TZ_NEGOCIO: z.string().default('America/Sao_Paulo'),
@@ -137,6 +139,7 @@ function carregar() {
       corsOrigins: e.CORS_ORIGINS,
       rateLimitPublicoPorMin: e.RATE_LIMIT_PUBLICO_POR_MIN,
       rateLimitReservasPor15Min: e.RATE_LIMIT_RESERVAS_POR_15MIN,
+      servirFrontend: e.SERVIR_FRONTEND,
     }),
     gatil: Object.freeze({
       fuso: e.TZ_NEGOCIO,
