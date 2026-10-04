@@ -19,7 +19,7 @@ npm run dev            # API em http://localhost:8080
 npm run web:dev        # site em http://localhost:5173 (repassa /api para a 8080)
 
 # Modo 2 — site + API juntos, como em produção
-npm run web:build      # gera web/dist
+npm run build          # gera web/dist
 SERVIR_FRONTEND=true npm run dev   # tudo em http://localhost:8080
 ```
 
@@ -124,7 +124,7 @@ Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoj
 
 ```bash
 cp .env.example .env          # ajuste DATABASE_URL
-npm ci
+npm install                   # instala API + site (Vite, React) de uma vez
 npm run migrate:dev
 npm run dev
 ```
