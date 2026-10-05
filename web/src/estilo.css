@@ -455,6 +455,17 @@ abbr[title] { text-decoration: none; }
   border: 2px solid var(--cor-borda); background: var(--cor-destaque); color: #14180F; font-family: var(--fonte-titulo);
 }
 
+/* Avaliações do Google */
+.avaliacoes__resumo { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 4px 0 0; }
+.avaliacoes__resumo strong { font-family: var(--fonte-titulo); font-size: 2rem; line-height: 1; color: var(--cor-texto); }
+.avaliacoes__resumo .estrelas { margin: 0; }
+.avaliacoes__resumo span { font-weight: 700; }
+.avaliacao__texto--abreviado { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.avaliacao__mais { align-self: flex-start; margin-top: 6px; font-size: .9rem; }
+.avaliacao__autor a { color: inherit; }
+.avaliacao__quando { display: block; font-weight: 600; color: var(--cor-texto-suave); }
+.avaliacoes__fonte { margin: 18px 0 0; font-size: .9rem; color: var(--cor-texto-suave); }
+
 /* ---------- Siga a gente ---------- */
 .siga { display: grid; gap: 24px; }
 .siga .secao__topo .botao { margin-top: 8px; }

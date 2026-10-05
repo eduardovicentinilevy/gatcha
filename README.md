@@ -124,6 +124,15 @@ Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoj
 | 503 | `SERVICO_OCUPADO` | Lock/statement timeout, deadlock (header `Retry-After`) |
 | 500 | `ERRO_INTERNO` | Falha inesperada (detalhes só no log, via `request_id`) |
 
+## Avaliações do Google Maps
+
+`GET /api/avaliacoes` busca nota, total e até 5 avaliações na **Places API (New)** do Google. A chave fica só no servidor e o resultado fica em cache por `AVALIACOES_CACHE_HORAS` (padrão 6h). Sem chave (ou no protótipo), o site mostra as avaliações de exemplo de `web/src/config.js`.
+
+1. No [Google Cloud Console](https://console.cloud.google.com/): crie/escolha um projeto, ative o faturamento e ative a **Places API (New)**.
+2. Em *APIs e serviços → Credenciais*, crie uma **chave de API** e restrinja-a à *Places API (New)*.
+3. No `.env`: `GOOGLE_PLACES_API_KEY=...`, depois rode `npm run places:id -- "Gatchá Galeria Metrópole São Paulo"` e copie o id para `GOOGLE_PLACE_ID`.
+4. Em produção, guarde a chave no Secret Manager (`--set-secrets GOOGLE_PLACES_API_KEY=...`).
+
 ## Rodando localmente
 
 Pré-requisitos: **Node.js 22+** e um **PostgreSQL** (o jeito mais fácil é o Docker Desktop).

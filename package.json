@@ -20,6 +20,8 @@
     "migrate": "node scripts/migrate.js",
     "premigrate:dev": "node scripts/preparar-dev.js",
     "migrate:dev": "node --env-file=.env scripts/migrate.js",
+    "preplaces:id": "node scripts/preparar-dev.js",
+    "places:id": "node --env-file=.env scripts/buscar-place-id.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
     "postinstall": "npm --prefix web ci --no-audit --no-fund"
   },

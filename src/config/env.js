@@ -102,6 +102,12 @@ const schema = z
     RESERVA_MAX_PESSOAS: inteiro(4, 1, 50),
     RESERVA_ANTECEDENCIA_MAX_DIAS: inteiro(14, 0, 365),
     RESERVA_MAX_ATIVAS_POR_CONTATO: inteiro(3, 1, 100),
+
+    // Avaliações do Google (Places API). Opcionais: sem elas, o site mostra as avaliações de exemplo.
+    // A chave é SEGREDO: em produção, venha do Secret Manager. Restrinja-a à "Places API (New)".
+    GOOGLE_PLACES_API_KEY: z.string().trim().default(''),
+    GOOGLE_PLACE_ID: z.string().trim().regex(/^[\w-]*$/, 'GOOGLE_PLACE_ID inválido').default(''),
+    AVALIACOES_CACHE_HORAS: inteiro(6, 1, 72),
   })
   .superRefine((env, ctx) => {
     if (env.RESERVA_MAX_PESSOAS > env.GATIL_CAPACIDADE) {
@@ -149,6 +155,11 @@ function carregar() {
       maxPessoasPorReserva: e.RESERVA_MAX_PESSOAS,
       antecedenciaMaxDias: e.RESERVA_ANTECEDENCIA_MAX_DIAS,
       maxReservasAtivasPorContato: e.RESERVA_MAX_ATIVAS_POR_CONTATO,
+    }),
+    google: Object.freeze({
+      placesApiKey: e.GOOGLE_PLACES_API_KEY,
+      placeId: e.GOOGLE_PLACE_ID,
+      cacheMs: e.AVALIACOES_CACHE_HORAS * 3_600_000,
     }),
   });
 }

@@ -17,6 +17,7 @@ import { contextoDaRequisicao } from './middlewares/contexto.js';
 import { limitePublico } from './middlewares/rate-limit.js';
 import { rotaNaoEncontrada, tratadorDeErros } from './middlewares/erros.js';
 import { rotasDeReservas } from './modules/reservas/reservas.routes.js';
+import { rotasDeAvaliacoes } from './modules/avaliacoes/avaliacoes.routes.js';
 
 // Mensagens padrão do Zod em português (as mensagens dos nossos schemas já são customizadas).
 z.config(z.locales.pt());
@@ -61,6 +62,7 @@ export function criarApp() {
   app.use(express.json({ limit: '10kb', strict: true }));
 
   app.use('/api', rotasDeReservas);
+  app.use('/api', rotasDeAvaliacoes);
 
   if (config.http.servirFrontend) {
     // Serve o build do React (cd web && npm run build). SPA: rotas que não são

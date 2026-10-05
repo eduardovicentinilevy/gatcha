@@ -92,6 +92,20 @@ function carregadorComCache(rota, arquivo, chave) {
 export const carregarCardapio = carregadorComCache('/cardapio', 'cardapio.json', 'itens');
 export const carregarGatos = carregadorComCache('/gatos', 'gatos.json', 'gatos');
 
+/**
+ * Avaliações do Google Maps (via backend, que guarda a chave da Places API).
+ * No protótipo, ou se a API não estiver configurada, devolve { disponivel: false }
+ * e o site mostra as avaliações de exemplo do config.
+ */
+export async function carregarAvaliacoes(sinal) {
+  if (CONFIG.modoPrototipo) return { disponivel: false, avaliacoes: [] };
+  try {
+    return await requisitar(`${CONFIG.apiBase}/avaliacoes`, { sinal });
+  } catch {
+    return { disponivel: false, avaliacoes: [] };
+  }
+}
+
 export const api = {
   horarios: (data, sinal) =>
     CONFIG.modoPrototipo
