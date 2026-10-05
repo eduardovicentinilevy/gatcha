@@ -10,6 +10,23 @@
  *  Ativado com `npm run prototipo` (arquivo web/.env.prototipo). */
 const MODO_PROTOTIPO = import.meta.env.VITE_MODO_PROTOTIPO === 'true';
 
+/** "10:30" -> "10h30"; "10:00" -> "10h". */
+const horaPorExtenso = (hhmm) => {
+  const [h, m] = hhmm.split(':');
+  return m === '00' ? `${Number(h)}h` : `${Number(h)}h${m}`;
+};
+const intervalo = (abre, fecha) => ({ abre, fecha, texto: `${horaPorExtenso(abre)} às ${horaPorExtenso(fecha)}` });
+
+/**
+ * Horários do Gatchá (perfil oficial: "Seg à Sáb · 10h às 18h30 · Área dos gatos 10h30 às 11h50 ~ 13h10 às 17h30").
+ * Fonte única: o site inteiro (rodapé, "Visite", gatil, FAQ, selo "Aberto agora") lê daqui.
+ * Devem bater com GATIL_DIAS e GATIL_JANELAS da API (.env.example). [CONFIRMAR na ligação com o Gatchá]
+ */
+const DIAS_ABERTOS = [1, 2, 3, 4, 5, 6]; // 0 = domingo ... 6 = sábado
+const DIAS_TEXTO = 'Segunda a sábado';
+const CAFE = intervalo('10:00', '18:30');
+const JANELAS_GATOS = [intervalo('10:30', '11:50'), intervalo('13:10', '17:30')];
+
 export const CONFIG = Object.freeze({
   modoPrototipo: MODO_PROTOTIPO,
 
@@ -100,12 +117,13 @@ export const CONFIG = Object.freeze({
     email: null, // [SUBSTITUIR] e-mail de contato, ex.: 'oi@gatcha.com.br'
   },
 
-  /** [CONFIRMAR dias e horários] — as fontes públicas divergem (seg–sáb ou ter–sáb). */
   // Usado no selo "Aberto agora / Fechado agora" do rodapé (dias em CONFIG.gatil.diasAbertos).
-  horarioCafe: { abre: '11:00', fecha: '19:00' },
+  horarioCafe: { abre: CAFE.abre, fecha: CAFE.fecha },
+  // O primeiro item é o destaque do rodapé. `horarios` pode ter mais de uma linha (a área dos gatos tem duas janelas).
   funcionamento: [
-    { dias: 'Terça a sábado', horario: '11h às 19h' },
-    { dias: 'Domingo e segunda', horario: 'Fechado (gatos de folga 😴)' },
+    { dias: DIAS_TEXTO, horarios: [CAFE.texto] },
+    { dias: 'Área dos gatos', horarios: JANELAS_GATOS.map((j) => j.texto) },
+    { dias: 'Domingo', horarios: ['Fechado (gatos de folga 😴)'] },
   ],
 
   // ---------------------------------------------------------------------------
@@ -114,8 +132,11 @@ export const CONFIG = Object.freeze({
   gatil: {
     fuso: 'America/Sao_Paulo',
     antecedenciaMaxDias: 14,
-    /** [CONFIRMAR] 0 = domingo ... 6 = sábado. Deve bater com GATIL_DIAS da API. */
-    diasAbertos: [2, 3, 4, 5, 6],
+    /** 0 = domingo ... 6 = sábado. Deve bater com GATIL_DIAS da API. */
+    diasAbertos: DIAS_ABERTOS,
+    diasTexto: DIAS_TEXTO,
+    /** Horários da área dos gatos. Devem bater com GATIL_JANELAS da API (que arredonda para dentro, de 15 em 15 min). */
+    janelas: JANELAS_GATOS,
     /** [CONFIRMAR] Deve bater com RESERVA_MAX_PESSOAS da API. */
     maxPessoasPorReserva: 4,
     /** [CONFIRMAR] Guias citam R$ 15 (15 min) e R$ 25 (30 min), por pessoa. */
@@ -207,6 +228,10 @@ export const CONFIG = Object.freeze({
 
   /** Perguntas frequentes do painel de atendimento. [CONFIRMAR respostas com o cliente] */
   faq: [
+    {
+      pergunta: 'Qual o horário?',
+      resposta: `Café: ${DIAS_TEXTO.toLowerCase()}, ${CAFE.texto}. Área dos gatos: ${JANELAS_GATOS.map((j) => j.texto).join(' e ')}. Domingo a gente descansa.`,
+    },
     {
       pergunta: 'Posso levar criança?',
       resposta: 'Pode sim! Menores de 12 anos entram com um adulto responsável, e todo mundo segue as regras do gatil.',

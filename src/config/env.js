@@ -8,6 +8,7 @@
  */
 import { z } from 'zod';
 import { parseHora } from '../lib/tempo.js';
+import { PASSO_MIN } from '../modules/reservas/disponibilidade.js';
 
 const inteiro = (padrao, min, max) => z.coerce.number().int().min(min).max(max).default(padrao);
 
@@ -27,18 +28,31 @@ const lista = z
       .filter(Boolean),
   );
 
-/** "11:00-13:00,14:00-19:00" -> [{ inicio: 660, fim: 780 }, { inicio: 840, fim: 1140 }] */
+/**
+ * "11:00-13:00,14:00-19:00" -> [{ inicio: 660, fim: 780 }, { inicio: 840, fim: 1140 }]
+ *
+ * Escreva o horário REAL da área dos gatos (ex.: 10:30-11:50,13:10-17:30). A agenda
+ * trabalha em células de 15 min, então a janela é arredondada PARA DENTRO (início
+ * para cima, fim para baixo): nunca se vende um minuto fora do horário real.
+ * 10:30-11:50 vira 10:30-11:45; 13:10-17:30 vira 13:15-17:30.
+ */
 const janelas = z
   .string()
-  .default('11:00-19:00')
+  .default('10:30-11:50,13:10-17:30')
   .transform((valor, ctx) => {
     const resultado = [];
     for (const trecho of valor.split(',').map((s) => s.trim()).filter(Boolean)) {
       const m = /^(\d{2}:\d{2})-(\d{2}:\d{2})$/.exec(trecho);
-      const inicio = m && parseHora(m[1]);
-      const fim = m && parseHora(m[2]);
-      if (inicio == null || fim == null || fim <= inicio || inicio % 15 || fim % 15) {
-        ctx.addIssue({ code: 'custom', message: `Janela inválida: "${trecho}" (use HH:MM-HH:MM em múltiplos de 15 min)` });
+      const inicioReal = m && parseHora(m[1]);
+      const fimReal = m && parseHora(m[2]);
+      if (inicioReal == null || fimReal == null || fimReal <= inicioReal) {
+        ctx.addIssue({ code: 'custom', message: `Janela inválida: "${trecho}" (use HH:MM-HH:MM, fim depois do início)` });
+        return z.NEVER;
+      }
+      const inicio = Math.ceil(inicioReal / PASSO_MIN) * PASSO_MIN;
+      const fim = Math.floor(fimReal / PASSO_MIN) * PASSO_MIN;
+      if (fim - inicio < PASSO_MIN) {
+        ctx.addIssue({ code: 'custom', message: `Janela "${trecho}" é curta demais: precisa caber ao menos ${PASSO_MIN} min na grade de ${PASSO_MIN} em ${PASSO_MIN} min` });
         return z.NEVER;
       }
       resultado.push({ inicio, fim });
@@ -57,10 +71,10 @@ const janelas = z
     return resultado;
   });
 
-/** "2,3,4,5,6" -> Set {2,3,4,5,6}  (0 = domingo ... 6 = sábado) */
+/** "1,2,3,4,5,6" -> Set {1,2,3,4,5,6}  (0 = domingo ... 6 = sábado) */
 const diasDaSemana = z
   .string()
-  .default('2,3,4,5,6')
+  .default('1,2,3,4,5,6')
   .transform((valor, ctx) => {
     const partes = valor.split(',').map((s) => s.trim());
     // Number('') === 0 viraria "domingo": entradas vazias são erro, não domingo.

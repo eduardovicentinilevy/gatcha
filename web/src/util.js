@@ -23,6 +23,9 @@ export const rotuloDia = (iso) => {
 
 export const diaDaSemana = (iso) => dataUTC(iso).getUTCDay();
 
+/** "10:45" -> 645 (minutos desde 00:00). */
+export const paraMinutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
+
 /** "Agora" no fuso do café, independente do fuso do aparelho do cliente. */
 let fmtAgora; // criar Intl.DateTimeFormat é caro: um só, reaproveitado
 export function agoraNoCafe() {

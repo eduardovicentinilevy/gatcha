@@ -84,12 +84,17 @@ O teste `REGRA DE OURO` dispara 20 requisições simultâneas contra um Postgres
 200 {
   "data": "2026-10-06", "aberto": true, "capacidade": 8,
   "horarios": [
-    { "hora_inicio": "11:00", "vagas_15min": 8, "vagas_30min": 6 },
-    { "hora_inicio": "18:45", "vagas_15min": 8, "vagas_30min": 0 }
+    { "hora_inicio": "10:30", "vagas_15min": 8, "vagas_30min": 6 },
+    { "hora_inicio": "17:15", "vagas_15min": 8, "vagas_30min": 0 }
   ]
 }
 ```
 Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoje) são omitidos.
+
+**Horários do Gatchá** (perfil oficial): café de segunda a sábado, 10h às 18h30; **área dos gatos** 10h30 às 11h50 e 13h10 às 17h30.
+Na API: `GATIL_DIAS=1,2,3,4,5,6` e `GATIL_JANELAS=10:30-11:50,13:10-17:30`. A agenda trabalha em células de 15 min e
+arredonda as janelas **para dentro** (10:30-11:45 e 13:15-17:30): nunca se vende um minuto fora do horário real, e nenhuma sessão atravessa a pausa
+dos gatos. No site, os mesmos horários ficam em `web/src/config.js` (rodapé, "Visite", gatil, FAQ, selo "Aberto agora"): se mudar um, mude o outro.
 
 ### `POST /api/reservas`
 
@@ -214,4 +219,5 @@ gcloud run deploy gatcha-api --source . --region southamerica-east1 \
 
 ## Pendências de negócio (valores provisórios em `.env.example`)
 
-Capacidade do gatil, dias de funcionamento, janelas/último horário e limite de pessoas por reserva aguardam confirmação do Gatchá — todos são configuráveis por variável de ambiente, sem mudar código.
+Dias e horários vieram do perfil do Gatchá (seg–sáb; área dos gatos 10h30–11h50 e 13h10–17h30) e ainda valem uma confirmação na ligação.
+Capacidade do gatil e limite de pessoas por reserva seguem provisórios — todos são configuráveis por variável de ambiente, sem mudar código.

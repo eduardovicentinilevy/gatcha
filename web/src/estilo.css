@@ -297,11 +297,21 @@ abbr[title] { text-decoration: none; }
 
 /* ---------- Gatil ---------- */
 .gatil__grade { display: grid; gap: 18px; margin-bottom: 36px; }
+.gatil__lado { display: grid; gap: 14px; }
 .precos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .preco { padding: 14px 10px; text-align: center; }
 .preco__tempo { margin: 0; font-weight: 800; color: var(--cor-texto-suave); }
 .preco__valor { margin: 0; font-family: var(--fonte-titulo); font-weight: 800; font-size: clamp(1.35rem, 7.2vw, 2.4rem); line-height: 1.15; white-space: nowrap; }
 .preco__por { margin: 0; font-size: .85rem; color: var(--cor-texto-suave); }
+.janelas { padding: 16px 18px 18px; }
+.janelas h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 1.1rem; }
+.janelas h3 svg { width: 22px; height: 22px; flex: none; color: var(--cor-matcha-forte); }
+.janelas__dias { margin: 0 0 12px; font-weight: 700; color: var(--cor-texto-suave); }
+.janelas__lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); gap: 10px; }
+.janela {
+  padding: 8px 10px; text-align: center; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.05rem; line-height: 1.2;
+  border: 2px solid var(--cor-borda); border-radius: var(--raio-p); background: var(--cor-matcha-suave);
+}
 .regras { padding: 18px 20px; }
 .regras ul { list-style: none; display: grid; gap: 8px; }
 .regras li { display: flex; gap: 10px; }
@@ -354,6 +364,9 @@ abbr[title] { text-decoration: none; }
 .calendario__dia:disabled { cursor: not-allowed; border-style: dashed; border-color: var(--cor-texto-suave); background: transparent; color: var(--cor-texto-suave); }
 .calendario__dia:disabled .calendario__num { text-decoration: line-through; font-weight: 600; }
 
+.horarios-grupos { display: grid; gap: 18px; }
+.horarios-grupo__titulo { display: flex; align-items: center; gap: 10px; margin: 0 0 8px; font-size: .88rem; font-weight: 800; color: var(--cor-texto-suave); }
+.horarios-grupo__titulo::after { content: ''; flex: 1; border-top: 1.5px dashed var(--cor-texto-suave); opacity: .6; }
 .horarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; }
 .horario {
   padding: 9px 4px; border-radius: var(--raio-p); border: 2px solid var(--cor-borda); background: var(--cor-superficie);
@@ -495,6 +508,7 @@ abbr[title] { text-decoration: none; }
 .horarios-funcionamento div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1.5px dashed var(--cor-tracejado); padding: 4px 0; }
 .horarios-funcionamento dt { font-weight: 800; }
 .horarios-funcionamento dd { margin: 0; color: var(--cor-texto-suave); text-align: right; }
+.horarios-funcionamento dd span { display: block; }
 .contatos { display: flex; flex-wrap: wrap; gap: 12px; }
 .mapa { overflow: hidden; min-height: 300px; display: flex; background: var(--cor-superficie); }
 .mapa iframe { width: 100%; min-height: 360px; border: 0; }
