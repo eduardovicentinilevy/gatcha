@@ -165,11 +165,38 @@ export const CONFIG = Object.freeze({
     texto: 'Se apaixonou por algum gato? A gente te conecta com o Abrigo São Gabriel.',
   },
 
-  /** [SUBSTITUIR] por avaliações reais (Google/Instagram), com autorização dos autores. */
+  /**
+   * Avaliações reais do Google Maps (copiadas pelo dono do projeto), exibidas
+   * quando a Places API não está configurada. Texto original; trechos longos
+   * cortados com […]. Sobrenome abreviado por privacidade. `nota` só quando
+   * conhecida (sem nota = sem estrelas, para não inventar).
+   */
   avaliacoes: [
-    { nome: 'Júlia, 19', texto: 'Melhor matchá latte de SP e ainda tomei com o Mochi dormindo no meu colo. Voltarei.', nota: 5 },
-    { nome: 'Rafa, 24', texto: 'Reservei no metrô, cheguei e já tava tudo certo. O gatil é muito cheiroso e organizado.', nota: 5 },
-    { nome: 'Dona Cida, mãe da Bia (11)', texto: 'Regras claras e equipe atenciosa com as crianças. Me senti segura.', nota: 5 },
+    {
+      nome: 'Rafaela',
+      fonte: 'Google Maps',
+      texto:
+        'Bem gostoso, fui com a minha namorada e ficamos 30 minutos com os gatinhos e foi muito incrível! Cada um tem uma personalidade bem diferente […] São varios gatinhos e queria levar todos eles mas não posso 🥲 fora os gatinhos, a bebida é bem gostosa […] O lugar é bem inclusivo, me senti muito acolhida',
+    },
+    {
+      nome: 'Eduardo C.',
+      fonte: 'Google Maps',
+      texto:
+        'A localização é maravilhosa, o ambiente é aconchegante, o atendimento é primoroso, o cardápio é bem estruturado com opção para público vegetariano ou até quem não quer sair da dieta! O matcha latte é sem açúcar (ponto positivo) e de qualidade superior, o pão de queijo com queijo da Canastra é uma delícia, para quem gosta de um docinho o cookie é delicioso. Pausa para falar do espaço dos gatinhos que é incrível, eu adorei a experiência! Amei o conceito de cat café 💚',
+    },
+    {
+      nome: 'iPhotoworks',
+      fonte: 'Google Maps',
+      texto:
+        'Um café padrão, com menu dominado por tudo relacionado a matcha. Para brincar com os gatos, é necessário fazer uma reserva, que pode ser feita dentro do próprio café. Os gatos também têm horário de descanso, então é importante prestar atenção no horário da visita caso você queira brincar com eles.',
+    },
+    {
+      nome: 'Hannah C.',
+      fonte: 'Google Maps',
+      nota: 4,
+      texto:
+        'Coisas pra comer gostosas, gostei do matcha com yakult, o resto achei bem normal (não achei brownie e café particularmente o ponto alto). O valor é 15 reais por 15 minutos. Minha única nota que baixou para 4 seria o estabelecimento ser muuuiito pequeno e tava muito cheio, muito barulhento, os funcionarios pareciam estressados. Gatinhos eram fofos.',
+    },
   ],
 
   /** Perguntas frequentes do painel de atendimento. [CONFIRMAR respostas com o cliente] */

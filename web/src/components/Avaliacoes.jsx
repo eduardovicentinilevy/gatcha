@@ -31,7 +31,7 @@ export default function Avaliacoes() {
 
   const lista = google
     ? google.avaliacoes.slice(0, MAX_GOOGLE)
-    : CONFIG.avaliacoes.map((a) => ({ autor: a.nome, texto: a.texto, nota: a.nota }));
+    : CONFIG.avaliacoes.map((a) => ({ autor: a.nome, texto: a.texto, nota: a.nota, quando: a.fonte && `via ${a.fonte}` }));
 
   return (
     <section className="secao secao--creme" aria-labelledby="titulo-avaliacoes">
