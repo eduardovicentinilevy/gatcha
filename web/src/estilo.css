@@ -237,7 +237,9 @@ abbr[title] { text-decoration: none; }
 /* ---------- Carrossel ---------- */
 .carrossel__trilho {
   list-style: none; margin: 0; display: flex; gap: 16px; overflow-x: auto; overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 8px 12px 4px; margin: 0 -4px;
+  scroll-snap-type: x mandatory; scrollbar-width: none; padding: 4px 10px 12px 6px; margin: 0 -6px;
+  /* O snap alinha o card na borda do carrossel: sem isto ele ignora o padding e o hover (-2px) corta a borda. */
+  scroll-padding-inline: 6px;
 }
 .carrossel__trilho::-webkit-scrollbar { display: none; }
 .carrossel__item { flex: 0 0 86%; scroll-snap-align: start; display: flex; }
