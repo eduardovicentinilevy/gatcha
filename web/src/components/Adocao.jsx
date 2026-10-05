@@ -50,12 +50,12 @@ export default function Adocao() {
             classe="carrossel--gatos"
             renderItem={(g, i) => (
               <article className="gato cartao cartao--interativo">
-                <Foto src={g.foto_url} alt={`Foto de ${g.nome}`} icone="gato" tom={TONS[i % TONS.length]} />
+                <div className="midia">
+                  <Foto src={g.foto_url} alt={`Foto de ${g.nome}`} icone="gato" tom={TONS[i % TONS.length]} />
+                  {STATUS[g.status] && <span className={`selo selo--adesivo ${STATUS[g.status][1]}`}>{STATUS[g.status][0]}</span>}
+                </div>
                 <div className="gato__corpo">
-                  <div className="gato__topo">
-                    <h3>{g.nome}</h3>
-                    {STATUS[g.status] && <span className={`selo ${STATUS[g.status][1]}`}>{STATUS[g.status][0]}</span>}
-                  </div>
+                  <h3>{g.nome}</h3>
                   <p className="gato__meta">{[idade(g.idade_meses), g.sexo === 'femea' ? 'fêmea' : 'macho'].filter(Boolean).join(' · ')}</p>
                   <ul className="tags" aria-label="Personalidade">
                     {tags(g.personalidade).map((t) => <li key={t} className="tag">{t}</li>)}

@@ -16,7 +16,10 @@ export default function Avaliacoes() {
                 {Array.from({ length: 5 }, (_, i) => <IconeEstrela key={i} className={i < a.nota ? 'cheia' : ''} />)}
               </p>
               <blockquote><p>“{a.texto}”</p></blockquote>
-              <p className="avaliacao__autor">{a.nome}</p>
+              <p className="avaliacao__autor">
+                <span className="avaliacao__inicial" aria-hidden="true">{a.nome.trim()[0]}</span>
+                {a.nome}
+              </p>
             </li>
           ))}
         </ul>

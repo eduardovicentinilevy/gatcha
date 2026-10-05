@@ -70,14 +70,16 @@ export default function Cardapio() {
             <li key={i.id} className="item cartao cartao--interativo">
               <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} icone={i.categoria === 'Matchás' || i.categoria === 'Cafés' ? 'xicara' : 'patinha'} tom={i.categoria === 'Matchás' ? 'matcha' : 'creme'} />
               <div className="item__corpo">
-                {i.selos?.length > 0 && (
-                  <ul className="selos" aria-label="Selos">
-                    {i.selos.filter((s) => SELOS[s]).map((s) => <li key={s} className={`selo ${SELOS[s][1]}`}>{SELOS[s][0]}</li>)}
-                  </ul>
-                )}
                 <h3 className="item__nome">{i.nome}</h3>
                 {i.descricao && <p className="item__desc">{i.descricao}</p>}
-                <p className="item__preco">{reais(i.preco_centavos)}</p>
+                <div className="item__rodape">
+                  <p className="item__preco">{reais(i.preco_centavos)}</p>
+                  {i.selos?.length > 0 && (
+                    <ul className="selos" aria-label="Selos">
+                      {i.selos.filter((s) => SELOS[s]).map((s) => <li key={s} className={`selo ${SELOS[s][1]}`}>{SELOS[s][0]}</li>)}
+                    </ul>
+                  )}
+                </div>
               </div>
             </li>
           ))}
