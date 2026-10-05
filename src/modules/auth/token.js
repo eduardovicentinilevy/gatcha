@@ -36,7 +36,7 @@ export async function emitirToken(usuarioId, { agora = new Date() } = {}) {
   return { token, expiraEm: new Date(expiraEm * 1000).toISOString() };
 }
 
-/** @returns {Promise<number | null>} id do usuário, ou null se o token é inválido/expirado */
+/** @returns {Promise<{ id: number, emitidoEm: number } | null>} usuário e instante de emissão (s), ou null se inválido/expirado */
 export async function verificarToken(token, { agora = new Date() } = {}) {
   try {
     const { payload } = await jwtVerify(token, chave(), {
@@ -46,7 +46,7 @@ export async function verificarToken(token, { agora = new Date() } = {}) {
       currentDate: agora,
     });
     const id = Number(payload.sub);
-    return Number.isSafeInteger(id) && id > 0 ? id : null;
+    return Number.isSafeInteger(id) && id > 0 && Number.isInteger(payload.iat) ? { id, emitidoEm: payload.iat } : null;
   } catch {
     return null;
   }

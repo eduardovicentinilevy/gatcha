@@ -16,11 +16,13 @@ export async function exigirAdmin(req, res, next) {
   const [esquema, token] = cabecalho.split(' ');
   if (esquema?.toLowerCase() !== 'bearer' || !token) return next(naoAutorizado());
 
-  const usuarioId = await verificarToken(token);
-  if (!usuarioId) return next(naoAutorizado());
+  const sessao = await verificarToken(token);
+  if (!sessao) return next(naoAutorizado());
 
-  const usuario = await repo.buscarUsuarioPorId(pool, usuarioId);
+  const usuario = await repo.buscarUsuarioPorId(pool, sessao.id);
   if (!usuario) return next(naoAutorizado()); // usuário apagado: sessão encerrada
+  // Senha trocada/redefinida depois da emissão do token: sessão antiga encerrada.
+  if (sessao.emitidoEm < Math.floor(new Date(usuario.senha_alterada_em).getTime() / 1000)) return next(naoAutorizado());
 
   req.admin = usuario;
   const rota = req.originalUrl.split('?')[0];

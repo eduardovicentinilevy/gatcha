@@ -130,12 +130,17 @@ Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoj
 |---|---|
 | Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
 | Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
-| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado = sessão encerrada |
-| Limite de requisições nas rotas públicas | Por IP (reservas, geral e login) + bloqueio por e-mail no banco (5 falhas em 15 min), que vale em todas as instâncias |
+| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado ou senha trocada = sessão encerrada |
+| Limite de requisições nas rotas públicas | Por IP (reservas, geral e login) + bloqueio no banco, válido em todas as instâncias: 5 falhas/15 min por e-mail+IP e 30 no total por e-mail (quem erra de propósito de outro IP não tranca a equipe) |
 | HTTPS | Firebase Hosting / Cloud Run + HSTS (helmet) |
 | Log de acessos ao painel | Tabela `acessos_admin`: quem, quando, método, rota, status e IP. Nunca senha, token ou corpo |
 | Só nome e contato coletados + aviso | Página `/privacidade` (controlador, bases legais, compartilhamento, prazos, direitos) |
 | Reservas > 90 dias apagadas | `npm run lgpd:expurgar` (também apaga interesses de adoção e acessos vencidos) |
+
+### Atenção em produção: `TRUST_PROXY`
+
+O limite de tentativas e o log de acessos usam o IP do visitante, lido do `X-Forwarded-For`. O valor **precisa bater com os intermediários reais**:
+`TRUST_PROXY=1` com o Cloud Run direto, `TRUST_PROXY=2` com o Firebase Hosting na frente. Valor menor que o real faz todos os usuários parecerem um só IP (e o login bloqueia todo mundo); valor maior deixa o cliente forjar o próprio IP. Confira no primeiro deploy olhando o IP gravado em `acessos_admin`.
 
 ### Painel: primeiro acesso
 

@@ -10,7 +10,10 @@ import { pool } from '../src/db/pool.js';
 
 const [acao, bruto] = process.argv.slice(2);
 const contato = (bruto ?? '').trim().toLowerCase();
-const soDigitos = contato.replace(/\D/g, '');
+let soDigitos = contato.replace(/\D/g, '');
+// Telefones são guardados sem DDI (10 ou 11 dígitos): "+55 (11) 99999-9999" -> 11999999999.
+if (soDigitos.length >= 12 && soDigitos.startsWith('55')) soDigitos = soDigitos.slice(2);
+if (contato.includes('@')) soDigitos = ''; // e-mail: não tenta casar telefone
 if (!['exportar', 'apagar'].includes(acao) || contato.length < 5) {
   console.error('Uso: node scripts/titular.js <exportar|apagar> <e-mail ou telefone>');
   process.exit(1);
@@ -23,10 +26,23 @@ try {
     const reservas = await pool.query(`SELECT codigo, data, hora_inicio, duracao_min, pessoas, nome, telefone, email, status, criado_em FROM reservas WHERE ${filtroReservas} ORDER BY data`, [contato, soDigitos]);
     const interesses = await pool.query(`SELECT gato_id, nome, contato, mensagem, criado_em FROM interesses_adocao WHERE ${filtroInteresses} ORDER BY criado_em`, [contato, soDigitos]);
     console.log(JSON.stringify({ reservas: reservas.rows, interesses_adocao: interesses.rows }, null, 2));
+    if (!reservas.rowCount && !interesses.rowCount) console.error('Nada encontrado para esse contato (confira se o e-mail/telefone é o mesmo do cadastro).');
   } else {
-    const r = await pool.query(`DELETE FROM reservas WHERE ${filtroReservas}`, [contato, soDigitos]);
-    const i = await pool.query(`DELETE FROM interesses_adocao WHERE ${filtroInteresses}`, [contato, soDigitos]);
-    console.log(`Eliminados: ${r.rowCount} reserva(s) e ${i.rowCount} interesse(s) de adoção.`);
+    // As duas eliminações valem juntas ou nenhuma (não deixa o pedido pela metade).
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const r = await client.query(`DELETE FROM reservas WHERE ${filtroReservas}`, [contato, soDigitos]);
+      const i = await client.query(`DELETE FROM interesses_adocao WHERE ${filtroInteresses}`, [contato, soDigitos]);
+      await client.query('COMMIT');
+      console.log(`Eliminados: ${r.rowCount} reserva(s) e ${i.rowCount} interesse(s) de adoção.`);
+      if (!r.rowCount && !i.rowCount) console.error('Nada encontrado para esse contato (confira se o e-mail/telefone é o mesmo do cadastro).');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   }
 } catch (err) {
   console.error('Falha:', err.message);

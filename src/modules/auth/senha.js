@@ -7,6 +7,7 @@
  * - Nunca registrar a senha em log, resposta ou mensagem de erro.
  */
 import bcrypt from 'bcryptjs';
+import { AppError } from '../../lib/erros.js';
 
 export const CUSTO_BCRYPT = 12;
 export const MIN_CARACTERES = 12;
@@ -43,4 +44,27 @@ let hashFalso;
 export async function gastarTempoDeConferencia(senha) {
   hashFalso ??= await bcrypt.hash('hash-falso-para-igualar-o-tempo', CUSTO_BCRYPT);
   await bcrypt.compare(senha, hashFalso);
+}
+
+// bcryptjs é JavaScript puro: cada conferência gasta CPU da instância toda. Limita
+// quantas rodam ao mesmo tempo (e quantas esperam) para um fluxo de logins não
+// travar o resto da API; passou da fila, responde 503 em vez de acumular.
+const MAX_CONCORRENTES = 2;
+const MAX_NA_FILA = 20;
+let ativos = 0;
+const fila = [];
+
+export async function comLimiteDeConferencias(trabalho) {
+  if (ativos < MAX_CONCORRENTES) ativos++;
+  else {
+    if (fila.length >= MAX_NA_FILA) throw new AppError(503, 'SERVICO_OCUPADO', 'O login está muito ocupado. Tente de novo em instantes.');
+    await new Promise((liberar) => fila.push(liberar)); // a vaga é repassada por quem terminou
+  }
+  try {
+    return await trabalho();
+  } finally {
+    const proximo = fila.shift();
+    if (proximo) proximo();
+    else ativos--;
+  }
 }

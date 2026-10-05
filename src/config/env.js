@@ -112,7 +112,8 @@ const schema = z
     JWT_SECRET: z.string().default('').refine((v) => v === '' || v.length >= 32, 'JWT_SECRET deve ter ao menos 32 caracteres'),
     ADMIN_TOKEN_MINUTOS: inteiro(15, 5, 120),
     RATE_LIMIT_LOGIN_POR_15MIN: inteiro(10, 1, 1_000),
-    LOGIN_MAX_FALHAS_POR_EMAIL: inteiro(5, 3, 20),
+    LOGIN_MAX_FALHAS_POR_EMAIL: inteiro(5, 3, 20), // por e-mail + IP
+    LOGIN_MAX_FALHAS_GLOBAL_POR_EMAIL: inteiro(30, 5, 1_000), // por e-mail, somando todos os IPs (ataque distribuído)
 
     // Retenção de dados pessoais (LGPD). Reservas: 90 dias após a visita (escopo).
     // Interesses de adoção e log de acessos: prazos propostos, [CONFIRMAR] com o Gatchá.
@@ -177,6 +178,7 @@ function carregar() {
       jwtSecret: e.JWT_SECRET,
       tokenMinutos: e.ADMIN_TOKEN_MINUTOS,
       maxFalhasPorEmail: e.LOGIN_MAX_FALHAS_POR_EMAIL,
+      maxFalhasGlobalPorEmail: e.LOGIN_MAX_FALHAS_GLOBAL_POR_EMAIL,
       rateLimitLoginPor15Min: e.RATE_LIMIT_LOGIN_POR_15MIN,
     }),
     retencao: Object.freeze({

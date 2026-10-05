@@ -10,13 +10,14 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
 
   const post = (corpo, rota = '/api/auth/login') =>
     fetch(`${base}${rota}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) });
-  const login = (email = 'equipe@gatcha.com.br', senha = SENHA) => post({ email, senha });
+  const login = (email = 'equipe@gatcha.com.br', senha = SENHA, ip) =>
+    fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(ip && { 'x-forwarded-for': ip }) }, body: JSON.stringify({ email, senha }) });
   const eu = (token) => fetch(`${base}/api/admin/eu`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
 
   before(async () => {
     configurarAmbienteDeTeste({
       DATABASE_URL: URL_BANCO, DB_POOL_MAX: '10', LOG_LEVEL: 'silent',
-      JWT_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres-ok', LOGIN_MAX_FALHAS_POR_EMAIL: '5', RATE_LIMIT_LOGIN_POR_15MIN: '1000',
+      JWT_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres-ok', LOGIN_MAX_FALHAS_POR_EMAIL: '5', LOGIN_MAX_FALHAS_GLOBAL_POR_EMAIL: '8', RATE_LIMIT_LOGIN_POR_15MIN: '1000',
     });
     const { migrar } = await import('../../src/db/migrar.js');
     await migrar({ connectionString: URL_BANCO, ssl: false });
@@ -83,6 +84,32 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     assert.equal(status.filter((s) => s === 429).length, 25, `status: ${status}`);
   });
 
+  test('ATAQUE DE TRANCAMENTO: quem erra a senha de propósito de outro IP não tranca a conta da equipe', async () => {
+    for (let i = 0; i < 5; i++) assert.equal((await login('equipe@gatcha.com.br', `ataque-${i}-xxxxxxxx`, '203.0.113.9')).status, 401);
+    assert.equal((await login('equipe@gatcha.com.br', SENHA, '203.0.113.9')).status, 429, 'o IP do atacante fica bloqueado');
+    assert.equal((await login('equipe@gatcha.com.br', SENHA, '198.51.100.7')).status, 200, 'a equipe, de outro IP, entra normalmente');
+  });
+
+  test('ataque distribuído: muitas falhas somando vários IPs bloqueiam o e-mail (limite global)', async () => {
+    for (let i = 0; i < 8; i++) assert.equal((await login('equipe@gatcha.com.br', `distribuido-${i}-xxxxx`, `203.0.113.${10 + i}`)).status, 401);
+    assert.equal((await login('equipe@gatcha.com.br', SENHA, '198.51.100.7')).status, 429);
+  });
+
+  test('tentativas BLOQUEADAS não prolongam o bloqueio: ele expira sozinho', async () => {
+    for (let i = 0; i < 5; i++) await login('equipe@gatcha.com.br', `errada-${i}-xxxxxxxx`);
+    for (let i = 0; i < 6; i++) assert.equal((await login('equipe@gatcha.com.br', SENHA)).status, 429); // insistindo (mais que o limite)
+    // 16 minutos depois: as falhas reais saíram da janela; as tentativas bloqueadas (recentes) não contam
+    await pool.query("UPDATE acessos_admin SET criado_em = now() - interval '16 minutes' WHERE status = 401");
+    assert.equal((await login()).status, 200);
+  });
+
+  test('trocar a senha encerra as sessões já emitidas', async () => {
+    const { token } = await (await login()).json();
+    assert.equal((await eu(token)).status, 200);
+    await pool.query("UPDATE usuarios_admin SET senha_hash = senha_hash, senha_alterada_em = now() + interval '5 seconds'");
+    assert.equal((await eu(token)).status, 401);
+  });
+
   test('login correto zera as falhas anteriores', async () => {
     for (let i = 0; i < 4; i++) await login('equipe@gatcha.com.br', `errada-${i}-xxxxxxxx`);
     assert.equal((await login()).status, 200);
@@ -116,6 +143,7 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     await new Promise((r) => setTimeout(r, 300)); // o log do acesso é gravado ao fim da resposta
     const { rows } = await pool.query('SELECT evento, email, metodo, rota, status, ip, usuario_id FROM acessos_admin ORDER BY id');
     assert.deepEqual(rows.map((r) => r.evento), ['login_falha', 'login_ok', 'acesso']);
+    assert.deepEqual(rows.map((r) => r.status), [401, 200, 200]);
     assert.equal(rows[2].rota, '/api/admin/eu');
     assert.equal(rows[2].metodo, 'GET');
     assert.equal(rows[2].status, 200);

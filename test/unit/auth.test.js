@@ -38,14 +38,14 @@ test('bcrypt: hash não revela a senha, é salgado e confere só a senha certa',
 
 test('token válido volta o id do usuário e expira em 15 min', async () => {
   const { token, expiraEm } = await emitirToken(42);
-  assert.equal(await verificarToken(token), 42);
+  assert.equal((await verificarToken(token))?.id, 42);
   const minutos = (new Date(expiraEm) - Date.now()) / 60_000;
   assert.ok(minutos > 14 && minutos <= 15, `expira em ${minutos} min`);
   assert.equal(await verificarToken(token, { agora: new Date(Date.now() + 16 * 60_000) }), null, 'expirado');
 });
 
 test('token forjado ou adulterado é recusado', async () => {
-  assert.equal(await verificarToken(assinar({ alg: 'HS256', typ: 'JWT' }, payloadValido())), 7, 'controle: o token bem formado passa');
+  assert.equal((await verificarToken(assinar({ alg: 'HS256', typ: 'JWT' }, payloadValido())))?.id, 7, 'controle: o token bem formado passa');
   const casos = {
     'alg none': `${b64({ alg: 'none', typ: 'JWT' })}.${b64(payloadValido())}.`,
     'segredo errado': assinar({ alg: 'HS256', typ: 'JWT' }, payloadValido(), 'outro-segredo-com-mais-de-32-caracteres!!'),
@@ -60,4 +60,17 @@ test('token forjado ou adulterado é recusado', async () => {
   for (const [nome, token] of Object.entries(casos)) assert.equal(await verificarToken(token), null, nome);
   const { token } = await emitirToken(1);
   assert.equal(await verificarToken(token.slice(0, -2) + 'xx'), null, 'assinatura adulterada');
+});
+
+test('limitador de conferências: no máximo 2 ao mesmo tempo e a fila tem teto', async () => {
+  const { comLimiteDeConferencias } = await import('../../src/modules/auth/senha.js');
+  let simultaneas = 0, maximo = 0;
+  const trabalho = async () => { simultaneas++; maximo = Math.max(maximo, simultaneas); await new Promise((r) => setTimeout(r, 10)); simultaneas--; return 'ok'; };
+  const resultados = await Promise.all(Array.from({ length: 12 }, () => comLimiteDeConferencias(trabalho)));
+  assert.equal(resultados.every((r) => r === 'ok'), true);
+  assert.equal(maximo, 2);
+  // 2 em andamento + 20 na fila = 22; a 23ª é recusada (503) em vez de acumular
+  const lentas = Array.from({ length: 22 }, () => comLimiteDeConferencias(() => new Promise((r) => setTimeout(r, 50))));
+  await assert.rejects(comLimiteDeConferencias(trabalho), (e) => e.status === 503);
+  await Promise.all(lentas);
 });
