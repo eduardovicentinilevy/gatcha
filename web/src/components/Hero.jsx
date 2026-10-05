@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CONFIG } from '../config.js';
+import { CONFIG, linkInstagram } from '../config.js';
 import { carregarCardapio, carregarGatos } from '../api.js';
 import { agoraNoCafe, idade, reais } from '../util.js';
 import Carrossel from './Carrossel.jsx';
@@ -7,7 +7,10 @@ import Foto from './Foto.jsx';
 import LogoGato from './LogoGato.jsx';
 import { IconePatinha } from './Icones.jsx';
 
-/** Monta os destaques: gato do dia (muda a cada dia), bebida destaque e aviso de adoção. */
+/**
+ * Monta os destaques do topo a partir dos dados (gatos e cardápio) e do config:
+ * gato do dia, mais pedido, novidade, opção vegana, gatil, adoção e Instagram.
+ */
 async function montarDestaques() {
   const [{ lista: gatos }, { lista: itens }] = await Promise.all([carregarGatos(), carregarCardapio()]);
   const destaques = [];
@@ -39,6 +42,40 @@ async function montarDestaques() {
     });
   }
 
+  const novidade = ativos.find((i) => i.selos?.includes('novo') && i.id !== bebida?.id);
+  if (novidade) {
+    destaques.push({
+      id: 'novidade',
+      selo: 'Novidade',
+      titulo: novidade.nome,
+      texto: `${novidade.descricao} ${reais(novidade.preco_centavos)}.`,
+      foto: { src: novidade.foto_url, alt: `Foto de ${novidade.nome}`, icone: 'xicara', tom: 'rosa' },
+      link: ['#cardapio', 'Provar a novidade'],
+    });
+  }
+
+  const vegano = ativos.find((i) => i.selos?.includes('vegano') && ['Doces', 'Salgados'].includes(i.categoria));
+  if (vegano) {
+    destaques.push({
+      id: 'vegano',
+      selo: 'Opção vegana',
+      titulo: vegano.nome,
+      texto: `${vegano.descricao} ${reais(vegano.preco_centavos)}.`,
+      foto: { src: vegano.foto_url, alt: `Foto de ${vegano.nome}`, icone: 'patinha', tom: 'matcha' },
+      link: ['#cardapio', 'Ver itens veganos'],
+    });
+  }
+
+  const { precosCentavos } = CONFIG.gatil;
+  destaques.push({
+    id: 'gatil',
+    selo: 'Gatil',
+    titulo: `A partir de ${reais(Math.min(...Object.values(precosCentavos)))}`,
+    texto: `Sessões de ${Object.keys(precosCentavos).join(' ou ')} minutos com os gatos. Reserva em menos de 1 minuto, pagamento no local.`,
+    foto: { alt: 'Ilustração de gato', icone: 'gato', tom: 'creme' },
+    link: ['#reserva', 'Reservar horário'],
+  });
+
   destaques.push({
     id: 'adocao',
     selo: 'Adoção',
@@ -46,6 +83,15 @@ async function montarDestaques() {
     texto: CONFIG.destaqueAdocao.texto,
     foto: { alt: 'Ilustração de patinha de gato', icone: 'patinha', tom: 'rosa' },
     link: ['#adocao', 'Ver gatos para adoção'],
+  });
+
+  destaques.push({
+    id: 'instagram',
+    selo: `@${CONFIG.contato.instagram}`,
+    titulo: 'Bastidores e gato novo',
+    texto: 'Siga a gente pra saber quem chegou no gatil e qual é o matchá do dia.',
+    foto: { alt: 'Ilustração de xícara de matchá', icone: 'xicara', tom: 'matcha' },
+    link: [linkInstagram(), 'Seguir no Instagram', true],
   });
   return destaques;
 }
@@ -98,7 +144,7 @@ export default function Hero() {
                     <p className="selo">{d.selo}</p>
                     <h2 className="destaque__titulo">{d.titulo}</h2>
                     <p>{d.texto}</p>
-                    <a className="link" href={d.link[0]}>{d.link[1]} →</a>
+                    <a className="link" href={d.link[0]} {...(d.link[2] && { target: '_blank', rel: 'noopener noreferrer' })}>{d.link[1]} →</a>
                   </div>
                 </article>
               )}
