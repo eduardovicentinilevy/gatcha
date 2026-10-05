@@ -234,30 +234,23 @@ abbr[title] { text-decoration: none; }
 .carrossel__item { flex: 0 0 86%; scroll-snap-align: start; display: flex; }
 .carrossel__item > * { flex: 1; }
 .carrossel__controles { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; }
-.carrossel__contador { margin: 0; min-width: 7ch; text-align: center; font-weight: 800; font-size: .9rem; color: var(--cor-texto-suave); }
+.carrossel__controles .botao-icone { display: none; }
 .carrossel__pontos { display: flex; gap: 6px; }
 .carrossel__pontos span { width: 9px; height: 9px; border-radius: 99px; border: 2px solid var(--cor-borda); transition: width var(--transicao), background var(--transicao); }
 .carrossel__pontos span.ativo { width: 26px; background: var(--cor-matcha); }
-@media (min-width: 900px) { .carrossel__controles { justify-content: flex-end; } }
-/* Dentro de carrossel o card não "pula" no hover: todos ficam alinhados na mesma linha. */
-.carrossel .cartao--interativo:hover { transform: none; box-shadow: var(--sombra-g); }
+@media (hover: hover) and (pointer: fine) {
+  .carrossel__controles { justify-content: flex-end; }
+  .carrossel__controles .botao-icone { display: inline-grid; }
+}
 @media (min-width: 640px) { .carrossel__item { flex-basis: calc(50% - 8px); } }
 @media (min-width: 1000px) { .carrossel__item { flex-basis: calc(33.333% - 11px); } }
 
-.carrossel--destaques .carrossel__item { flex-basis: 100%; }
 .destaque { display: grid; grid-template-columns: 104px 1fr; overflow: hidden; color: var(--cor-texto); }
 .destaque__foto { height: 100%; border-bottom: 0; border-right: var(--borda); }
 .destaque__foto.foto--placeholder svg { width: 46%; }
 .destaque__corpo { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .destaque__corpo p:not(.selo) { margin: 0; color: var(--cor-texto-suave); font-size: .94rem; }
 .destaque__titulo { font-size: 1.2rem; margin: 2px 0 0; }
-@media (min-width: 640px) {
-  .destaque { grid-template-columns: 220px 1fr; min-height: 200px; }
-  .destaque__corpo { padding: 22px 28px; gap: 10px; justify-content: center; }
-  .destaque__titulo { font-size: clamp(1.5rem, 3vw, 2.2rem); }
-  .destaque__corpo p:not(.selo) { font-size: 1.05rem; max-width: 52ch; }
-  .destaque .link { margin-top: 6px; }
-}
 .destaque .link { margin-top: auto; }
 
 /* ---------- Cardápio ---------- */
@@ -277,18 +270,20 @@ abbr[title] { text-decoration: none; }
 .busca:focus-within { outline: 3px solid var(--cor-matcha-forte); outline-offset: 2px; }
 @media (min-width: 900px) { .cardapio__filtros { grid-template-columns: 1fr 320px; align-items: center; } }
 
-.item { overflow: hidden; display: flex; flex-direction: column; }
-.item .foto { aspect-ratio: 16 / 10; }
-.item .foto--placeholder svg { width: 28%; }
-.carrossel--cardapio .carrossel__item { flex-basis: 72%; }
-@media (min-width: 560px) { .carrossel--cardapio .carrossel__item { flex-basis: calc((100% - 16px) / 2); } }
-@media (min-width: 800px) { .carrossel--cardapio .carrossel__item { flex-basis: calc((100% - 32px) / 3); } }
-@media (min-width: 1000px) { .carrossel--cardapio .carrossel__item { flex-basis: calc((100% - 48px) / 4); } }
-@media (min-width: 1200px) { .carrossel--cardapio .carrossel__item { flex-basis: calc((100% - 64px) / 5); } }
+.cardapio { list-style: none; display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.item { overflow: hidden; display: grid; grid-template-columns: 96px 1fr; }
+.item .foto { height: 100%; aspect-ratio: auto; min-height: 112px; border-bottom: 0; border-right: var(--borda); }
+.item .foto--placeholder svg { width: 50%; }
+@media (min-width: 640px) {
+  .item { display: flex; flex-direction: column; }
+  .item .foto { aspect-ratio: 16 / 10; height: auto; min-height: 0; border-right: 0; border-bottom: var(--borda); }
+  .item .foto--placeholder svg { width: 26%; }
+}
 .item__corpo { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
 .item__nome { margin: 0; font-size: 1.18rem; }
 .item__desc { margin: 0; color: var(--cor-texto-suave); font-size: .92rem; flex: 1; }
-.item__rodape { display: flex; flex-direction: column-reverse; align-items: flex-start; gap: 8px; min-height: 80px; margin-top: 6px; padding-top: 10px; border-top: 2px dashed var(--cor-superficie2); }
+.item__rodape { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 6px; padding-top: 10px; border-top: 2px dashed var(--cor-superficie2); }
+.item__rodape .selos { justify-content: flex-end; }
 .item__preco { margin: 0; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.3rem; line-height: 1; }
 
 /* ---------- Gatil ---------- */

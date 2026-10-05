@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { CONFIG } from '../config.js';
 import { carregarCardapio } from '../api.js';
 import { normalizarBusca, reais } from '../util.js';
-import Carrossel from './Carrossel.jsx';
 import Foto from './Foto.jsx';
 import { IconeBusca } from './Icones.jsx';
 
@@ -65,33 +64,26 @@ export default function Cardapio() {
         </div>
 
         <p className="sr" aria-live="polite">{itens ? `${visiveis.length} itens encontrados` : ''}</p>
-        {!itens && <div className="esqueleto esqueleto--card" />}
-        {itens && visiveis.length > 0 && (
-          <Carrossel
-            key={`${ativa}|${termo}`} // filtro ou busca novos: volta ao primeiro card
-            rotulo="Itens do cardápio"
-            itens={visiveis}
-            chave={(i) => i.id}
-            classe="carrossel--cardapio"
-            renderItem={(i) => (
-              <article className="item cartao cartao--interativo">
-                <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} icone={i.categoria === 'Matchás' || i.categoria === 'Cafés' ? 'xicara' : 'patinha'} tom={i.categoria === 'Matchás' ? 'matcha' : 'creme'} />
-                <div className="item__corpo">
-                  <h3 className="item__nome">{i.nome}</h3>
-                  {i.descricao && <p className="item__desc">{i.descricao}</p>}
-                  <div className="item__rodape">
-                    <p className="item__preco">{reais(i.preco_centavos)}</p>
-                    {i.selos?.length > 0 && (
-                      <ul className="selos" aria-label="Selos">
-                        {i.selos.filter((s) => SELOS[s]).map((s) => <li key={s} className={`selo ${SELOS[s][1]}`}>{SELOS[s][0]}</li>)}
-                      </ul>
-                    )}
-                  </div>
+        <ul className="cardapio">
+          {!itens && [1, 2, 3, 4].map((n) => <li key={n} className="esqueleto esqueleto--card" />)}
+          {visiveis.map((i) => (
+            <li key={i.id} className="item cartao cartao--interativo">
+              <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} icone={i.categoria === 'Matchás' || i.categoria === 'Cafés' ? 'xicara' : 'patinha'} tom={i.categoria === 'Matchás' ? 'matcha' : 'creme'} />
+              <div className="item__corpo">
+                <h3 className="item__nome">{i.nome}</h3>
+                {i.descricao && <p className="item__desc">{i.descricao}</p>}
+                <div className="item__rodape">
+                  <p className="item__preco">{reais(i.preco_centavos)}</p>
+                  {i.selos?.length > 0 && (
+                    <ul className="selos" aria-label="Selos">
+                      {i.selos.filter((s) => SELOS[s]).map((s) => <li key={s} className={`selo ${SELOS[s][1]}`}>{SELOS[s][0]}</li>)}
+                    </ul>
+                  )}
                 </div>
-              </article>
-            )}
-          />
-        )}
+              </div>
+            </li>
+          ))}
+        </ul>
         {itens && visiveis.length === 0 && (
           <p className="vazio">Nada com “{busca}” por aqui. Que tal um matchá latte? 🍵</p>
         )}
