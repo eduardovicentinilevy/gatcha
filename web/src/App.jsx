@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useTema } from './tema.js';
 import { usePagina } from './navegacao.js';
 import { reduzirMovimento } from './util.js';
-import AvisoPrototipo from './components/AvisoPrototipo.jsx';
 import Topo from './components/Topo.jsx';
 import Hero from './components/Hero.jsx';
 import Cardapio from './components/Cardapio.jsx';
@@ -60,7 +59,6 @@ export default function App() {
   return (
     <>
       <a className="pular" href="#conteudo">Pular para o conteúdo</a>
-      <AvisoPrototipo />
       <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
       {pagina === 'privacidade' ? (
         <Privacidade key="privacidade" className={classePagina} />

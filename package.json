@@ -13,7 +13,6 @@
     "predev": "node scripts/preparar-dev.js",
     "dev": "node --watch --env-file=.env src/server.js",
     "web:dev": "npm --prefix web run dev",
-    "prototipo": "npm --prefix web run prototipo",
     "build": "npm run web:build",
     "web:build": "npm --prefix web run build",
     "db:up": "docker compose up -d --wait",

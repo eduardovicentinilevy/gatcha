@@ -72,12 +72,6 @@ abbr[title] { text-decoration: none; }
   color: var(--cor-texto);
 }
 
-/* ---------- Aviso do protótipo ---------- */
-.aviso-prototipo {
-  margin: 0; padding: 6px 16px; text-align: center; font-size: .85rem;
-  background: var(--cor-destaque); color: var(--cor-botao-texto); border-bottom: var(--borda);
-}
-
 /* ---------- Botões ---------- */
 .botao {
   display: inline-flex; align-items: center; justify-content: center; gap: .5em;

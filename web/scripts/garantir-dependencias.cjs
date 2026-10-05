@@ -1,5 +1,5 @@
 /**
- * Roda antes de `npm run dev`, `prototipo` e `build` (scripts "pre*").
+ * Roda antes de `npm run dev` e `build` (scripts "pre*").
  * Confere se TODAS as dependências do package.json estão instaladas. Se faltar
  * alguma (repositório recém-clonado, ou `git pull` trouxe uma dependência nova),
  * instala agora com o lockfile, em vez de o Vite falhar com

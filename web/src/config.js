@@ -6,10 +6,6 @@
  * =============================================================================
  */
 
-/** Modo protótipo: dados vêm dos JSON em /public/dados-exemplo e nenhuma reserva é real.
- *  Ativado com `npm run prototipo` (arquivo web/.env.prototipo). */
-const MODO_PROTOTIPO = import.meta.env.VITE_MODO_PROTOTIPO === 'true';
-
 /** "10:30" -> "10h30"; "10:00" -> "10h". */
 const horaPorExtenso = (hhmm) => {
   const [h, m] = hhmm.split(':');
@@ -28,13 +24,11 @@ const CAFE = intervalo('10:00', '18:30');
 const JANELAS_GATOS = [intervalo('10:30', '11:50'), intervalo('13:10', '17:30')];
 
 export const CONFIG = Object.freeze({
-  modoPrototipo: MODO_PROTOTIPO,
-
   // ---------------------------------------------------------------------------
   // Dados / API
   // ---------------------------------------------------------------------------
   apiBase: import.meta.env.VITE_API_BASE || '/api',
-  // Base dos JSON de exemplo (mesmo formato da API). Para usar a API real, basta desligar o modo protótipo.
+  // JSON de exemplo (mesmo formato da API): usados no cardápio e nos gatos enquanto /api/cardapio e /api/gatos não existem.
   dadosExemploBase: `${import.meta.env.BASE_URL}dados-exemplo`,
   timeoutMs: 10_000,
 

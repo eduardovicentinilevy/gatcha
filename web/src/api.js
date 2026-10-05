@@ -1,14 +1,8 @@
 /**
- * Cliente de dados do site.
- *
- * - Modo normal: fala com a API (mesma origem; o Firebase Hosting reescreve /api
- *   para o Cloud Run e, em dev, o proxy do Vite faz o mesmo).
- * - Modo protótipo (CONFIG.modoPrototipo): lê os JSON de /dados-exemplo, que têm
- *   o MESMO formato da API, e simula reservas e interesses em memória. Para ligar
- *   a API real, basta desligar o modo protótipo; os componentes não mudam.
+ * Cliente de dados do site: fala com a API na mesma origem (o Firebase Hosting
+ * reescreve /api para o Cloud Run e, em dev, o proxy do Vite faz o mesmo).
  */
 import { CONFIG } from './config.js';
-import * as prototipo from './prototipo.js';
 
 export class ErroApi extends Error {
   constructor(status, codigo, mensagem, detalhes) {
@@ -78,7 +72,6 @@ function carregadorComCache(rota, arquivo, chave) {
   let promessa;
   return () => {
     promessa ??= (async () => {
-      if (CONFIG.modoPrototipo) return { lista: (await doExemplo(arquivo))[chave], exemplo: true };
       try {
         return { lista: (await requisitar(CONFIG.apiBase + rota))[chave], exemplo: false };
       } catch {
@@ -97,11 +90,10 @@ export const carregarGatos = carregadorComCache('/gatos', 'gatos.json', 'gatos')
 
 /**
  * Avaliações do Google Maps (via backend, que guarda a chave da Places API).
- * No protótipo, ou se a API não estiver configurada, devolve { disponivel: false }
- * e o site mostra as avaliações de exemplo do config.
+ * Se a API não estiver configurada (ou falhar), devolve { disponivel: false }
+ * e o site mostra as avaliações do config.
  */
 export async function carregarAvaliacoes(sinal) {
-  if (CONFIG.modoPrototipo) return { disponivel: false, avaliacoes: [] };
   try {
     return await requisitar(`${CONFIG.apiBase}/avaliacoes`, { sinal });
   } catch {
@@ -110,12 +102,7 @@ export async function carregarAvaliacoes(sinal) {
 }
 
 export const api = {
-  horarios: (data, sinal) =>
-    CONFIG.modoPrototipo
-      ? prototipo.horarios(data)
-      : requisitar(`${CONFIG.apiBase}/horarios?data=${encodeURIComponent(data)}`, { sinal }),
-  criarReserva: (dados) =>
-    CONFIG.modoPrototipo ? prototipo.criarReserva(dados) : requisitar(`${CONFIG.apiBase}/reservas`, { metodo: 'POST', corpo: dados }),
-  registrarInteresse: (dados) =>
-    CONFIG.modoPrototipo ? prototipo.registrarInteresse(dados) : requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
+  horarios: (data, sinal) => requisitar(`${CONFIG.apiBase}/horarios?data=${encodeURIComponent(data)}`, { sinal }),
+  criarReserva: (dados) => requisitar(`${CONFIG.apiBase}/reservas`, { metodo: 'POST', corpo: dados }),
+  registrarInteresse: (dados) => requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
 };

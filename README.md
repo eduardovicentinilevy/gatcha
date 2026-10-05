@@ -12,29 +12,24 @@ React 19 + Vite em `web/`, publicado no Firebase Hosting. Visual neo-brutalista 
 
 > **Não abra `web/index.html` direto no navegador** (`file://`) nem digite `vite` no terminal: use os scripts abaixo.
 
-### Protótipo para validação com o cliente (sem backend)
+### Desenvolvimento
+
+O site precisa da API (horários, reservas e avaliações vêm dela). Suba o banco e a API, depois o site:
 
 ```bash
-npm run prototipo      # http://localhost:5173 — dados de /web/public/dados-exemplo, nenhuma reserva é real
+npm run db:up && npm run migrate:dev   # Postgres local (Docker) e tabelas
+npm run dev                            # API em http://localhost:8080
+npm run web:dev                        # site em http://localhost:5173 (repassa /api para a 8080)
 ```
 
-- Os JSON de `web/public/dados-exemplo/` têm **o mesmo formato da API** (`/api/cardapio`, `/api/gatos`, `/api/horarios?data=`). Para usar a API real basta sair do modo protótipo (`npm run web:dev`): os componentes não mudam.
-- O simulador (`web/src/prototipo.js`) aplica as regras da API: dias fechados, horários passados e vagas por célula de 15 min, descontando as reservas feitas na sessão.
-- Para mandar um link ao cliente: `npm --prefix web run build:prototipo` e publique `web/dist` (ex.: `firebase hosting:channel:deploy prototipo`).
-
-### Desenvolvimento com a API
-
-```bash
-npm run dev            # API em http://localhost:8080
-npm run web:dev        # site em http://localhost:5173 (repassa /api para a 8080)
-```
+Enquanto `/api/cardapio` e `/api/gatos` não existem, o site usa os JSON de `web/public/dados-exemplo/` (mesmo formato da API) como cardápio e gatos de exemplo.
 
 ### Onde mexer
 
 | O quê | Onde |
 |---|---|
 | Cores (claro/escuro), textos, preços, horários, regras, FAQ, avaliações, contatos | `web/src/config.js` (procure `[SUBSTITUIR]` e `[CONFIRMAR]`) |
-| Dados de exemplo | `web/public/dados-exemplo/*.json` |
+| Cardápio e gatos de exemplo (até a API ter essas rotas) | `web/public/dados-exemplo/*.json` |
 | Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
 | Fluxo de reserva | `web/src/components/Reserva.jsx` |
 | Transição entre páginas | `web/src/navegacao.js` + bloco "Transição entre páginas" em `estilo.css` |
