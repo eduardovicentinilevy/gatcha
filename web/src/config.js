@@ -170,6 +170,8 @@ export const CONFIG = Object.freeze({
    * quando a Places API não está configurada. Texto original; trechos longos
    * cortados com […]. Sobrenome abreviado por privacidade. `nota` só quando
    * conhecida (sem nota = sem estrelas, para não inventar).
+   * [CONFIRMAR] autorização dos autores para uso no site (LGPD) antes de publicar.
+   * O ideal em produção é a Places API (GOOGLE_PLACES_API_KEY), que segue as regras do Google.
    */
   avaliacoes: [
     {

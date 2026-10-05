@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { CONFIG } from '../config.js';
+
+const LINK_MAPS_PADRAO = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONFIG.endereco.consultaMapa)}`;
 import { carregarAvaliacoes } from '../api.js';
 import { IconeEstrela } from './Icones.jsx';
 
-const MAX_GOOGLE = 3;
+const MAX_GOOGLE = 4; // grade de 2 colunas no desktop: número par
 const formatarNota = (n) => n.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function Estrelas({ nota }) {
@@ -67,15 +69,10 @@ export default function Avaliacoes() {
             </li>
           ))}
         </ul>
-        {google && (
+        {(google || CONFIG.avaliacoes.some((a) => a.fonte === 'Google Maps')) && (
           <p className="avaliacoes__fonte">
-            Avaliações do Google
-            {google.link_maps && (
-              <>
-                {' · '}
-                <a className="link" href={google.link_maps} target="_blank" rel="noopener noreferrer">Ver todas no Google Maps</a>
-              </>
-            )}
+            Avaliações do Google{' · '}
+            <a className="link" href={google?.link_maps ?? LINK_MAPS_PADRAO} target="_blank" rel="noopener noreferrer">Ver todas no Google Maps</a>
           </p>
         )}
       </div>
