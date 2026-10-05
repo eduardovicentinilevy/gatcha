@@ -91,6 +91,7 @@ export default function Hero() {
               itens={destaques}
               chave={(d) => d.id}
               classe="carrossel--destaques"
+              loop
               renderItem={(d) => (
                 <article className="destaque cartao">
                   <Foto {...d.foto} proporcao="1/1" className="destaque__foto" />
