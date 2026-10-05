@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTema } from './tema.js';
+import { usePagina } from './navegacao.js';
 import { reduzirMovimento } from './util.js';
 import AvisoPrototipo from './components/AvisoPrototipo.jsx';
 import Topo from './components/Topo.jsx';
@@ -46,14 +47,15 @@ function useRevelarAoRolar() {
   }, []);
 }
 
-/** Duas páginas apenas: não justifica um roteador. O Firebase reescreve tudo para o index.html. */
+/** Duas páginas apenas: não justifica um roteador. O Firebase reescreve tudo para o index.html
+ *  e a troca entre elas é animada (src/navegacao.js). */
 export default function App() {
   const [tema, alternarTema] = useTema();
   const [gatinho, setGatinho] = useState(false);
   const esconderGatinho = useCallback(() => setGatinho(false), []);
+  const { pagina, animarSemApi } = usePagina();
   useRevelarAoRolar();
-
-  const pagina = window.location.pathname.replace(/\/+$/, '') === '/privacidade' ? 'privacidade' : 'inicio';
+  const classePagina = animarSemApi ? 'pagina pagina--entrando' : 'pagina';
 
   return (
     <>
@@ -61,9 +63,9 @@ export default function App() {
       <AvisoPrototipo />
       <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
       {pagina === 'privacidade' ? (
-        <Privacidade />
+        <Privacidade key="privacidade" className={classePagina} />
       ) : (
-        <main id="conteudo">
+        <main id="conteudo" key="inicio" className={classePagina}>
           <Hero />
           <Cardapio />
           <Gatil />
@@ -74,7 +76,7 @@ export default function App() {
         </main>
       )}
       <Rodape />
-      {pagina === 'inicio' && <BarraReserva />}
+      <BarraReserva pagina={pagina} />
       <Atendimento />
       <Gatinho visivel={gatinho} onSumir={esconderGatinho} />
     </>

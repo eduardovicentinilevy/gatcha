@@ -578,6 +578,26 @@ abbr[title] { text-decoration: none; }
 .esqueleto--destaque { min-height: 150px; }
 @keyframes brilho { to { background-position: -200% 0; } }
 
+/* ---------- Transição entre páginas (src/navegacao.js) ---------- */
+/* O topo fica parado: só o conteúdo troca. */
+.topo { view-transition-name: topo; }
+::view-transition-group(topo) { animation-duration: 0s; }
+
+/* Página antiga: recua e escurece um pouco. */
+::view-transition-old(root) { animation: 420ms cubic-bezier(.4, 0, .2, 1) both vt-recuar; }
+/* Página nova: revelada num círculo que cresce a partir do ponto clicado (--vt-x/--vt-y). */
+::view-transition-new(root) { animation: 560ms cubic-bezier(.2, .8, .2, 1) both vt-revelar; }
+
+@keyframes vt-recuar { to { transform: scale(.96); opacity: .4; filter: saturate(.6); } }
+@keyframes vt-revelar {
+  from { clip-path: circle(0 at var(--vt-x, 50%) var(--vt-y, 30%)); }
+  to { clip-path: circle(150vmax at var(--vt-x, 50%) var(--vt-y, 30%)); }
+}
+
+/* Navegadores sem View Transitions: a página nova entra com fade + leve subida. */
+.pagina--entrando { animation: pagina-entrar 380ms cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes pagina-entrar { from { opacity: 0; transform: translateY(14px); } }
+
 /* ---------- Microanimações ao rolar (só com JS ativo e sem reduced-motion) ---------- */
 .com-animacao [data-revelar] { transition: opacity 500ms ease, transform 500ms ease; }
 .com-animacao [data-revelar]:not(.visivel) { opacity: 0; transform: translateY(18px); }
@@ -585,4 +605,5 @@ abbr[title] { text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

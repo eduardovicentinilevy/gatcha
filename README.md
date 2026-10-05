@@ -37,6 +37,7 @@ npm run web:dev        # site em http://localhost:5173 (repassa /api para a 8080
 | Dados de exemplo | `web/public/dados-exemplo/*.json` |
 | Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
 | Fluxo de reserva | `web/src/components/Reserva.jsx` |
+| Transição entre páginas | `web/src/navegacao.js` + bloco "Transição entre páginas" em `estilo.css` |
 
 - **Segurança:** o React escapa todo texto dinâmico; CSP estrita sem `unsafe-inline` em `firebase.json`; fontes servidas pelo próprio site; mapa do Google só carrega quando a pessoa pede (LGPD).
 - **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, foco movido a cada etapa da reserva, `prefers-reduced-motion` respeitado.
