@@ -7,12 +7,11 @@
  */
 import { CONFIG } from './config.js';
 import { ErroApi, requisitar } from './api.js';
-import { agoraNoCafe, diaDaSemana } from './util.js';
+import { agoraNoCafe, diaDaSemana, paraMinutos } from './util.js';
 
 const reservasDaSessao = []; // { data, inicio, duracao, pessoas }
 let diaTipico;
 
-const paraMinutos = (hhmm) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3, 5));
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function carregarDiaTipico() {

@@ -59,8 +59,8 @@ export default function Rodape() {
           <li className="rodape__info">
             <IconeRelogio className="rodape__icone" />
             <div>
-              <p className="rodape__destaque">{funcionamento[0].dias} · {funcionamento[0].horario}</p>
-              {funcionamento.slice(1).map((f) => <p key={f.dias}>{f.dias}: {f.horario}</p>)}
+              <p className="rodape__destaque">{funcionamento[0].dias} · {funcionamento[0].horarios.join(' e ')}</p>
+              {funcionamento.slice(1).map((f) => <p key={f.dias}>{f.dias}: {f.horarios.join(' e ')}</p>)}
               <StatusFuncionamento />
             </div>
           </li>

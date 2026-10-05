@@ -29,7 +29,10 @@ export default function Visite() {
           <h3><IconeRelogio /> Horários</h3>
           <dl className="horarios-funcionamento">
             {funcionamento.map((f) => (
-              <div key={f.dias}><dt>{f.dias}</dt><dd>{f.horario}</dd></div>
+              <div key={f.dias}>
+                <dt>{f.dias}</dt>
+                <dd>{f.horarios.map((h) => <span key={h}>{h}</span>)}</dd>
+              </div>
             ))}
           </dl>
 

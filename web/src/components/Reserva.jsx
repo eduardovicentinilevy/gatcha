@@ -9,7 +9,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CONFIG } from '../config.js';
 import { api, ErroApi } from '../api.js';
 import {
-  diaDaSemana, focarPrimeiroErro, mascararTelefone, normalizarTelefone, proximosDias, reais, RE_EMAIL, RE_NOME, rotuloDia,
+  diaDaSemana, focarPrimeiroErro, mascararTelefone, normalizarTelefone, paraMinutos, proximosDias, reais, RE_EMAIL, RE_NOME, rotuloDia,
 } from '../util.js';
 import Campo, { Aceite } from './Campo.jsx';
 import LogoGato from './LogoGato.jsx';
@@ -368,29 +368,61 @@ function Horarios({ grade, hora, onEscolher, onOutroDia }) {
   }
   return (
     <>
-      <div className="horarios" role="group" aria-label="Horários disponíveis">
-        {grade.horarios.map((h) => {
-          const vagas = h.vagas_15min;
-          const texto = vagas === 0 ? 'esgotado' : vagas === 1 ? 'última vaga!' : `${vagas} vagas`;
-          return (
-            <button
-              key={h.hora_inicio}
-              type="button"
-              className={`horario${vagas > 0 && vagas <= 2 ? ' horario--poucas' : ''}`}
-              disabled={vagas === 0}
-              aria-pressed={h.hora_inicio === hora}
-              aria-label={`${h.hora_inicio}, ${texto}`}
-              onClick={() => onEscolher(h.hora_inicio)}
-            >
-              <span className="horario__hora">{h.hora_inicio}</span>
-              <span className="horario__vagas">{texto}</span>
-            </button>
-          );
-        })}
+      <div className="horarios-grupos">
+        {agruparPorJanela(grade.horarios).map((g) => (
+          <div
+            key={g.horarios[0].hora_inicio}
+            className="horarios-grupo"
+            role="group"
+            aria-label={g.rotulo ? `Horários disponíveis, ${g.rotulo}` : 'Horários disponíveis'}
+          >
+            {g.rotulo && <p className="horarios-grupo__titulo" aria-hidden="true">{g.rotulo}</p>}
+            <div className="horarios">
+              {g.horarios.map((h) => {
+                const vagas = h.vagas_15min;
+                const texto = vagas === 0 ? 'esgotado' : vagas === 1 ? 'última vaga!' : `${vagas} vagas`;
+                return (
+                  <button
+                    key={h.hora_inicio}
+                    type="button"
+                    className={`horario${vagas > 0 && vagas <= 2 ? ' horario--poucas' : ''}`}
+                    disabled={vagas === 0}
+                    aria-pressed={h.hora_inicio === hora}
+                    aria-label={`${h.hora_inicio}, ${texto}`}
+                    onClick={() => onEscolher(h.hora_inicio)}
+                  >
+                    <span className="horario__hora">{h.hora_inicio}</span>
+                    <span className="horario__vagas">{texto}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
-      <p className="nota">Vagas para sessões a partir desse horário.</p>
+      <p className="nota">Vagas para sessões a partir desse horário. Cada sessão termina dentro do horário da área dos gatos.</p>
     </>
   );
+}
+
+/**
+ * Separa a grade em blocos contínuos, um por janela da área dos gatos, para a pausa ficar
+ * visível (ex.: 10h30 às 11h50 e 13h10 às 17h30). O rótulo vem de CONFIG.gatil.janelas.
+ */
+function agruparPorJanela(horarios) {
+  const grupos = [];
+  for (const h of horarios) {
+    const minutos = paraMinutos(h.hora_inicio);
+    const atual = grupos.at(-1);
+    if (atual && minutos - atual.ultimo === 15) {
+      atual.horarios.push(h);
+      atual.ultimo = minutos;
+    } else {
+      const janela = CONFIG.gatil.janelas.find((j) => minutos >= paraMinutos(j.abre) && minutos < paraMinutos(j.fecha));
+      grupos.push({ horarios: [h], ultimo: minutos, rotulo: janela?.texto ?? null });
+    }
+  }
+  return grupos;
 }
 
 function Confirmacao({ refTitulo, codigo, resumo, total, onNova }) {

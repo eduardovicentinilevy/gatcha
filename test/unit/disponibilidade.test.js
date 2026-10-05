@@ -69,3 +69,23 @@ test('montarGrade omite horários que já começaram', () => {
   );
   assert.deepEqual(grade[0], { hora_inicio: '10:45', vagas_15min: 6, vagas_30min: 0 });
 });
+
+test('janelas reais da área dos gatos (10h30-11h50 e 13h10-17h30, já arredondadas pela config)', () => {
+  const real = [
+    { inicio: h('10:30'), fim: h('11:45') },
+    { inicio: h('13:15'), fim: h('17:30') },
+  ];
+  const grade = montarGrade({ janelas: real, capacidade: CAPACIDADE, reservas: [], bloqueios: [] });
+  const horas = grade.map((g) => g.hora_inicio);
+  assert.equal(horas[0], '10:30');
+  assert.equal(horas.at(-1), '17:15');
+  assert.deepEqual(horas.slice(0, 7), ['10:30', '10:45', '11:00', '11:15', '11:30', '13:15', '13:30']);
+  assert.equal(grade.length, 5 + 17);
+
+  const por = (hora) => grade.find((g) => g.hora_inicio === hora);
+  // 30 min só cabem se terminarem antes do fim da janela: nada atravessa a pausa de 11h50 às 13h10
+  assert.equal(por('11:15').vagas_30min, CAPACIDADE);
+  assert.equal(por('11:30').vagas_30min, 0);
+  assert.equal(por('17:00').vagas_30min, CAPACIDADE);
+  assert.equal(por('17:15').vagas_30min, 0);
+});
