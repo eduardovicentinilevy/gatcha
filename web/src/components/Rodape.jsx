@@ -1,16 +1,33 @@
+import { useEffect, useState } from 'react';
 import { CONFIG, linkInstagram, linkWhatsapp } from '../config.js';
-import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp, IconeXicara } from './Icones.jsx';
+import { cafeAberto } from '../util.js';
+import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp } from './Icones.jsx';
 
 const LINKS = [
   ['/#cardapio', 'Cardápio'],
   ['/#reserva', 'Reservar gatil'],
   ['/#adocao', 'Adoção'],
   ['/#visite', 'Como chegar'],
-  ['/privacidade', 'Aviso de privacidade'],
+  ['/privacidade', 'Privacidade'],
 ];
 
+/** Selo "Aberto agora / Fechado agora", recalculado a cada minuto. */
+function StatusFuncionamento() {
+  const [aberto, setAberto] = useState(cafeAberto);
+  useEffect(() => {
+    const t = setInterval(() => setAberto(cafeAberto()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span className={`status${aberto ? ' status--aberto' : ''}`}>
+      <span className="status__ponto" aria-hidden="true" />
+      {aberto ? 'Aberto agora' : 'Fechado agora'}
+    </span>
+  );
+}
+
 export default function Rodape() {
-  const { endereco, funcionamento, contato, desenvolvedor, marca } = CONFIG;
+  const { endereco, funcionamento, contato, marca } = CONFIG;
   const whatsapp = linkWhatsapp();
   const ano = new Date().getFullYear();
 
@@ -30,42 +47,42 @@ export default function Rodape() {
           </div>
         </div>
 
-        <div className="rodape__grade">
-          <section className="rodape__card" aria-labelledby="rodape-sobre">
-            <h2 id="rodape-sobre" className="rodape__titulo"><IconeXicara /> Sobre</h2>
-            <p>{marca.slogan}, desde {marca.fundacao}. Gatos para adoção com o Abrigo São Gabriel.</p>
-          </section>
+        <ul className="rodape__faixa">
+          <li className="rodape__info">
+            <IconeMapa className="rodape__icone" />
+            <div>
+              <p className="rodape__destaque">{endereco.linha1}</p>
+              <p>{endereco.linha2}</p>
+              <a className="rodape__link-seta" href="/#visite">Como chegar →</a>
+            </div>
+          </li>
+          <li className="rodape__info">
+            <IconeRelogio className="rodape__icone" />
+            <div>
+              <p className="rodape__destaque">{funcionamento[0].dias} · {funcionamento[0].horario}</p>
+              {funcionamento.slice(1).map((f) => <p key={f.dias}>{f.dias}: {f.horario}</p>)}
+              <StatusFuncionamento />
+            </div>
+          </li>
+          <li className="rodape__info">
+            <IconePatinha className="rodape__icone" />
+            <div>
+              <p className="rodape__destaque">Adoção responsável</p>
+              <p>{marca.slogan}, desde {marca.fundacao}, com gatos do Abrigo São Gabriel.</p>
+              <a className="rodape__link-seta" href="/#adocao">Conhecer os gatos →</a>
+            </div>
+          </li>
+        </ul>
 
-          <section className="rodape__card" aria-labelledby="rodape-visite">
-            <h2 id="rodape-visite" className="rodape__titulo"><IconeMapa /> Visite</h2>
-            <address className="rodape__endereco">{endereco.linha1}<br />{endereco.linha2}</address>
-          </section>
-
-          <section className="rodape__card" aria-labelledby="rodape-horarios">
-            <h2 id="rodape-horarios" className="rodape__titulo"><IconeRelogio /> Horários</h2>
-            <dl className="rodape__horarios">
-              {funcionamento.map((f) => (
-                <div key={f.dias}><dt>{f.dias}</dt><dd>{f.horario}</dd></div>
-              ))}
-            </dl>
-          </section>
-
-          <nav className="rodape__card" aria-labelledby="rodape-atalhos">
-            <h2 id="rodape-atalhos" className="rodape__titulo"><IconePatinha /> Atalhos</h2>
-            <ul className="rodape__links">
-              {LINKS.map(([href, texto]) => <li key={href}><a href={href}>{texto}</a></li>)}
-            </ul>
-          </nav>
-        </div>
+        <nav className="rodape__nav" aria-label="Rodapé">
+          <ul>
+            {LINKS.map(([href, texto]) => <li key={href}><a href={href}>{texto}</a></li>)}
+          </ul>
+        </nav>
 
         <div className="rodape__base">
           <p>© {ano} {marca.nome} · Feito com 🍵 em São Paulo</p>
-          <p>
-            Site por{' '}
-            {desenvolvedor.url ? <a href={desenvolvedor.url} target="_blank" rel="noopener noreferrer">{desenvolvedor.nome}</a> : desenvolvedor.nome}
-            {' · '}
-            <a href="#conteudo">Voltar ao topo ↑</a>
-          </p>
+          <a href="#conteudo">Voltar ao topo ↑</a>
         </div>
       </div>
     </footer>

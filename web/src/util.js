@@ -82,3 +82,11 @@ export function focarPrimeiroErro(form, erros) {
 }
 
 export const reduzirMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** "Aberto agora" ou "Fechado agora", pelo horário do café (fuso de São Paulo). */
+export function cafeAberto() {
+  const { data, minutos } = agoraNoCafe();
+  const [ha, ma] = CONFIG.horarioCafe.abre.split(':').map(Number);
+  const [hf, mf] = CONFIG.horarioCafe.fecha.split(':').map(Number);
+  return CONFIG.gatil.diasAbertos.includes(diaDaSemana(data)) && minutos >= ha * 60 + ma && minutos < hf * 60 + mf;
+}

@@ -97,6 +97,8 @@ export const CONFIG = Object.freeze({
   },
 
   /** [CONFIRMAR dias e horários] — as fontes públicas divergem (seg–sáb ou ter–sáb). */
+  // Usado no selo "Aberto agora / Fechado agora" do rodapé (dias em CONFIG.gatil.diasAbertos).
+  horarioCafe: { abre: '11:00', fecha: '19:00' },
   funcionamento: [
     { dias: 'Terça a sábado', horario: '11h às 19h' },
     { dias: 'Domingo e segunda', horario: 'Fechado (gatos de folga 😴)' },
@@ -206,7 +208,6 @@ export const CONFIG = Object.freeze({
     'Dois gatos brincando com uma varinha de penas',
   ],
 
-  desenvolvedor: { nome: 'Eduardo Vicentini Levy', url: null },
 });
 
 /** Link do WhatsApp com mensagem pronta, ou null enquanto o número não for definido. */

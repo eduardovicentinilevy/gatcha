@@ -490,33 +490,40 @@ abbr[title] { text-decoration: none; }
 }
 .rodape__chamada-texto { margin: 0; font-family: var(--fonte-titulo); font-weight: 800; font-size: clamp(1.4rem, 5.5vw, 2rem); line-height: 1.1; }
 .rodape__chamada-acoes { display: flex; flex-wrap: wrap; gap: 12px; }
-.rodape__grade { display: grid; gap: 16px; }
-.rodape__card {
-  padding: 18px 20px; border: var(--borda); border-radius: var(--raio); box-shadow: var(--sombra);
-  background: var(--cor-superficie); color: var(--cor-texto-suave);
-  transition: transform var(--transicao), box-shadow var(--transicao);
+/* Faixa de informações: um bloco só, dividido por linhas tracejadas */
+.rodape__faixa { list-style: none; display: grid; border-block: 1.5px dashed #3A4630; }
+.rodape__info { display: flex; gap: 14px; padding: 22px 0; color: var(--cor-texto-suave); }
+.rodape__info + .rodape__info { border-top: 1.5px dashed #3A4630; }
+.rodape__info p { margin: 0 0 2px; }
+.rodape__icone {
+  width: 44px; height: 44px; flex: none; padding: 10px; border-radius: 50%;
+  border: 2px solid var(--cor-borda); background: var(--cor-matcha); color: #14180F; box-shadow: 2px 2px 0 var(--cor-sombra);
 }
-.rodape__card:hover { transform: translate(-2px, -2px); box-shadow: var(--sombra-g); }
-.rodape__card p { margin: 0; }
-.rodape__titulo {
-  display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding-bottom: 10px;
-  border-bottom: 1.5px dashed #3A4630;
-  font-family: var(--fonte-titulo); font-size: .82rem; text-transform: uppercase; letter-spacing: .12em; color: var(--cor-matcha-forte);
+.rodape__destaque { font-weight: 800; color: var(--cor-claro-fixo); }
+.rodape__link-seta { display: inline-block; margin-top: 8px; font-weight: 800; }
+.status {
+  display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; padding: .25em .8em;
+  border: 2px solid var(--cor-texto-suave); border-radius: 999px; font-size: .85rem; font-weight: 800;
 }
-.rodape__titulo svg { width: 20px; height: 20px; flex: none; }
-.rodape__endereco { font-style: normal; }
-.rodape__horarios { margin: 0; display: grid; gap: 10px; }
-.rodape__horarios dt { font-weight: 800; color: var(--cor-claro-fixo); }
-.rodape__horarios dd { margin: 0; }
-.rodape__links { list-style: none; display: grid; gap: 6px; }
-.rodape__links a { display: inline-block; padding: 2px 0; }
-.rodape a:not(.marca):not(.botao):not(.botao-icone) { color: var(--cor-texto-suave); text-decoration: none; }
-.rodape a:not(.marca):not(.botao):not(.botao-icone):hover { color: var(--cor-claro-fixo); text-decoration: underline; }
-@media (min-width: 600px) { .rodape__grade { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1000px) { .rodape__grade { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; } }
+.status__ponto { width: 9px; height: 9px; border-radius: 50%; background: #E2725B; }
+.status--aberto { border-color: var(--cor-matcha); color: var(--cor-claro-fixo); }
+.status--aberto .status__ponto { background: var(--cor-matcha); box-shadow: 0 0 0 0 var(--cor-matcha); animation: pulso 2s infinite; }
+@keyframes pulso { 70% { box-shadow: 0 0 0 7px transparent; } }
+.rodape__nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 22px 0 0; }
+.rodape__nav a { font-weight: 700; }
+.rodape a:not(.botao):not(.botao-icone) { color: var(--cor-texto-suave); text-decoration: none; }
+.rodape a:not(.botao):not(.botao-icone):hover { color: var(--cor-claro-fixo); text-decoration: underline; }
+.rodape a.rodape__link-seta:not(.botao) { color: var(--cor-matcha-forte); }
+@media (min-width: 900px) {
+  .rodape__faixa { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rodape__info { padding: 26px 24px; }
+  .rodape__info:first-child { padding-left: 0; }
+  .rodape__info + .rodape__info { border-top: 0; border-left: 1.5px dashed #3A4630; }
+  .rodape__nav ul { justify-content: center; }
+}
 .rodape__base {
   display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px;
-  margin-top: 36px; padding-top: 16px; border-top: 1.5px dashed #3A4630; font-size: .84rem; color: var(--cor-texto-suave);
+  margin-top: 22px; padding-top: 16px; border-top: 1.5px dashed #3A4630; font-size: .84rem; color: var(--cor-texto-suave);
 }
 .rodape__base p { margin: 0; }
 @media (min-width: 900px) {
