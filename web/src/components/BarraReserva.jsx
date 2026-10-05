@@ -18,10 +18,10 @@ export default function BarraReserva({ pagina }) {
   }, [pagina]);
 
   return (
-    <div className={`barra-reserva${escondida ? ' barra-reserva--escondida' : ''}`} aria-hidden={escondida || undefined}>
+    <aside className={`barra-reserva${escondida ? ' barra-reserva--escondida' : ''}`} aria-label="Reserva rápida" aria-hidden={escondida || undefined}>
       <a className="botao botao--grande" href="/#reserva" tabIndex={escondida ? -1 : undefined}>
         Reservar gatil 🐾
       </a>
-    </div>
+    </aside>
   );
 }

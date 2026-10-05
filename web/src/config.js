@@ -51,9 +51,11 @@ export const CONFIG = Object.freeze({
       rosa: '#FFC9D6', // detalhes "patinha"
       erro: '#B42318',
       erroFundo: '#FDECEA',
-      botaoTexto: '#14180F', // texto sobre o botão verde
+      botaoTexto: '#14180F', // texto sobre botões, selos e blocos coloridos
       escuroFixo: '#14180F', // blocos sempre escuros (hero, rodapé)
       claroFixo: '#FFF8EC',
+      estrela: '#E8A400', // estrelas das avaliações
+      fechado: '#E2725B', // bolinha do "Fechado agora"
     },
     escuro: {
       fundo: '#10140D',
@@ -73,6 +75,8 @@ export const CONFIG = Object.freeze({
       botaoTexto: '#10140D',
       escuroFixo: '#0A0D08',
       claroFixo: '#FFF8EC',
+      estrela: '#F2B417',
+      fechado: '#F08A74',
     },
   },
 

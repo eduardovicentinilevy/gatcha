@@ -49,7 +49,7 @@ export default function Carrossel({ rotulo, itens, chave, renderItem, classe = '
     <div className={`carrossel ${classe}`} role="region" aria-roledescription="carrossel" aria-label={rotulo}>
       <ul ref={trilho} className="carrossel__trilho" tabIndex={0} aria-label={`${rotulo}: use as setas ou deslize para ver mais`}>
         {itens.map((item, i) => (
-          <li key={chave(item)} className="carrossel__item" role="group" aria-roledescription="slide" aria-label={`${i + 1} de ${itens.length}`}>
+          <li key={chave(item)} className="carrossel__item" aria-label={`${i + 1} de ${itens.length}`}>
             {renderItem(item, i)}
           </li>
         ))}

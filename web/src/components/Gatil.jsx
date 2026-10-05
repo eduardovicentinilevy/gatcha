@@ -27,7 +27,7 @@ export default function Gatil() {
             <h3>Combinados do gatil</h3>
             <ul>
               {gatil.regras.map(([emoji, texto]) => (
-                <li key={texto}><span aria-hidden="true">{emoji}</span> {texto}</li>
+                <li key={texto}><span className="regras__emoji" aria-hidden="true">{emoji}</span><span>{texto}</span></li>
               ))}
             </ul>
           </div>

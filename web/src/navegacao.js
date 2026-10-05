@@ -10,7 +10,7 @@
  *   normal do navegador (rolagem suave). Links externos, target="_blank" e
  *   cliques com Ctrl/Cmd/Shift também não são interceptados.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { reduzirMovimento } from './util.js';
 
@@ -59,6 +59,7 @@ function aposTrocar(pagina, hash) {
 
 export function usePagina() {
   const [pagina, setPagina] = useState(() => paginaDoCaminho(window.location.pathname));
+  const paginaAtual = useRef(pagina); // lida nos listeners sem recriá-los
   const [semApi, setSemApi] = useState(false); // ativa o fade de reserva no próximo render
 
   const trocar = useCallback((nova, hash, origem) => {
@@ -66,6 +67,7 @@ export function usePagina() {
     raiz.style.setProperty('--vt-x', origem ? `${origem.x}px` : '50%');
     raiz.style.setProperty('--vt-y', origem ? `${origem.y}px` : '30%');
 
+    paginaAtual.current = nova;
     const atualizar = () => {
       flushSync(() => setPagina(nova));
       aposTrocar(nova, hash);
@@ -95,9 +97,11 @@ export function usePagina() {
       window.history.pushState({}, '', url.pathname + url.hash);
       trocar(nova, url.hash, { x: e.clientX, y: e.clientY });
     };
-    // Voltar/avançar do navegador também anima.
+    // Voltar/avançar do navegador também anima. Atenção: clicar numa âncora da
+    // MESMA página (#cardapio) também dispara popstate; aí não há o que animar.
     const aoVoltar = () => {
       const nova = paginaDoCaminho(window.location.pathname);
+      if (nova === paginaAtual.current) return;
       trocar(nova, window.location.hash, null);
     };
     document.addEventListener('click', aoClicar);

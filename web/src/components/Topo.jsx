@@ -43,7 +43,7 @@ export default function Topo({ comMenu, tema, onAlternarTema, onEasterEgg }) {
   return (
     <header className="topo">
       <div className="topo__barra container">
-        <a className="marca" href={comMenu ? '#inicio' : '/'} aria-label="Gatchá, início" onClick={cliqueNoLogo}>
+        <a className="marca" href={comMenu ? '#' : '/'} aria-label="Gatchá, início" onClick={cliqueNoLogo}>
           <LogoGato tamanho={40} />
           <span>Gatchá</span>
         </a>
