@@ -170,6 +170,10 @@ export default function Reserva() {
       setVersaoGrade((v) => v + 1);
       setEtapa(2);
     }
+    if (erro.codigo === 'LIMITE_DE_RESERVAS_ATIVAS') {
+      setAlerta(`Esse celular ou e-mail já tem o máximo de reservas ativas. Pra mudar ou cancelar alguma, chama a gente no Instagram @${CONFIG.contato.instagram}.`);
+      return;
+    }
     setAlerta(erro.message);
   }
 

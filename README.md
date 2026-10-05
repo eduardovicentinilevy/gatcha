@@ -170,6 +170,8 @@ Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativa
     --uri "https://run.googleapis.com/v2/projects/PROJETO/locations/southamerica-east1/jobs/gatcha-expurgo:run" --http-method POST \
     --oauth-service-account-email CONTA@PROJETO.iam.gserviceaccount.com
   ```
+- **Testes locais bateram no limite de reservas por contato?** (`409 LIMITE_DE_RESERVAS_ATIVAS`: por padrão, 3 reservas ativas por e-mail/celular.)
+  Apague as reservas de teste do banco local com `npm run dev:limpar-reservas` (recusa rodar em produção ou em banco que não seja da sua máquina).
 - **Pedido de um titular** (confirme a identidade antes: o pedido deve vir do próprio e-mail/celular cadastrado):
   `npm run lgpd:exportar -- pessoa@email.com` (cópia dos dados) e `npm run lgpd:apagar -- pessoa@email.com` (eliminação).
 - **Antes de publicar** preencha em `web/src/config.js` (`lgpd`): razão social, CNPJ e e-mail para pedidos dos titulares, e peça a revisão do texto a um advogado.
