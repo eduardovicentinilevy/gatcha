@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: gatcha_dev
       POSTGRES_DB: gatcha
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:5433:5432"   # 5433 no seu PC: a 5432 costuma estar ocupada/bloqueada no Windows
     volumes:
       - gatcha-pg:/var/lib/postgresql/data
     healthcheck:
