@@ -1,6 +1,5 @@
 import { CONFIG, linkInstagram, linkWhatsapp } from '../config.js';
-import LogoGato from './LogoGato.jsx';
-import { IconeInstagram, IconeMapa, IconeWhatsapp } from './Icones.jsx';
+import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp, IconeXicara } from './Icones.jsx';
 
 const LINKS = [
   ['/#cardapio', 'Cardápio'],
@@ -32,30 +31,27 @@ export default function Rodape() {
         </div>
 
         <div className="rodape__grade">
-          <div className="rodape__marca">
-            <a className="marca" href="/"><LogoGato tamanho={44} /><span>{marca.nome}</span></a>
+          <section className="rodape__card" aria-labelledby="rodape-sobre">
+            <h2 id="rodape-sobre" className="rodape__titulo"><IconeXicara /> Sobre</h2>
             <p>{marca.slogan}, desde {marca.fundacao}. Gatos para adoção com o Abrigo São Gabriel.</p>
-          </div>
+          </section>
 
-          <div>
-            <h2 className="rodape__titulo">Visite</h2>
-            <address className="rodape__endereco">
-              <IconeMapa />
-              <span>{endereco.linha1}<br />{endereco.linha2}</span>
-            </address>
-          </div>
+          <section className="rodape__card" aria-labelledby="rodape-visite">
+            <h2 id="rodape-visite" className="rodape__titulo"><IconeMapa /> Visite</h2>
+            <address className="rodape__endereco">{endereco.linha1}<br />{endereco.linha2}</address>
+          </section>
 
-          <div>
-            <h2 className="rodape__titulo">Horários</h2>
+          <section className="rodape__card" aria-labelledby="rodape-horarios">
+            <h2 id="rodape-horarios" className="rodape__titulo"><IconeRelogio /> Horários</h2>
             <dl className="rodape__horarios">
               {funcionamento.map((f) => (
                 <div key={f.dias}><dt>{f.dias}</dt><dd>{f.horario}</dd></div>
               ))}
             </dl>
-          </div>
+          </section>
 
-          <nav aria-label="Rodapé">
-            <h2 className="rodape__titulo">Atalhos</h2>
+          <nav className="rodape__card" aria-labelledby="rodape-atalhos">
+            <h2 id="rodape-atalhos" className="rodape__titulo"><IconePatinha /> Atalhos</h2>
             <ul className="rodape__links">
               {LINKS.map(([href, texto]) => <li key={href}><a href={href}>{texto}</a></li>)}
             </ul>
