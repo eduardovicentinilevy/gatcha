@@ -250,6 +250,11 @@ abbr[title] { text-decoration: none; }
 @media (min-width: 640px) { .carrossel__item { flex-basis: calc(50% - 8px); } }
 @media (min-width: 1000px) { .carrossel__item { flex-basis: calc(33.333% - 11px); } }
 
+/* Cards claros sobre o fundo escuro do topo: destacam do hero e mantêm contraste AA. */
+.hero__destaques .destaque {
+  --cor-superficie: var(--cor-claro-fixo); --cor-superficie2: #F4EBD9;
+  --cor-texto: #14180F; --cor-texto-suave: #4A5243; --cor-borda: #14180F; --cor-matcha-forte: #3B6500;
+}
 .destaque { display: grid; grid-template-columns: 104px 1fr; overflow: hidden; color: var(--cor-texto); }
 .destaque__foto { height: 100%; border-bottom: 0; border-right: var(--borda); }
 .destaque__foto.foto--placeholder svg { width: 46%; }

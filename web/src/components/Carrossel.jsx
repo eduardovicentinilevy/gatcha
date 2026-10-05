@@ -14,10 +14,12 @@ export default function Carrossel({ rotulo, itens, chave, renderItem, classe = '
     const el = trilho.current;
     if (!el || !el.firstElementChild) return;
     const passo = el.firstElementChild.getBoundingClientRect().width;
+    const fim = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
     setEstado({
       inicio: el.scrollLeft <= 4,
-      fim: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
-      atual: Math.min(itens.length - 1, Math.round(el.scrollLeft / Math.max(1, passo))),
+      fim,
+      // No fim da rolagem os últimos cards não chegam ao início do trilho: aí o ponto ativo é o último.
+      atual: fim ? itens.length - 1 : Math.min(itens.length - 1, Math.round(el.scrollLeft / Math.max(1, passo))),
     });
   }, [itens.length]);
 

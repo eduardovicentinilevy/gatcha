@@ -161,6 +161,28 @@
    "foto_url": null
   },
   {
+   "id": 16,
+   "categoria": "Bebidas",
+   "nome": "Matchá com yakult",
+   "descricao": "Matchá batido com yakult e gelo. Docinho e refrescante.",
+   "preco_centavos": 2400,
+   "ativo": true,
+   "selos": [],
+   "foto_url": null
+  },
+  {
+   "id": 17,
+   "categoria": "Doces",
+   "nome": "Brownie de matchá",
+   "descricao": "Brownie úmido com chocolate branco e matchá cerimonial.",
+   "preco_centavos": 1400,
+   "ativo": true,
+   "selos": [
+    "novo"
+   ],
+   "foto_url": null
+  },
+  {
    "id": 15,
    "categoria": "Doces",
    "nome": "Brownie (fora de linha)",
