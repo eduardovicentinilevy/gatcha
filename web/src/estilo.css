@@ -603,7 +603,7 @@ abbr[title] { text-decoration: none; }
 .texto { max-width: 760px; margin-block: 32px 64px; padding: 24px 20px; }
 .texto h2 { font-size: 1.35rem; margin-top: 1.6em; }
 .texto li + li { margin-top: 6px; }
-.texto ul { padding-left: 1.2em; }
+.texto ul { padding-left: 1.2em; margin-bottom: 1em; }
 
 /* ---------- Esqueletos de carregamento ---------- */
 .esqueleto { border-radius: var(--raio-p); min-height: 52px; background: linear-gradient(90deg, var(--cor-superficie2) 25%, var(--cor-superficie) 50%, var(--cor-superficie2) 75%); background-size: 200% 100%; animation: brilho 1.2s infinite; border: 2px dashed var(--cor-superficie2); }

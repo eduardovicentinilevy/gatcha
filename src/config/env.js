@@ -105,6 +105,21 @@ const schema = z
     RESERVA_ANTECEDENCIA_MAX_DIAS: inteiro(14, 0, 365),
     RESERVA_MAX_ATIVAS_POR_CONTATO: inteiro(3, 1, 100),
 
+    // Painel administrativo: login (bcrypt) + token JWT de curta duração.
+    // JWT_SECRET é SEGREDO (Secret Manager em produção): >= 32 caracteres aleatórios,
+    // ex.: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))".
+    // Vazio = login desativado (a API responde 503 em /api/auth/login).
+    JWT_SECRET: z.string().default('').refine((v) => v === '' || v.length >= 32, 'JWT_SECRET deve ter ao menos 32 caracteres'),
+    ADMIN_TOKEN_MINUTOS: inteiro(15, 5, 120),
+    RATE_LIMIT_LOGIN_POR_15MIN: inteiro(10, 1, 1_000),
+    LOGIN_MAX_FALHAS_POR_EMAIL: inteiro(5, 3, 20),
+
+    // Retenção de dados pessoais (LGPD). Reservas: 90 dias após a visita (escopo).
+    // Interesses de adoção e log de acessos: prazos propostos, [CONFIRMAR] com o Gatchá.
+    RETENCAO_RESERVAS_DIAS: inteiro(90, 30, 3650),
+    RETENCAO_INTERESSES_DIAS: inteiro(180, 30, 3650),
+    RETENCAO_ACESSOS_DIAS: inteiro(90, 30, 3650),
+
     // Avaliações do Google (Places API). Opcionais: sem elas, o site mostra as avaliações de exemplo.
     // A chave é SEGREDO: em produção, venha do Secret Manager. Restrinja-a à "Places API (New)".
     GOOGLE_PLACES_API_KEY: z.string().trim().default(''),
@@ -157,6 +172,17 @@ function carregar() {
       maxPessoasPorReserva: e.RESERVA_MAX_PESSOAS,
       antecedenciaMaxDias: e.RESERVA_ANTECEDENCIA_MAX_DIAS,
       maxReservasAtivasPorContato: e.RESERVA_MAX_ATIVAS_POR_CONTATO,
+    }),
+    auth: Object.freeze({
+      jwtSecret: e.JWT_SECRET,
+      tokenMinutos: e.ADMIN_TOKEN_MINUTOS,
+      maxFalhasPorEmail: e.LOGIN_MAX_FALHAS_POR_EMAIL,
+      rateLimitLoginPor15Min: e.RATE_LIMIT_LOGIN_POR_15MIN,
+    }),
+    retencao: Object.freeze({
+      reservasDias: e.RETENCAO_RESERVAS_DIAS,
+      interessesDias: e.RETENCAO_INTERESSES_DIAS,
+      acessosDias: e.RETENCAO_ACESSOS_DIAS,
     }),
     google: Object.freeze({
       placesApiKey: e.GOOGLE_PLACES_API_KEY,

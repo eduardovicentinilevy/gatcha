@@ -50,7 +50,7 @@ export function tratadorDeErros(err, req, res, next) {
     status = err.status;
     codigo = 'REQUISICAO_INVALIDA';
     mensagem = 'Requisição inválida.';
-  } else if (PG_TRANSITORIOS.has(err?.code)) {
+  } else if (PG_TRANSITORIOS.has(err?.code) || /timeout exceeded when trying to connect/i.test(err?.message ?? '')) {
     status = 503;
     codigo = 'SERVICO_OCUPADO';
     mensagem = 'O sistema está ocupado no momento. Tente novamente em alguns segundos.';

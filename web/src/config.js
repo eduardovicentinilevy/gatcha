@@ -245,6 +245,19 @@ export const CONFIG = Object.freeze({
     'Dois gatos brincando com uma varinha de penas',
   ],
 
+
+  /**
+   * LGPD — dados que aparecem no aviso de privacidade (/privacidade).
+   * [CONFIRMAR] com o Gatchá: razão social, CNPJ, contato do encarregado e prazo dos interesses.
+   * Os prazos de retenção devem ser iguais aos da API (RETENCAO_*_DIAS).
+   */
+  lgpd: {
+    controlador: { razaoSocial: null, cnpj: null }, // [SUBSTITUIR] ex.: 'Gatchá Cat Café Ltda.', '00.000.000/0001-00'
+    contatoTitular: null, // [SUBSTITUIR] e-mail para pedidos dos titulares, ex.: 'privacidade@gatcha.com.br'
+    retencaoReservasDias: 90,
+    retencaoInteressesDias: 180,
+    atualizadoEm: '2026-10-05',
+  },
 });
 
 /** Link do WhatsApp com mensagem pronta, ou null enquanto o número não for definido. */

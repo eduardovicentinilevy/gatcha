@@ -124,6 +124,46 @@ Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoj
 | 503 | `SERVICO_OCUPADO` | Lock/statement timeout, deadlock (header `Retry-After`) |
 | 500 | `ERRO_INTERNO` | Falha inesperada (detalhes só no log, via `request_id`) |
 
+## Segurança e LGPD
+
+| Item do escopo | Como está |
+|---|---|
+| Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
+| Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
+| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado = sessão encerrada |
+| Limite de requisições nas rotas públicas | Por IP (reservas, geral e login) + bloqueio por e-mail no banco (5 falhas em 15 min), que vale em todas as instâncias |
+| HTTPS | Firebase Hosting / Cloud Run + HSTS (helmet) |
+| Log de acessos ao painel | Tabela `acessos_admin`: quem, quando, método, rota, status e IP. Nunca senha, token ou corpo |
+| Só nome e contato coletados + aviso | Página `/privacidade` (controlador, bases legais, compartilhamento, prazos, direitos) |
+| Reservas > 90 dias apagadas | `npm run lgpd:expurgar` (também apaga interesses de adoção e acessos vencidos) |
+
+### Painel: primeiro acesso
+
+```bash
+npm run migrate:dev                       # cria a tabela acessos_admin (migração 002)
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"   # gera o JWT_SECRET
+# cole no .env: JWT_SECRET=...
+winpty npm run admin:criar -- dona@gatcha.com.br     # Git Bash/Windows; no Linux/Mac: sem winpty
+```
+
+A senha é digitada sem aparecer na tela. Para trocar uma senha: `... admin:criar -- email --redefinir`.
+Login: `POST /api/auth/login` → `{ token, expira_em, usuario }`; depois `Authorization: Bearer <token>` nas rotas `/api/admin/*`.
+Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativado (503).
+
+### LGPD: rotina
+
+- **Expurgo diário** (Cloud Run Job + Cloud Scheduler):
+  ```bash
+  gcloud run jobs create gatcha-expurgo --image IMAGEM --region southamerica-east1 \
+    --command node --args scripts/expurgar-dados.js --set-secrets DATABASE_URL=gatcha-database-url:latest --set-env-vars DB_SSL=true
+  gcloud scheduler jobs create http gatcha-expurgo-diario --schedule "30 3 * * *" --time-zone America/Sao_Paulo \
+    --uri "https://run.googleapis.com/v2/projects/PROJETO/locations/southamerica-east1/jobs/gatcha-expurgo:run" --http-method POST \
+    --oauth-service-account-email CONTA@PROJETO.iam.gserviceaccount.com
+  ```
+- **Pedido de um titular** (confirme a identidade antes: o pedido deve vir do próprio e-mail/celular cadastrado):
+  `npm run lgpd:exportar -- pessoa@email.com` (cópia dos dados) e `npm run lgpd:apagar -- pessoa@email.com` (eliminação).
+- **Antes de publicar** preencha em `web/src/config.js` (`lgpd`): razão social, CNPJ e e-mail para pedidos dos titulares, e peça a revisão do texto a um advogado.
+
 ## Avaliações do Google Maps
 
 `GET /api/avaliacoes` busca nota, total e até 5 avaliações na **Places API (New)** do Google. A chave fica só no servidor e o resultado fica em cache por `AVALIACOES_CACHE_HORAS` (padrão 6h). Sem chave (ou no protótipo), o site mostra as avaliações de exemplo de `web/src/config.js`.

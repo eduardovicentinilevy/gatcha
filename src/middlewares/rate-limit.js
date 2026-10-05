@@ -32,3 +32,11 @@ export const limiteCriacaoReserva = rateLimit({
   windowMs: 15 * 60_000,
   limit: config.http.rateLimitReservasPor15Min,
 });
+
+/** Login do painel: teto por IP (além do bloqueio por e-mail feito no banco). */
+export const limiteLogin = rateLimit({
+  ...comum,
+  identifier: 'login',
+  windowMs: 15 * 60_000,
+  limit: config.auth.rateLimitLoginPor15Min,
+});
