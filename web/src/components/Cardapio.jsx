@@ -18,17 +18,23 @@ export default function Cardapio() {
   const [ativa, setAtiva] = useState('Tudo');
   const [busca, setBusca] = useState('');
 
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
+
   useEffect(() => {
     let vivo = true;
-    carregarCardapio().then(({ lista, exemplo }) => {
-      if (!vivo) return;
-      setItens(lista.filter((i) => i.ativo));
-      setExemplo(exemplo);
-    });
+    setFalhou(false);
+    carregarCardapio()
+      .then(({ lista, exemplo }) => {
+        if (!vivo) return;
+        setItens(lista.filter((i) => i.ativo));
+        setExemplo(exemplo);
+      })
+      .catch(() => vivo && setFalhou(true));
     return () => {
       vivo = false;
     };
-  }, []);
+  }, [tentativa]);
 
   const categorias = useMemo(() => {
     const presentes = [...new Set((itens ?? []).map((i) => i.categoria))];
@@ -65,7 +71,7 @@ export default function Cardapio() {
 
         <p className="sr" aria-live="polite">{itens ? `${visiveis.length} itens encontrados` : ''}</p>
         <ul className="cardapio">
-          {!itens && [1, 2, 3, 4].map((n) => <li key={n} className="esqueleto esqueleto--card" />)}
+          {!itens && !falhou && [1, 2, 3, 4].map((n) => <li key={n} className="esqueleto esqueleto--card" />)}
           {visiveis.map((i) => (
             <li key={i.id} className="item cartao cartao--interativo">
               <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} icone={i.categoria === 'Matchás' || i.categoria === 'Cafés' ? 'xicara' : 'patinha'} tom={i.categoria === 'Matchás' ? 'matcha' : 'creme'} />
@@ -84,6 +90,12 @@ export default function Cardapio() {
             </li>
           ))}
         </ul>
+        {falhou && (
+          <div className="vazio" role="alert">
+            <p>Não deu pra carregar agora. Confere a internet?</p>
+            <button type="button" className="botao" onClick={() => setTentativa((t) => t + 1)}>Tentar de novo</button>
+          </div>
+        )}
         {itens && visiveis.length === 0 && (
           <p className="vazio">Nada com “{busca}” por aqui. Que tal um matchá latte? 🍵</p>
         )}

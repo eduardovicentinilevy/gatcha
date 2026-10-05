@@ -24,11 +24,13 @@ export const rotuloDia = (iso) => {
 export const diaDaSemana = (iso) => dataUTC(iso).getUTCDay();
 
 /** "Agora" no fuso do café, independente do fuso do aparelho do cliente. */
+let fmtAgora; // criar Intl.DateTimeFormat é caro: um só, reaproveitado
 export function agoraNoCafe() {
+  fmtAgora ??= new Intl.DateTimeFormat('en-CA', {
+    timeZone: CONFIG.gatil.fuso, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  });
   const p = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: CONFIG.gatil.fuso, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
-    })
+    fmtAgora
       .formatToParts(new Date())
       .map(({ type, value }) => [type, value]),
   );

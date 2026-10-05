@@ -19,17 +19,23 @@ export default function Adocao() {
   const [exemplo, setExemplo] = useState(false);
   const [escolhido, setEscolhido] = useState(null);
 
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
+
   useEffect(() => {
     let vivo = true;
-    carregarGatos().then(({ lista, exemplo }) => {
-      if (!vivo) return;
-      setGatos(lista.filter((g) => g.status !== 'adotado'));
-      setExemplo(exemplo);
-    });
+    setFalhou(false);
+    carregarGatos()
+      .then(({ lista, exemplo }) => {
+        if (!vivo) return;
+        setGatos(lista.filter((g) => g.status !== 'adotado'));
+        setExemplo(exemplo);
+      })
+      .catch(() => vivo && setFalhou(true));
     return () => {
       vivo = false;
     };
-  }, []);
+  }, [tentativa]);
 
   return (
     <section id="adocao" className="secao" aria-labelledby="titulo-adocao">
@@ -40,7 +46,13 @@ export default function Adocao() {
           <p>{CONFIG.textos.adocao.subtitulo}</p>
         </header>
 
-        {!gatos && <div className="esqueleto esqueleto--card" />}
+        {falhou && (
+          <div className="vazio" role="alert">
+            <p>Não deu pra carregar agora. Confere a internet?</p>
+            <button type="button" className="botao" onClick={() => setTentativa((t) => t + 1)}>Tentar de novo</button>
+          </div>
+        )}
+        {!gatos && !falhou && <div className="esqueleto esqueleto--card" />}
         {gatos?.length === 0 && <p className="vazio">Todo mundo foi adotado! 🎉 Volta logo pra conhecer os novos moradores.</p>}
         {gatos?.length > 0 && (
           <Carrossel

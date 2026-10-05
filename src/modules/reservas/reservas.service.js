@@ -84,6 +84,8 @@ export async function criarReserva(dados, { agora = agoraNoFuso(gatil.fuso) } = 
   }
 
   return comTransacao(async (client) => {
+    // Ordem dos locks é fixa em todas as transações: contato, depois data (sem deadlock).
+    await repo.travarContato(client, dados);
     await repo.travarAgendaDoDia(client, dados.data);
 
     const ativas = await repo.contarReservasAtivasDoContato(client, {

@@ -164,7 +164,8 @@ export default function Reserva() {
       return;
     }
     // Vaga acabou, horário bloqueado ou já passou: volta para os horários atualizados.
-    if (erro.status === 409 || (erro.status === 400 && erro.codigo.startsWith('HORARIO'))) {
+    // (Outros 409, como LIMITE_DE_RESERVAS_ATIVAS, não têm a ver com o horário: ficam aqui com o aviso.)
+    if (['VAGAS_INSUFICIENTES', 'HORARIO_BLOQUEADO'].includes(erro.codigo) || (erro.status === 400 && erro.codigo.startsWith('HORARIO'))) {
       setHora(null);
       setVersaoGrade((v) => v + 1);
       setEtapa(2);

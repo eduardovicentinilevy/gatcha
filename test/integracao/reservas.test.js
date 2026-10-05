@@ -184,6 +184,18 @@ describe('API de reservas (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_
     assert.equal((await res.json()).erro.codigo, 'LIMITE_DE_RESERVAS_ATIVAS');
   });
 
+  test('limite por contato vale mesmo com pedidos simultâneos em DIAS diferentes', async () => {
+    // Já tem 2 ativas (limite 3); 6 pedidos simultâneos, um por dia: só 1 pode entrar.
+    for (const hora of ['10:00', '10:15']) assert.equal((await post(reserva({ hora_inicio: hora }))).status, 201);
+    const dias = [2, 3, 4, 5, 6, 7].map((n) => somarDias(agoraNoFuso('America/Sao_Paulo').data, n));
+    const respostas = await Promise.all(dias.map((data) => post(reserva({ data, hora_inicio: '14:00' }))));
+    const status = respostas.map((r) => r.status);
+    assert.equal(status.filter((s) => s === 201).length, 1, `status: ${status}`);
+    assert.equal(status.filter((s) => s === 409).length, 5, `status: ${status}`);
+    const { rows } = await pool.query("SELECT count(*)::int AS n FROM reservas WHERE telefone = '11912345678' AND status = 'confirmada'");
+    assert.equal(rows[0].n, 3);
+  });
+
   test('regras de agenda retornam 400 com código específico', async () => {
     const hoje = agoraNoFuso('America/Sao_Paulo').data;
     const casos = [

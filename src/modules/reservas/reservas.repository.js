@@ -9,8 +9,9 @@
  * valor vindo do usuário é concatenado em SQL — prevenção de SQL Injection na raiz.
  */
 
-// Namespace fixo do advisory lock da agenda (evita colidir com outros locks do sistema).
+// Namespaces fixos dos advisory locks (evitam colidir com outros locks do sistema).
 const LOCK_NAMESPACE_AGENDA = 7301;
+const LOCK_NAMESPACE_CONTATO = 7302;
 
 /**
  * Serializa as escritas na agenda de UMA data: até o fim da transação, outras
@@ -20,6 +21,18 @@ const LOCK_NAMESPACE_AGENDA = 7301;
  */
 export async function travarAgendaDoDia(client, data) {
   await client.query('SELECT pg_advisory_xact_lock($1::int, hashtext($2::text))', [LOCK_NAMESPACE_AGENDA, data]);
+}
+
+/**
+ * Serializa as reservas de um mesmo CONTATO (e-mail e telefone), em qualquer
+ * data: sem isso, dois pedidos simultâneos para dias diferentes pegariam locks
+ * de datas diferentes e ambos passariam pelo limite de reservas ativas.
+ * Ordem fixa (contato antes da data; chaves ordenadas) evita deadlock.
+ */
+export async function travarContato(client, { email, telefone }) {
+  for (const chave of [`e:${email}`, `t:${telefone}`].sort()) {
+    await client.query('SELECT pg_advisory_xact_lock($1::int, hashtext($2::text))', [LOCK_NAMESPACE_CONTATO, chave]);
+  }
 }
 
 /**

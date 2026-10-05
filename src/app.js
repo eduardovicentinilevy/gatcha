@@ -36,7 +36,9 @@ export function criarApp() {
   app.use(
     helmet({
       // Igual à CSP do firebase.json: o site só incorpora o mapa do Google (carregado sob demanda).
-      contentSecurityPolicy: { directives: { 'frame-src': ['https://www.google.com'] } },
+      contentSecurityPolicy: {
+        directives: { 'frame-src': ['https://www.google.com'], 'img-src': ["'self'", 'data:', 'https:'] },
+      },
     }),
   ); // headers de segurança + remove X-Powered-By
 

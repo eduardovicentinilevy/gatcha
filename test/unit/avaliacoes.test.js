@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { configurarAmbienteDeTeste } from '../helpers/ambiente.js';
 
 configurarAmbienteDeTeste({ GOOGLE_PLACES_API_KEY: 'chave-teste', GOOGLE_PLACE_ID: 'ChIJteste123', AVALIACOES_CACHE_HORAS: '6' });
-const { mapearResposta, obterAvaliacoes, limparCache } = await import('../../src/modules/avaliacoes/avaliacoes.service.js');
+const { mapearResposta, obterAvaliacoes, obterAvaliacoesComEstado, limparCache } = await import('../../src/modules/avaliacoes/avaliacoes.service.js');
 
 const RESPOSTA_GOOGLE = {
   rating: 4.8,
@@ -72,4 +72,17 @@ test('sem cache e com erro do Google: disponivel=false (site usa as avaliações
   limparCache();
   const r = await obterAvaliacoes({ buscar: fetchFalso([{ status: 403, corpo: {} }]) });
   assert.deepEqual(r, { disponivel: false, avaliacoes: [] });
+});
+
+test('falha do Google também entra em cache (sem chamada paga a cada visita) e é marcada como degradada', async () => {
+  limparCache();
+  const buscar = fetchFalso([{ status: 500, corpo: {} }, { status: 200, corpo: RESPOSTA_GOOGLE }]);
+  const t0 = 1_000_000;
+  const a = await obterAvaliacoesComEstado({ buscar, agora: t0 });
+  const b = await obterAvaliacoesComEstado({ buscar, agora: t0 + 60_000 }); // 1 min depois
+  assert.equal(buscar.chamadas.length, 1, 'não chama o Google de novo logo após a falha');
+  assert.deepEqual([a.degradado, b.degradado, b.dados.disponivel], [true, true, false]);
+  const c = await obterAvaliacoesComEstado({ buscar, agora: t0 + 16 * 60_000 }); // passou a espera
+  assert.equal(buscar.chamadas.length, 2);
+  assert.deepEqual([c.degradado, c.dados.disponivel], [false, true]);
 });

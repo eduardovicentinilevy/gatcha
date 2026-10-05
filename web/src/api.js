@@ -84,7 +84,10 @@ function carregadorComCache(rota, arquivo, chave) {
       } catch {
         return { lista: (await doExemplo(arquivo))[chave], exemplo: true };
       }
-    })();
+    })().catch((erro) => {
+      promessa = undefined; // falhou de vez (ex.: sem internet): a próxima chamada tenta de novo
+      throw erro;
+    });
     return promessa;
   };
 }

@@ -62,8 +62,10 @@ const diasDaSemana = z
   .string()
   .default('2,3,4,5,6')
   .transform((valor, ctx) => {
-    const dias = valor.split(',').map((s) => Number(s.trim()));
-    if (dias.length === 0 || dias.some((d) => !Number.isInteger(d) || d < 0 || d > 6)) {
+    const partes = valor.split(',').map((s) => s.trim());
+    // Number('') === 0 viraria "domingo": entradas vazias são erro, não domingo.
+    const dias = partes.map((s) => (/^[0-6]$/.test(s) ? Number(s) : NaN));
+    if (dias.some((d) => Number.isNaN(d))) {
       ctx.addIssue({ code: 'custom', message: 'GATIL_DIAS deve conter números de 0 (domingo) a 6 (sábado)' });
       return z.NEVER;
     }

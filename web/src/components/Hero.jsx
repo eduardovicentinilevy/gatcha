@@ -11,8 +11,14 @@ import { IconePatinha } from './Icones.jsx';
  * Monta os destaques do topo a partir dos dados (gatos e cardápio) e do config:
  * gato do dia, mais pedido, novidade, opção vegana, gatil, adoção e Instagram.
  */
+/** "descrição R$ 22,00." sem "null" quando a descrição não existe. */
+const textoItem = (i) => [i.descricao, `${reais(i.preco_centavos)}.`].filter(Boolean).join(' ');
+
 async function montarDestaques() {
-  const [{ lista: gatos }, { lista: itens }] = await Promise.all([carregarGatos(), carregarCardapio()]);
+  // allSettled: se um dos dois falhar, os outros destaques (gatil, adoção, Instagram) continuam aparecendo.
+  const [rGatos, rItens] = await Promise.allSettled([carregarGatos(), carregarCardapio()]);
+  const gatos = rGatos.status === 'fulfilled' ? rGatos.value.lista : [];
+  const itens = rItens.status === 'fulfilled' ? rItens.value.lista : [];
   const destaques = [];
 
   const disponiveis = gatos.filter((g) => g.status === 'disponivel');
@@ -22,8 +28,8 @@ async function montarDestaques() {
     destaques.push({
       id: 'gato',
       selo: 'Gato do dia',
-      titulo: `${g.nome}, ${idade(g.idade_meses)}`,
-      texto: g.personalidade,
+      titulo: [g.nome, idade(g.idade_meses)].filter(Boolean).join(', '),
+      texto: g.personalidade ?? '',
       foto: { src: g.foto_url, alt: `Foto de ${g.nome}, gato para adoção`, icone: 'gato', tom: 'matcha' },
       link: ['#adocao', `Conhecer ${g.nome}`],
     });
@@ -36,7 +42,7 @@ async function montarDestaques() {
       id: 'bebida',
       selo: 'Mais pedido',
       titulo: bebida.nome,
-      texto: `${bebida.descricao} ${reais(bebida.preco_centavos)}.`,
+      texto: textoItem(bebida),
       foto: { src: bebida.foto_url, alt: `Foto de ${bebida.nome}`, icone: 'xicara', tom: 'creme' },
       link: ['#cardapio', 'Ver cardápio'],
     });
@@ -48,7 +54,7 @@ async function montarDestaques() {
       id: 'novidade',
       selo: 'Novidade',
       titulo: novidade.nome,
-      texto: `${novidade.descricao} ${reais(novidade.preco_centavos)}.`,
+      texto: textoItem(novidade),
       foto: { src: novidade.foto_url, alt: `Foto de ${novidade.nome}`, icone: 'xicara', tom: 'rosa' },
       link: ['#cardapio', 'Provar a novidade'],
     });
@@ -60,7 +66,7 @@ async function montarDestaques() {
       id: 'vegano',
       selo: 'Opção vegana',
       titulo: vegano.nome,
-      texto: `${vegano.descricao} ${reais(vegano.preco_centavos)}.`,
+      texto: textoItem(vegano),
       foto: { src: vegano.foto_url, alt: `Foto de ${vegano.nome}`, icone: 'patinha', tom: 'matcha' },
       link: ['#cardapio', 'Ver itens veganos'],
     });

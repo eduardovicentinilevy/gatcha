@@ -38,16 +38,23 @@ export function mapearResposta(lugar) {
   };
 }
 
-let cache = null; // { dados, expiraEm }
+// Depois de uma falha, espera este tempo antes de chamar o Google de novo
+// (evita uma chamada paga + 5s de espera a cada visita durante uma pane).
+const ESPERA_APOS_FALHA_MS = 15 * 60_000;
+const INDISPONIVEL = Object.freeze({ disponivel: false, avaliacoes: [] });
+
+let cache = null; // { dados, expiraEm, degradado }
 let emAndamento = null; // evita várias chamadas simultâneas ao Google
 
 /**
  * @param {{ agora?: number, buscar?: typeof fetch }} [deps] injetáveis nos testes
+ * @returns {Promise<{ dados: object, degradado: boolean }>} degradado = resultado
+ *          antigo ou indisponível (não deve ir para cache público de CDN)
  */
-export async function obterAvaliacoes({ agora = Date.now(), buscar = fetch } = {}) {
+export async function obterAvaliacoesComEstado({ agora = Date.now(), buscar = fetch } = {}) {
   const { placesApiKey, placeId, cacheMs } = config.google;
-  if (!placesApiKey || !placeId) return { disponivel: false, avaliacoes: [] };
-  if (cache && cache.expiraEm > agora) return cache.dados;
+  if (!placesApiKey || !placeId) return { dados: INDISPONIVEL, degradado: true };
+  if (cache && cache.expiraEm > agora) return { dados: cache.dados, degradado: cache.degradado };
 
   emAndamento ??= (async () => {
     try {
@@ -57,18 +64,22 @@ export async function obterAvaliacoes({ agora = Date.now(), buscar = fetch } = {
       });
       if (!resposta.ok) throw new Error(`Places API respondeu ${resposta.status}`);
       const dados = mapearResposta(await resposta.json());
-      cache = { dados, expiraEm: Date.now() + cacheMs };
-      return dados;
+      cache = { dados, expiraEm: agora + cacheMs, degradado: false };
+      return { dados, degradado: false };
     } catch (err) {
       logger.warn('Falha ao buscar avaliações do Google', { erro: serializarErro(err) });
-      if (cache) return cache.dados; // melhor um resultado antigo do que nenhum
-      return { disponivel: false, avaliacoes: [] };
+      // Melhor um resultado antigo do que nenhum; e não tenta de novo por um tempo.
+      cache = { dados: cache?.dados ?? INDISPONIVEL, expiraEm: agora + ESPERA_APOS_FALHA_MS, degradado: true };
+      return { dados: cache.dados, degradado: true };
     } finally {
       emAndamento = null;
     }
   })();
   return emAndamento;
 }
+
+/** Só os dados (para quem não precisa saber se estão degradados). */
+export const obterAvaliacoes = async (deps) => (await obterAvaliacoesComEstado(deps)).dados;
 
 /** Só para testes. */
 export const limparCache = () => {
