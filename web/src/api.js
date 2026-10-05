@@ -1,8 +1,14 @@
 /**
- * Cliente da API Gatchá. Mesma origem (o Firebase Hosting reescreve /api para o
- * Cloud Run; em dev, o proxy do Vite faz o mesmo), então não há CORS.
+ * Cliente de dados do site.
+ *
+ * - Modo normal: fala com a API (mesma origem; o Firebase Hosting reescreve /api
+ *   para o Cloud Run e, em dev, o proxy do Vite faz o mesmo).
+ * - Modo protótipo (CONFIG.modoPrototipo): lê os JSON de /dados-exemplo, que têm
+ *   o MESMO formato da API, e simula reservas e interesses em memória. Para ligar
+ *   a API real, basta desligar o modo protótipo; os componentes não mudam.
  */
 import { CONFIG } from './config.js';
+import * as prototipo from './prototipo.js';
 
 export class ErroApi extends Error {
   constructor(status, codigo, mensagem, detalhes) {
@@ -24,19 +30,19 @@ export class ErroApi extends Error {
 }
 
 const MENSAGENS_PADRAO = {
-  0: 'Sem conexão com o servidor. Verifique sua internet e tente de novo.',
-  429: 'Muitas tentativas seguidas. Aguarde alguns minutos e tente novamente.',
-  500: 'Algo deu errado do nosso lado. Tente novamente em instantes.',
-  503: 'O sistema está ocupado agora. Tente de novo em alguns segundos.',
+  0: 'Sem conexão com o servidor. Confere a internet e tenta de novo?',
+  429: 'Muitas tentativas seguidas. Respira, espera uns minutinhos e tenta de novo.',
+  500: 'Deu ruim do nosso lado. Tenta de novo em instantes?',
+  503: 'O sistema tá ocupado agora. Tenta de novo em alguns segundos.',
 };
 
-async function requisitar(metodo, caminho, corpo, sinalExterno) {
+export async function requisitar(url, { metodo = 'GET', corpo, sinal } = {}) {
   const controle = new AbortController();
   const timer = setTimeout(() => controle.abort(), CONFIG.timeoutMs);
-  sinalExterno?.addEventListener('abort', () => controle.abort());
+  sinal?.addEventListener('abort', () => controle.abort());
   let resposta;
   try {
-    resposta = await fetch(CONFIG.apiBase + caminho, {
+    resposta = await fetch(url, {
       method: metodo,
       headers: corpo ? { 'Content-Type': 'application/json', Accept: 'application/json' } : { Accept: 'application/json' },
       body: corpo ? JSON.stringify(corpo) : undefined,
@@ -45,7 +51,7 @@ async function requisitar(metodo, caminho, corpo, sinalExterno) {
       cache: 'no-store',
     });
   } catch (erro) {
-    if (sinalExterno?.aborted) throw erro; // cancelado pelo componente: não é erro de rede
+    if (sinal?.aborted) throw erro; // cancelado pelo componente: não é erro de rede
     throw new ErroApi(0, 'SEM_CONEXAO', MENSAGENS_PADRAO[0]);
   } finally {
     clearTimeout(timer);
@@ -60,10 +66,39 @@ async function requisitar(metodo, caminho, corpo, sinalExterno) {
   return dados;
 }
 
+const doExemplo = (arquivo) => requisitar(`${CONFIG.dadosExemploBase}/${arquivo}`);
+
+/**
+ * Cardápio e gatos são lidos por mais de um componente (ex.: carrossel do topo e
+ * seção própria): uma única requisição por carregamento da página.
+ * Enquanto /api/cardapio e /api/gatos não existirem no backend, caem nos JSON de
+ * exemplo e avisam o visitante (`exemplo: true`).
+ */
+function carregadorComCache(rota, arquivo, chave) {
+  let promessa;
+  return () => {
+    promessa ??= (async () => {
+      if (CONFIG.modoPrototipo) return { lista: (await doExemplo(arquivo))[chave], exemplo: true };
+      try {
+        return { lista: (await requisitar(CONFIG.apiBase + rota))[chave], exemplo: false };
+      } catch {
+        return { lista: (await doExemplo(arquivo))[chave], exemplo: true };
+      }
+    })();
+    return promessa;
+  };
+}
+
+export const carregarCardapio = carregadorComCache('/cardapio', 'cardapio.json', 'itens');
+export const carregarGatos = carregadorComCache('/gatos', 'gatos.json', 'gatos');
+
 export const api = {
-  horarios: (data, sinal) => requisitar('GET', `/horarios?data=${encodeURIComponent(data)}`, undefined, sinal),
-  criarReserva: (dados) => requisitar('POST', '/reservas', dados),
-  cardapio: (sinal) => requisitar('GET', '/cardapio', undefined, sinal),
-  gatos: (sinal) => requisitar('GET', '/gatos', undefined, sinal),
-  registrarInteresse: (dados) => requisitar('POST', '/interesses', dados),
+  horarios: (data, sinal) =>
+    CONFIG.modoPrototipo
+      ? prototipo.horarios(data)
+      : requisitar(`${CONFIG.apiBase}/horarios?data=${encodeURIComponent(data)}`, { sinal }),
+  criarReserva: (dados) =>
+    CONFIG.modoPrototipo ? prototipo.criarReserva(dados) : requisitar(`${CONFIG.apiBase}/reservas`, { metodo: 'POST', corpo: dados }),
+  registrarInteresse: (dados) =>
+    CONFIG.modoPrototipo ? prototipo.registrarInteresse(dados) : requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
 };

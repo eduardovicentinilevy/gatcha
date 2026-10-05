@@ -32,7 +32,12 @@ export function criarApp() {
   app.set('json escape', true);
 
   app.use(contextoDaRequisicao);
-  app.use(helmet()); // headers de segurança + remove X-Powered-By
+  app.use(
+    helmet({
+      // Igual à CSP do firebase.json: o site só incorpora o mapa do Google (carregado sob demanda).
+      contentSecurityPolicy: { directives: { 'frame-src': ['https://www.google.com'] } },
+    }),
+  ); // headers de segurança + remove X-Powered-By
 
   if (config.http.corsOrigins.length > 0) {
     app.use(

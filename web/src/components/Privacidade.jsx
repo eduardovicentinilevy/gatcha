@@ -1,6 +1,6 @@
 export default function Privacidade() {
   return (
-    <main id="conteudo" className="container texto">
+    <main id="conteudo" className="container texto cartao">
       <p className="sobretitulo">LGPD</p>
       <h1>Aviso de privacidade</h1>
       <p>Este aviso explica quais dados pessoais o site do Gatchá coleta, para quê e por quanto tempo, conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>

@@ -1,0 +1,68 @@
+{
+ "_comentario": "Formato de GET /api/gatos. 'personalidade' é texto; o site separa por vírgula para exibir como tags.",
+ "gatos": [
+  {
+   "id": 1,
+   "nome": "Matcha",
+   "idade_meses": 8,
+   "sexo": "femea",
+   "personalidade": "curiosa, brincalhona, caçadora de varinha",
+   "foto_url": null,
+   "status": "disponivel"
+  },
+  {
+   "id": 2,
+   "nome": "Mochi",
+   "idade_meses": 30,
+   "sexo": "macho",
+   "personalidade": "calmo, rei do colo, ronrona alto",
+   "foto_url": null,
+   "status": "disponivel"
+  },
+  {
+   "id": 3,
+   "nome": "Sakura",
+   "idade_meses": 14,
+   "sexo": "femea",
+   "personalidade": "tímida no começo, grudenta depois, ama sachê",
+   "foto_url": null,
+   "status": "em_processo"
+  },
+  {
+   "id": 4,
+   "nome": "Tofu",
+   "idade_meses": 4,
+   "sexo": "macho",
+   "personalidade": "filhote, elétrico, muito falante",
+   "foto_url": null,
+   "status": "disponivel"
+  },
+  {
+   "id": 5,
+   "nome": "Hojicha",
+   "idade_meses": 60,
+   "sexo": "femea",
+   "personalidade": "sábia, gosta de janela, independente",
+   "foto_url": null,
+   "status": "disponivel"
+  },
+  {
+   "id": 6,
+   "nome": "Wasabi",
+   "idade_meses": 20,
+   "sexo": "macho",
+   "personalidade": "aventureiro, se dá bem com outros gatos",
+   "foto_url": null,
+   "status": "disponivel"
+  },
+  {
+   "id": 7,
+   "nome": "Nori",
+   "idade_meses": 36,
+   "sexo": "macho",
+   "personalidade": "já adotado: não deve aparecer no site",
+   "foto_url": null,
+   "status": "adotado"
+  }
+ ]
+}

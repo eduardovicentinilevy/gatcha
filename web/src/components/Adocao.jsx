@@ -1,23 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, ErroApi } from '../api.js';
-import { GATOS_EXEMPLO } from '../dados-exemplo.js';
+import { CONFIG } from '../config.js';
+import { api, carregarGatos, ErroApi } from '../api.js';
 import { focarPrimeiroErro, idade } from '../util.js';
 import Campo, { Aceite } from './Campo.jsx';
-import { TracoGato } from './LogoGato.jsx';
+import Carrossel from './Carrossel.jsx';
+import Foto from './Foto.jsx';
+import { IconeFechar } from './Icones.jsx';
 
-const CORES_AVATAR = ['#6BA305', '#4A7304', '#0D1117', '#8DB33A'];
-
-/** Só aceita fotos HTTPS (a API também valida); qualquer outra coisa vira o avatar desenhado. */
-function Foto({ gato, indice }) {
-  if (typeof gato.foto_url === 'string' && gato.foto_url.startsWith('https://')) {
-    return <img className="gato__foto" src={gato.foto_url} alt={`Foto de ${gato.nome}`} loading="lazy" decoding="async" referrerPolicy="no-referrer" />;
-  }
-  return (
-    <div className="gato__avatar" role="img" aria-label={`Ilustração de ${gato.nome}`} style={{ background: CORES_AVATAR[indice % CORES_AVATAR.length] }}>
-      <TracoGato />
-    </div>
-  );
-}
+const STATUS = {
+  disponivel: ['Disponível', 'selo--matcha'],
+  em_processo: ['Em processo de adoção', 'selo--destaque'],
+};
+const TONS = ['matcha', 'creme', 'rosa'];
+const tags = (texto) => (texto ?? '').split(',').map((t) => t.trim()).filter(Boolean);
 
 export default function Adocao() {
   const [gatos, setGatos] = useState(null);
@@ -25,48 +20,61 @@ export default function Adocao() {
   const [escolhido, setEscolhido] = useState(null);
 
   useEffect(() => {
-    const controle = new AbortController();
-    api
-      .gatos(controle.signal)
-      .then(({ gatos }) => setGatos(gatos))
-      .catch(() => {
-        if (controle.signal.aborted) return;
-        setGatos(GATOS_EXEMPLO);
-        setExemplo(true);
-      });
-    return () => controle.abort();
+    let vivo = true;
+    carregarGatos().then(({ lista, exemplo }) => {
+      if (!vivo) return;
+      setGatos(lista.filter((g) => g.status !== 'adotado'));
+      setExemplo(exemplo);
+    });
+    return () => {
+      vivo = false;
+    };
   }, []);
-
-  const disponiveis = gatos?.filter((g) => g.status !== 'adotado');
 
   return (
     <section id="adocao" className="secao" aria-labelledby="titulo-adocao">
       <div className="container">
-        <header className="secao__topo">
+        <header className="secao__topo" data-revelar>
           <p className="sobretitulo">Adoção</p>
-          <h2 id="titulo-adocao">Eles estão procurando uma família</h2>
-          <p>Todos os gatos são castrados, vacinados e acompanhados pela ONG Abrigo São Gabriel. Gostou de alguém? Conte pra gente.</p>
+          <h2 id="titulo-adocao">{CONFIG.textos.adocao.titulo}</h2>
+          <p>{CONFIG.textos.adocao.subtitulo}</p>
         </header>
-        <ul className="gatos" aria-live="polite">
-          {!disponiveis && [1, 2, 3].map((n) => <li key={n} className="esqueleto" />)}
-          {disponiveis?.length === 0 && <li className="nota">Todos os gatos foram adotados! Volte em breve para conhecer os novos moradores.</li>}
-          {disponiveis?.map((g, i) => (
-            <li key={g.id} className="gato">
-              <Foto gato={g} indice={i} />
-              <div className="gato__corpo">
-                <h3>{g.nome}</h3>
-                <div className="gato__meta">
-                  {idade(g.idade_meses) && <span className="etiqueta">{idade(g.idade_meses)}</span>}
-                  <span className="etiqueta">{g.sexo === 'femea' ? 'Fêmea' : 'Macho'}</span>
-                  {g.status === 'em_processo' && <span className="etiqueta etiqueta--processo">Em processo de adoção</span>}
+
+        {!gatos && <div className="esqueleto esqueleto--card" />}
+        {gatos?.length === 0 && <p className="vazio">Todo mundo foi adotado! 🎉 Volta logo pra conhecer os novos moradores.</p>}
+        {gatos?.length > 0 && (
+          <Carrossel
+            rotulo="Gatos para adoção"
+            itens={gatos}
+            chave={(g) => g.id}
+            classe="carrossel--gatos"
+            renderItem={(g, i) => (
+              <article className="gato cartao cartao--interativo">
+                <Foto src={g.foto_url} alt={`Foto de ${g.nome}`} icone="gato" tom={TONS[i % TONS.length]} />
+                <div className="gato__corpo">
+                  <div className="gato__topo">
+                    <h3>{g.nome}</h3>
+                    {STATUS[g.status] && <span className={`selo ${STATUS[g.status][1]}`}>{STATUS[g.status][0]}</span>}
+                  </div>
+                  <p className="gato__meta">{[idade(g.idade_meses), g.sexo === 'femea' ? 'fêmea' : 'macho'].filter(Boolean).join(' · ')}</p>
+                  <ul className="tags" aria-label="Personalidade">
+                    {tags(g.personalidade).map((t) => <li key={t} className="tag">{t}</li>)}
+                  </ul>
+                  <button type="button" className="botao" onClick={() => setEscolhido(g)}>Quero conhecer</button>
                 </div>
-                {g.personalidade && <p>{g.personalidade}</p>}
-                <button type="button" className="botao botao--contorno" onClick={() => setEscolhido(g)}>Quero conhecer {g.nome}</button>
-              </div>
-            </li>
-          ))}
-        </ul>
-        {exemplo && <p className="nota">Prévia da galeria com gatos ilustrativos. Em breve, os gatos reais do Abrigo São Gabriel.</p>}
+              </article>
+            )}
+          />
+        )}
+        {exemplo && <p className="nota">Galeria ilustrativa: em breve, os gatos reais do Abrigo São Gabriel.</p>}
+
+        <div className="ong cartao" data-revelar>
+          <p className="ong__titulo">🤝 Parceria com o Abrigo São Gabriel</p>
+          <p>
+            A gente cuida do dia a dia no gatil; a ONG cuida da adoção responsável: entrevista, termo e acompanhamento.
+            Mandou o “Quero conhecer”? Seu contato vai direto pra equipe deles.
+          </p>
+        </div>
       </div>
       <DialogoInteresse gato={escolhido} onFechar={() => setEscolhido(null)} />
     </section>
@@ -77,7 +85,6 @@ const VAZIO = { nome: '', contato: '', mensagem: '', aceite: false };
 
 function DialogoInteresse({ gato, onFechar }) {
   const dialogo = useRef(null);
-  const form = useRef(null);
   const [dados, setDados] = useState(VAZIO);
   const [erros, setErros] = useState({});
   const [aviso, setAviso] = useState(null); // { tipo: 'ok' | 'erro', texto }
@@ -110,26 +117,26 @@ function DialogoInteresse({ gato, onFechar }) {
       contato: dados.contato.trim(),
       mensagem: dados.mensagem.trim() || undefined,
     };
-    const e2 = {};
-    if (limpos.nome.length < 2) e2.nome = 'Informe seu nome.';
-    if (limpos.contato.length < 8) e2.contato = 'Informe um e-mail ou celular.';
-    if (!dados.aceite) e2.aceite = 'É preciso autorizar o envio à ONG.';
-    setErros(e2);
-    if (Object.keys(e2).length > 0) {
-      focarPrimeiroErro(form.current, e2);
+    const novos = {};
+    if (limpos.nome.length < 2) novos.nome = 'Como a gente te chama?';
+    if (limpos.contato.length < 8) novos.contato = 'Deixa um e-mail ou celular pra ONG falar com você.';
+    if (!dados.aceite) novos.aceite = 'Precisamos do seu ok pra enviar seus dados à ONG.';
+    setErros(novos);
+    if (Object.keys(novos).length > 0) {
+      focarPrimeiroErro(e.currentTarget, novos);
       return;
     }
 
     setEnviando(true);
     try {
       await api.registrarInteresse(limpos);
-      setAviso({ tipo: 'ok', texto: 'Recebemos seu interesse! A equipe vai repassar à ONG, que entrará em contato.' });
+      setAviso({ tipo: 'ok', texto: `Recebido! A equipe vai passar seu contato pro Abrigo São Gabriel. ${gato.nome} agradece 🐾` });
       setDados(VAZIO);
     } catch (erro) {
       if (erro instanceof ErroApi && erro.codigo === 'DADOS_INVALIDOS') setErros(erro.errosDeCampo);
       setAviso({
         tipo: 'erro',
-        texto: erro instanceof ErroApi && erro.status === 404 ? 'O formulário online ainda não está disponível. Fale com a equipe no café!' : erro.message,
+        texto: erro instanceof ErroApi && erro.status === 404 ? 'O formulário online ainda não está no ar. Fala com a gente no café!' : erro.message,
       });
     } finally {
       setEnviando(false);
@@ -137,18 +144,20 @@ function DialogoInteresse({ gato, onFechar }) {
   }
 
   return (
-    <dialog ref={dialogo} className="dialogo" aria-labelledby="titulo-interesse" onClose={onFechar}>
-      <form method="dialog" className="dialogo__fechar"><button aria-label="Fechar">×</button></form>
-      <h3 id="titulo-interesse">Quero conhecer {gato?.nome}</h3>
-      <form ref={form} className="campos" noValidate onSubmit={enviar}>
-        <Campo id="i-nome" rotulo="Seu nome" name="nome" autoComplete="name" required maxLength={100} value={dados.nome} onChange={alterar} erro={erros.nome} largo />
-        <Campo id="i-contato" rotulo="E-mail ou celular" name="contato" autoComplete="email" required maxLength={254} value={dados.contato} onChange={alterar} erro={erros.contato} largo />
-        <Campo id="i-mensagem" rotulo="Mensagem" opcional name="mensagem" multilinha rows={3} maxLength={1000} value={dados.mensagem} onChange={alterar} largo />
+    <dialog ref={dialogo} className="dialogo cartao" aria-labelledby="titulo-interesse" onClose={onFechar}>
+      <form method="dialog" className="dialogo__fechar">
+        <button className="botao-icone" aria-label="Fechar"><IconeFechar /></button>
+      </form>
+      <h3 id="titulo-interesse">Quero conhecer {gato?.nome} 💚</h3>
+      <form className="campos" noValidate onSubmit={enviar}>
+        <Campo id="i-nome" rotulo="Seu nome" name="nome" autoComplete="name" maxLength={100} value={dados.nome} onChange={alterar} erro={erros.nome} largo />
+        <Campo id="i-contato" rotulo="E-mail ou celular" name="contato" autoComplete="email" maxLength={254} value={dados.contato} onChange={alterar} erro={erros.contato} largo />
+        <Campo id="i-mensagem" rotulo="Conta um pouco de você" opcional name="mensagem" multilinha rows={3} maxLength={1000} value={dados.mensagem} onChange={alterar} largo placeholder="Já tem outros pets? Mora em casa ou apê?" />
         <Aceite name="aceite" checked={dados.aceite} onChange={alterar} erro={erros.aceite}>
-          Autorizo o envio dos meus dados à ONG Abrigo São Gabriel para o processo de adoção (<a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a>).
+          Autorizo o envio dos meus dados ao Abrigo São Gabriel para o processo de adoção (<a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a>).
         </Aceite>
         {aviso && <p className={`alerta campo--largo${aviso.tipo === 'ok' ? ' alerta--ok' : ''}`} role="alert">{aviso.texto}</p>}
-        <button className="botao campo--largo" type="submit" disabled={enviando}>{enviando ? 'Enviando…' : 'Enviar interesse'}</button>
+        <button className="botao botao--grande campo--largo" type="submit" disabled={enviando}>{enviando ? 'Enviando…' : 'Enviar interesse'}</button>
       </form>
     </dialog>
   );

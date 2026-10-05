@@ -8,38 +8,39 @@ Node.js 22 + Express 5 + PostgreSQL, hospedada no Google Cloud Run.
 
 ## Site (front-end)
 
-React 19 + Vite em `web/`, publicado no Firebase Hosting.
-Identidade visual derivada do avatar: verde matchá `#6BA305`, traço branco do gato-tigela (`LogoGato.jsx`) e fundo tinta `#0D1117`.
+React 19 + Vite em `web/`, publicado no Firebase Hosting. Visual neo-brutalista suave (bordas grossas, sombras duras), tema claro/escuro, mobile-first a partir de 360px.
 
-> **Não abra `web/index.html` direto no navegador** (`file://`): ele precisa do Vite para compilar o JSX. Use um dos modos abaixo.
->
-> **Não digite `vite` direto no terminal** — no Windows isso dá *"'vite' não é reconhecido como um comando interno"*. O Vite fica dentro do projeto: use `npm run web:dev` (na raiz) ou `npm run dev` (dentro de `web/`). Se as dependências do site não estiverem instaladas, esses comandos instalam sozinhos na primeira vez.
+> **Não abra `web/index.html` direto no navegador** (`file://`) nem digite `vite` no terminal: use os scripts abaixo.
+
+### Protótipo para validação com o cliente (sem backend)
 
 ```bash
-# Modo 1 — desenvolvimento com recarga instantânea (dois terminais)
+npm run prototipo      # http://localhost:5173 — dados de /web/public/dados-exemplo, nenhuma reserva é real
+```
+
+- Os JSON de `web/public/dados-exemplo/` têm **o mesmo formato da API** (`/api/cardapio`, `/api/gatos`, `/api/horarios?data=`). Para usar a API real basta sair do modo protótipo (`npm run web:dev`): os componentes não mudam.
+- O simulador (`web/src/prototipo.js`) aplica as regras da API: dias fechados, horários passados e vagas por célula de 15 min, descontando as reservas feitas na sessão.
+- Para mandar um link ao cliente: `npm --prefix web run build:prototipo` e publique `web/dist` (ex.: `firebase hosting:channel:deploy prototipo`).
+
+### Desenvolvimento com a API
+
+```bash
 npm run dev            # API em http://localhost:8080
 npm run web:dev        # site em http://localhost:5173 (repassa /api para a 8080)
-
-# Modo 2 — site + API juntos, como em produção
-npm run build          # gera web/dist
-SERVIR_FRONTEND=true npm run dev   # tudo em http://localhost:8080
 ```
 
-```
-web/src/
-├── App.jsx                 # página inicial ou /privacidade
-├── api.js                  # cliente da API (timeout, cancelamento, ErroApi)
-├── config.js               # preços, horários e limites (PROVISÓRIOS)
-├── util.js                 # datas no fuso do café, formatação, normalização
-└── components/
-    ├── Reserva.jsx         # 4 passos; recarrega a grade em 409; trava duplo envio
-    ├── Adocao.jsx          # galeria + <dialog> "Quero conhecer"
-    └── Topo, Hero, Cardapio, Gatil, Visite, Rodape, Privacidade, Campo, LogoGato
-```
+### Onde mexer
 
-- **Segurança:** o React escapa todo texto dinâmico (nenhum `dangerouslySetInnerHTML`); CSP estrita sem `unsafe-inline` e demais cabeçalhos em `firebase.json`; `/api/**` reescrito para o Cloud Run (mesma origem, sem CORS; use `TRUST_PROXY=2`).
-- **Prévia:** enquanto `/api/cardapio` e `/api/gatos` não existem, o site mostra itens ilustrativos com aviso visível (`src/dados-exemplo.js`).
-- **Deploy:** `npm run web:build && firebase deploy --only hosting`.
+| O quê | Onde |
+|---|---|
+| Cores (claro/escuro), textos, preços, horários, regras, FAQ, avaliações, contatos | `web/src/config.js` (procure `[SUBSTITUIR]` e `[CONFIRMAR]`) |
+| Dados de exemplo | `web/public/dados-exemplo/*.json` |
+| Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
+| Fluxo de reserva | `web/src/components/Reserva.jsx` |
+
+- **Segurança:** o React escapa todo texto dinâmico; CSP estrita sem `unsafe-inline` em `firebase.json`; fontes servidas pelo próprio site; mapa do Google só carrega quando a pessoa pede (LGPD).
+- **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, foco movido a cada etapa da reserva, `prefers-reduced-motion` respeitado.
+- **Deploy:** `npm run build && firebase deploy --only hosting`.
 
 ## Arquitetura
 

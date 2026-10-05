@@ -1,141 +1,148 @@
 /**
- * Reserva do gatil: dia -> duração/pessoas -> horário -> dados -> confirmação.
- * A API decide as vagas de verdade (transação no Postgres); aqui só exibimos
- * e, em caso de conflito (409), recarregamos a grade para mostrar o estado atual.
+ * Reserva do gatil em etapas: 1 Dia → 2 Horário → 3 Duração e pessoas → 4 Seus dados → Confirmação.
+ *
+ * A API (ou o simulador do protótipo) decide as vagas de verdade; aqui só
+ * exibimos. Se a vaga acabar no meio do caminho (409), voltamos para a etapa de
+ * horário com a grade atualizada.
  */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CONFIG } from '../config.js';
 import { api, ErroApi } from '../api.js';
-import { focarPrimeiroErro, normalizarTelefone, proximosDias, reais, RE_NOME, rotuloDia } from '../util.js';
+import {
+  diaDaSemana, focarPrimeiroErro, mascararTelefone, normalizarTelefone, proximosDias, reais, RE_EMAIL, RE_NOME, rotuloDia,
+} from '../util.js';
 import Campo, { Aceite } from './Campo.jsx';
 import LogoGato from './LogoGato.jsx';
+import { IconePatinha } from './Icones.jsx';
 
+const { gatil } = CONFIG;
+const ETAPAS = ['Dia', 'Horário', 'Detalhes', 'Seus dados'];
 const DADOS_VAZIOS = { nome: '', telefone: '', email: '', aceite: false };
+const SEMANA = [['D', 'domingo'], ['S', 'segunda'], ['T', 'terça'], ['Q', 'quarta'], ['Q', 'quinta'], ['S', 'sexta'], ['S', 'sábado']];
+
+function validar(d) {
+  const e = {};
+  const nome = d.nome.trim();
+  if (nome.length < 2) e.nome = 'Como a gente te chama?';
+  else if (!RE_NOME.test(nome)) e.nome = 'Use só letras, espaço, apóstrofo, ponto e hífen.';
+  if (!/^[1-9]{2}\d{8,9}$/.test(normalizarTelefone(d.telefone))) e.telefone = 'Coloca o celular com DDD, tipo (11) 91234-5678.';
+  if (!RE_EMAIL.test(d.email.trim())) e.email = 'Esse e-mail parece incompleto.';
+  if (!d.aceite) e.aceite = 'Precisamos do seu ok pra usar esses dados na reserva.';
+  return e;
+}
 
 export default function Reserva() {
-  const dias = useMemo(proximosDias, []);
+  const [etapa, setEtapa] = useState(1); // 1..4, 5 = confirmada
   const [data, setData] = useState(null);
+  const [grade, setGrade] = useState({ estado: 'ocioso' }); // ocioso | carregando | pronto | erro
+  const [versaoGrade, setVersaoGrade] = useState(0);
+  const [hora, setHora] = useState(null);
   const [duracao, setDuracao] = useState(15);
   const [pessoas, setPessoas] = useState(1);
-  const [hora, setHora] = useState(null);
-  const [grade, setGrade] = useState({ estado: 'ocioso' }); // ocioso | carregando | pronto | erro
-  const [versaoGrade, setVersaoGrade] = useState(0); // incrementar = recarregar
   const [dados, setDados] = useState(DADOS_VAZIOS);
-  const [erros, setErros] = useState({});
+  const [tocados, setTocados] = useState({});
+  const [errosServidor, setErrosServidor] = useState({});
   const [alerta, setAlerta] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [confirmada, setConfirmada] = useState(null);
-  const formRef = useRef(null);
-  const confirmacaoRef = useRef(null);
-  const horariosRef = useRef(null);
 
-  // Na abertura, pula para o primeiro dia aberto e com horário livre.
+  const titulos = useRef([]);
+  const primeiraRenderizacao = useRef(true);
+
+  // Leva o foco (e a tela) para o título da etapa nova: essencial para leitor de tela e teclado.
   useEffect(() => {
-    const controle = new AbortController();
-    (async () => {
-      for (const iso of dias) {
-        try {
-          const g = await api.horarios(iso, controle.signal);
-          if (g.aberto && g.horarios.some((h) => h.vagas_15min > 0)) {
-            setGrade({ estado: 'pronto', ...g });
-            setData(iso);
-            return;
-          }
-        } catch (erro) {
-          if (controle.signal.aborted) return;
-          setData(iso);
-          setGrade({ estado: 'erro', mensagem: erro.message });
-          return;
-        }
-      }
-      setData(dias[0]);
-    })();
-    return () => controle.abort();
-  }, [dias]);
+    if (primeiraRenderizacao.current) {
+      primeiraRenderizacao.current = false;
+      return;
+    }
+    const titulo = titulos.current[etapa];
+    titulo?.focus({ preventScroll: true });
+    titulo?.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }, [etapa]);
 
-  // Carrega a grade quando o usuário troca de dia ou pede recarga (versaoGrade).
-  // O AbortController descarta respostas antigas se o usuário trocar de dia rápido.
-  const primeiraCarga = useRef(true);
+  // Carrega a grade do dia escolhido (e recarrega quando versaoGrade muda).
   useEffect(() => {
     if (!data) return undefined;
-    if (primeiraCarga.current) {
-      primeiraCarga.current = false; // a busca inicial acima já trouxe esta grade
-      if (grade.estado !== 'ocioso') return undefined;
-    }
     const controle = new AbortController();
-    setGrade((g) => ({ ...g, estado: 'carregando' }));
+    setGrade({ estado: 'carregando' });
     api
       .horarios(data, controle.signal)
-      .then((g) => setGrade({ estado: 'pronto', ...g }))
-      .catch((erro) => {
-        if (!controle.signal.aborted) setGrade({ estado: 'erro', mensagem: erro.message });
-      });
+      .then((g) => !controle.signal.aborted && setGrade({ estado: 'pronto', ...g }))
+      .catch((erro) => !controle.signal.aborted && setGrade({ estado: 'erro', mensagem: erro.message }));
     return () => controle.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- grade.estado só importa na primeira carga
   }, [data, versaoGrade]);
 
-  const vagasDe = useCallback((h) => (duracao === 30 ? h.vagas_30min : h.vagas_15min), [duracao]);
-  const horarios = grade.horarios ?? [];
+  const slot = grade.horarios?.find((h) => h.hora_inicio === hora);
+  const vagasPara = (d) => (slot ? (d === 30 ? slot.vagas_30min : slot.vagas_15min) : 0);
+  const maxPessoas = Math.max(1, Math.min(gatil.maxPessoasPorReserva, vagasPara(duracao)));
 
-  // Se o horário escolhido deixou de comportar o grupo (ou sumiu da grade), desmarca.
+  // Se a duração escolhida deixou de caber, ajusta duração e número de pessoas.
   useEffect(() => {
-    if (!hora) return;
-    const h = horarios.find((x) => x.hora_inicio === hora);
-    if (!h || vagasDe(h) < pessoas) setHora(null);
-  }, [horarios, hora, pessoas, vagasDe]);
+    if (!slot) return;
+    if (duracao === 30 && slot.vagas_30min === 0) setDuracao(15);
+    setPessoas((p) => Math.min(p, maxPessoas));
+  }, [slot, duracao, maxPessoas]);
 
+  const erros = useMemo(() => ({ ...validar(dados), ...errosServidor }), [dados, errosServidor]);
+  const erroVisivel = (campo) => (tocados[campo] ? erros[campo] : undefined);
+  const total = gatil.precosCentavos[duracao] * pessoas;
   const resumo = data && hora
-    ? `${rotuloDia(data).longo}, às ${hora} · ${duracao} min · ${pessoas === 1 ? '1 pessoa' : `${pessoas} pessoas`} · ${reais(CONFIG.precosGatilCentavos[duracao] * pessoas)} no local`
-    : null;
+    ? `${rotuloDia(data).longo}, ${hora} · ${duracao} min · ${pessoas === 1 ? '1 pessoa' : `${pessoas} pessoas`}`
+    : '';
+
+  function irPara(n) {
+    setAlerta(null);
+    setEtapa(n);
+  }
 
   function escolherDia(iso) {
-    if (iso === data) return;
-    setData(iso);
-    setHora(null);
-    setAlerta(null);
+    if (iso !== data) {
+      setData(iso);
+      setHora(null);
+    } else {
+      setVersaoGrade((v) => v + 1); // mesmo dia: atualiza as vagas
+    }
+    irPara(2);
+  }
+
+  function escolherHora(h) {
+    setHora(h);
+    irPara(3);
   }
 
   const alterar = (e) => {
     const { name, type, checked, value } = e.target;
-    setDados((d) => ({ ...d, [name]: type === 'checkbox' ? checked : value }));
+    const valor = type === 'checkbox' ? checked : name === 'telefone' ? mascararTelefone(value) : value;
+    setDados((d) => ({ ...d, [name]: valor }));
+    setErrosServidor(({ [name]: _removido, ...resto }) => resto);
+    if (type === 'checkbox') setTocados((t) => ({ ...t, [name]: true }));
   };
+  const marcarTocado = (e) => setTocados((t) => ({ ...t, [e.target.name]: true }));
 
-  function validar(d) {
-    const e = {};
-    if (d.nome.length < 2) e.nome = 'Informe seu nome.';
-    else if (!RE_NOME.test(d.nome)) e.nome = 'Use apenas letras, espaços, apóstrofo, ponto e hífen.';
-    if (!/^[1-9]{2}\d{8,9}$/.test(normalizarTelefone(d.telefone))) e.telefone = 'Informe o celular com DDD.';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) e.email = 'Informe um e-mail válido.';
-    if (!d.aceite) e.aceite = 'É preciso concordar com o aviso de privacidade.';
-    return e;
-  }
-
-  async function enviar(evento) {
+  async function confirmar(evento) {
     evento.preventDefault();
     if (enviando) return; // evita reserva duplicada por duplo clique
     setAlerta(null);
-
-    if (!data || !hora) {
-      setAlerta('Escolha o dia e o horário da visita.');
-      horariosRef.current?.scrollIntoView({ block: 'center' });
-      return;
-    }
-    const limpos = {
-      nome: dados.nome.trim().replace(/\s+/g, ' '),
-      telefone: dados.telefone.trim(),
-      email: dados.email.trim().toLowerCase(),
-    };
-    const errosLocais = validar({ ...limpos, aceite: dados.aceite });
-    setErros(errosLocais);
-    if (Object.keys(errosLocais).length > 0) {
-      focarPrimeiroErro(formRef.current, errosLocais);
+    const errosAtuais = validar(dados);
+    if (Object.keys(errosAtuais).length > 0) {
+      setTocados({ nome: true, telefone: true, email: true, aceite: true });
+      focarPrimeiroErro(evento.currentTarget, errosAtuais);
       return;
     }
 
     setEnviando(true);
     try {
-      const { reserva } = await api.criarReserva({ data, hora_inicio: hora, duracao_min: duracao, pessoas, ...limpos });
-      setConfirmada({ codigo: reserva.codigo, resumo });
+      const { reserva } = await api.criarReserva({
+        data,
+        hora_inicio: hora,
+        duracao_min: duracao,
+        pessoas,
+        nome: dados.nome.trim().replace(/\s+/g, ' '),
+        telefone: normalizarTelefone(dados.telefone),
+        email: dados.email.trim().toLowerCase(),
+      });
+      setConfirmada({ codigo: reserva.codigo, resumo, total });
+      setEtapa(5);
     } catch (erro) {
       tratarErro(erro);
     } finally {
@@ -145,147 +152,247 @@ export default function Reserva() {
 
   function tratarErro(erro) {
     if (!(erro instanceof ErroApi)) {
-      setAlerta('Não foi possível concluir a reserva. Tente novamente.');
+      setAlerta('Não deu pra concluir a reserva. Tenta de novo?');
       return;
     }
     if (erro.codigo === 'DADOS_INVALIDOS') {
       const campos = erro.errosDeCampo;
-      const dosDados = Object.fromEntries(Object.entries(campos).filter(([k]) => k in DADOS_VAZIOS));
-      setErros(dosDados);
-      if (Object.keys(dosDados).length > 0) focarPrimeiroErro(formRef.current, dosDados);
-      else setAlerta(Object.values(campos)[0] ?? erro.message);
+      const doFormulario = Object.fromEntries(Object.entries(campos).filter(([k]) => k in DADOS_VAZIOS));
+      setErrosServidor(doFormulario);
+      setTocados((t) => ({ ...t, ...Object.fromEntries(Object.keys(doFormulario).map((k) => [k, true])) }));
+      if (Object.keys(doFormulario).length === 0) setAlerta(Object.values(campos)[0] ?? erro.message);
       return;
     }
-    setAlerta(erro.message);
-    // Vaga acabou, horário bloqueado ou já passou: mostra a grade atualizada.
-    if (erro.status === 409 || (erro.status === 400 && erro.codigo.startsWith('HORARIO'))) setVersaoGrade((v) => v + 1);
-  }
-
-  useEffect(() => {
-    if (confirmada) {
-      confirmacaoRef.current?.focus();
-      confirmacaoRef.current?.scrollIntoView({ block: 'center' });
+    // Vaga acabou, horário bloqueado ou já passou: volta para os horários atualizados.
+    if (erro.status === 409 || (erro.status === 400 && erro.codigo.startsWith('HORARIO'))) {
+      setHora(null);
+      setVersaoGrade((v) => v + 1);
+      setEtapa(2);
     }
-  }, [confirmada]);
+    setAlerta(erro.message);
+  }
 
   function novaReserva() {
     setConfirmada(null);
     setDados(DADOS_VAZIOS);
-    setErros({});
+    setTocados({});
     setHora(null);
     setPessoas(1);
     setDuracao(15);
     setVersaoGrade((v) => v + 1);
+    setEtapa(1);
   }
 
-  if (confirmada) return <Confirmacao ref={confirmacaoRef} {...confirmada} onNova={novaReserva} />;
+  const refTitulo = (n) => (el) => {
+    titulos.current[n] = el;
+  };
 
   return (
-    <div id="reserva" className="reserva">
-      <form ref={formRef} className="reserva__form" noValidate onSubmit={enviar}>
-        <fieldset className="passo">
-          <legend><span className="passo__n">1</span> Escolha o dia</legend>
-          <div className="dias" role="group" aria-label="Dia da visita">
-            {dias.map((iso) => {
-              const r = rotuloDia(iso);
+    <div id="reserva" className="reserva cartao">
+      {etapa <= 4 && <Progresso etapa={etapa} onIr={irPara} />}
+      <p className="sr" aria-live="polite">{etapa <= 4 ? `Etapa ${etapa} de 4: ${ETAPAS[etapa - 1]}` : 'Reserva confirmada'}</p>
+
+      {alerta && etapa <= 4 && <p className="alerta" role="alert">{alerta}</p>}
+
+      {etapa === 1 && (
+        <section className="etapa" aria-labelledby="etapa-1">
+          <h3 id="etapa-1" ref={refTitulo(1)} tabIndex={-1}>Qual dia você vem?</h3>
+          <Calendario selecionado={data} onEscolher={escolherDia} />
+        </section>
+      )}
+
+      {etapa === 2 && (
+        <section className="etapa" aria-labelledby="etapa-2">
+          <h3 id="etapa-2" ref={refTitulo(2)} tabIndex={-1}>Que horas? <span className="etapa__contexto">{rotuloDia(data).longo}</span></h3>
+          <Horarios grade={grade} hora={hora} onEscolher={escolherHora} onOutroDia={() => irPara(1)} />
+          <div className="etapa__acoes">
+            <button type="button" className="botao botao--secundario" onClick={() => irPara(1)}>Voltar</button>
+          </div>
+        </section>
+      )}
+
+      {etapa === 3 && slot && (
+        <section className="etapa" aria-labelledby="etapa-3">
+          <h3 id="etapa-3" ref={refTitulo(3)} tabIndex={-1}>Quanto tempo e quantas pessoas? <span className="etapa__contexto">{rotuloDia(data).curto}, {hora}</span></h3>
+          <div className="duracoes" role="radiogroup" aria-label="Duração da sessão">
+            {[15, 30].map((m) => {
+              const vagas = vagasPara(m);
               return (
-                <button key={iso} type="button" className="dia" aria-pressed={iso === data} aria-label={r.longo} onClick={() => escolherDia(iso)}>
-                  <span className="dia__semana">{r.semana}</span>
-                  <span className="dia__num">{r.numero}</span>
-                  <span className="dia__mes">{r.mes}</span>
-                </button>
+                <label key={m} className={`duracao${vagas === 0 ? ' duracao--indisponivel' : ''}`}>
+                  <input type="radio" name="duracao" value={m} checked={duracao === m} disabled={vagas === 0} onChange={() => setDuracao(m)} />
+                  <span className="duracao__tempo">{m} min</span>
+                  <span className="duracao__preco">{reais(gatil.precosCentavos[m])} <small>por pessoa</small></span>
+                  <span className="duracao__vagas">{vagas === 0 ? 'Não cabe nesse horário' : `${vagas} ${vagas === 1 ? 'vaga' : 'vagas'}`}</span>
+                </label>
               );
             })}
           </div>
-        </fieldset>
 
-        <fieldset className="passo passo--linha">
-          <legend><span className="passo__n">2</span> Duração e pessoas</legend>
-          <div className="alternador" role="radiogroup" aria-label="Duração">
-            {[15, 30].map((m) => (
-              <label key={m}>
-                <input type="radio" name="duracao_min" value={m} checked={duracao === m} onChange={() => setDuracao(m)} /> {m} min
-              </label>
-            ))}
+          <div className="pessoas">
+            <span id="rotulo-pessoas" className="pessoas__rotulo">Pessoas</span>
+            <div className="contador" role="group" aria-labelledby="rotulo-pessoas">
+              <button type="button" className="botao-icone" aria-label="Menos uma pessoa" disabled={pessoas <= 1} onClick={() => setPessoas((p) => p - 1)}>−</button>
+              <output aria-live="polite" aria-label={`${pessoas} ${pessoas === 1 ? 'pessoa' : 'pessoas'}`}>{pessoas}</output>
+              <button type="button" className="botao-icone" aria-label="Mais uma pessoa" disabled={pessoas >= maxPessoas} onClick={() => setPessoas((p) => p + 1)}>+</button>
+            </div>
+            <p className="nota">
+              {pessoas >= maxPessoas && maxPessoas < gatil.maxPessoasPorReserva
+                ? `Só ${maxPessoas === 1 ? 'resta 1 vaga' : `restam ${maxPessoas} vagas`} nesse horário.`
+                : `Até ${gatil.maxPessoasPorReserva} pessoas por reserva.`}
+            </p>
           </div>
-          <div className="contador">
-            <button type="button" aria-label="Menos uma pessoa" disabled={pessoas <= 1} onClick={() => setPessoas((p) => p - 1)}>−</button>
-            <output aria-live="polite">{pessoas}</output>
-            <span className="contador__rotulo">{pessoas === 1 ? 'pessoa' : 'pessoas'}</span>
-            <button type="button" aria-label="Mais uma pessoa" disabled={pessoas >= CONFIG.maxPessoasPorReserva} onClick={() => setPessoas((p) => p + 1)}>+</button>
+
+          <p className="total">Total no local: <strong>{reais(total)}</strong></p>
+          <div className="etapa__acoes">
+            <button type="button" className="botao botao--secundario" onClick={() => irPara(2)}>Voltar</button>
+            <button type="button" className="botao" onClick={() => irPara(4)}>Continuar</button>
           </div>
-        </fieldset>
+        </section>
+      )}
 
-        <fieldset className="passo">
-          <legend><span className="passo__n">3</span> Escolha o horário</legend>
-          <GradeHorarios ref={horariosRef} grade={grade} vagasDe={vagasDe} pessoas={pessoas} duracao={duracao} hora={hora} onEscolher={setHora} />
-        </fieldset>
-
-        <fieldset className="passo">
-          <legend><span className="passo__n">4</span> Seus dados</legend>
-          <div className="campos">
-            <Campo id="r-nome" rotulo="Nome" name="nome" autoComplete="name" required minLength={2} maxLength={100} value={dados.nome} onChange={alterar} erro={erros.nome} />
-            <Campo id="r-telefone" rotulo="Celular com DDD" name="telefone" type="tel" inputMode="tel" autoComplete="tel" placeholder="(11) 91234-5678" required maxLength={20} value={dados.telefone} onChange={alterar} erro={erros.telefone} />
-            <Campo id="r-email" rotulo="E-mail" name="email" type="email" inputMode="email" autoComplete="email" required maxLength={254} value={dados.email} onChange={alterar} erro={erros.email} largo />
-            <Aceite name="aceite" checked={dados.aceite} onChange={alterar} erro={erros.aceite}>
-              Li o <a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a> e autorizo o uso do meu nome e contato para esta reserva.
+      {etapa === 4 && (
+        <section className="etapa" aria-labelledby="etapa-4">
+          <h3 id="etapa-4" ref={refTitulo(4)} tabIndex={-1}>Quase lá! Pra quem é a reserva?</h3>
+          <form className="campos" noValidate onSubmit={confirmar}>
+            <Campo id="r-nome" rotulo="Nome" name="nome" autoComplete="name" maxLength={100} value={dados.nome} onChange={alterar} onBlur={marcarTocado} erro={erroVisivel('nome')} valido={tocados.nome && !erros.nome} />
+            <Campo id="r-telefone" rotulo="Celular com DDD" name="telefone" type="tel" inputMode="numeric" autoComplete="tel-national" placeholder="(11) 91234-5678" maxLength={16} value={dados.telefone} onChange={alterar} onBlur={marcarTocado} erro={erroVisivel('telefone')} valido={tocados.telefone && !erros.telefone} />
+            <Campo id="r-email" rotulo="E-mail" name="email" type="email" inputMode="email" autoComplete="email" maxLength={254} value={dados.email} onChange={alterar} onBlur={marcarTocado} erro={erroVisivel('email')} valido={tocados.email && !erros.email} dica="O código da reserva e o link de cancelamento chegam aqui." largo />
+            <div className="lgpd campo--largo">
+              <IconePatinha />
+              <p>{CONFIG.textos.privacidadeCurta} <a href="/privacidade" target="_blank" rel="noopener">Aviso de privacidade</a>.</p>
+            </div>
+            <Aceite name="aceite" checked={dados.aceite} onChange={alterar} erro={erroVisivel('aceite')}>
+              Autorizo o uso do meu nome e contato para esta reserva.
             </Aceite>
-          </div>
-        </fieldset>
 
-        <div className="reserva__resumo">
-          <p>{resumo ?? 'Escolha dia e horário para ver o resumo.'}</p>
-          <button className="botao botao--grande" type="submit" disabled={enviando} aria-busy={enviando || undefined}>
-            {enviando ? 'Reservando…' : 'Confirmar reserva'}
-          </button>
-        </div>
-        {alerta && <p className="alerta" role="alert">{alerta}</p>}
-      </form>
+            <div className="resumo campo--largo">
+              <p className="resumo__linha"><strong>{resumo}</strong></p>
+              <p className="resumo__linha">Total no local: <strong>{reais(total)}</strong> · pagamento no balcão</p>
+              <button type="button" className="link" onClick={() => irPara(3)}>Alterar detalhes</button>
+            </div>
+
+            <div className="etapa__acoes campo--largo">
+              <button type="button" className="botao botao--secundario" onClick={() => irPara(3)}>Voltar</button>
+              <button className="botao botao--grande" type="submit" disabled={enviando} aria-busy={enviando || undefined}>
+                {enviando ? 'Reservando…' : 'Confirmar reserva'}
+              </button>
+            </div>
+          </form>
+        </section>
+      )}
+
+      {etapa === 5 && confirmada && (
+        <Confirmacao refTitulo={refTitulo(5)} {...confirmada} onNova={novaReserva} />
+      )}
     </div>
   );
 }
 
-function GradeHorarios({ ref, grade, vagasDe, pessoas, duracao, hora, onEscolher }) {
-  const carregando = grade.estado === 'carregando' || grade.estado === 'ocioso';
+function Progresso({ etapa, onIr }) {
+  return (
+    <ol className="progresso" aria-label="Etapas da reserva">
+      {ETAPAS.map((nome, i) => {
+        const n = i + 1;
+        const estado = n < etapa ? 'feito' : n === etapa ? 'atual' : 'pendente';
+        return (
+          <li key={nome} className={`progresso__passo progresso__passo--${estado}`} aria-current={estado === 'atual' ? 'step' : undefined}>
+            {estado === 'feito' ? (
+              <button type="button" onClick={() => onIr(n)} aria-label={`Voltar para a etapa ${n}: ${nome}`}>
+                <span className="progresso__n">✓</span><span className="progresso__nome">{nome}</span>
+              </button>
+            ) : (
+              <span><span className="progresso__n">{n}</span><span className="progresso__nome">{nome}</span></span>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
-  let nota = '';
-  if (grade.estado === 'erro') nota = grade.mensagem;
-  else if (grade.aberto === false) nota = 'O gatil não abre neste dia. Escolha outra data.';
-  else if (grade.horarios?.length === 0) nota = 'Não há mais horários hoje. Que tal outro dia?';
-  else if (grade.horarios && !grade.horarios.some((h) => vagasDe(h) >= pessoas))
-    nota = 'Nenhum horário comporta esse grupo neste dia. Tente menos pessoas, outra duração ou outra data.';
-  else if (grade.horarios) nota = `Vagas para sessões de ${duracao} minutos.`;
+/** Calendário dos próximos 14 dias, alinhado por dia da semana. Dias fechados ficam desabilitados. */
+function Calendario({ selecionado, onEscolher }) {
+  const dias = useMemo(proximosDias, []);
+  const vazios = diaDaSemana(dias[0]);
+  const meses = [...new Set(dias.map((d) => rotuloDia(d).mes))].join(' / ');
 
   return (
-    <>
-      <div ref={ref} className="horarios" role="group" aria-label="Horário" aria-busy={carregando}>
-        {carregando && !grade.horarios
-          ? [1, 2, 3, 4, 5, 6].map((n) => <div key={n} className="esqueleto" />)
-          : grade.estado !== 'erro' && grade.aberto && grade.horarios.map((h) => {
-              const vagas = vagasDe(h);
-              const texto = vagas === 0 ? 'indisponível' : vagas === 1 ? '1 vaga' : `${vagas} vagas`;
-              return (
-                <button
-                  key={h.hora_inicio}
-                  type="button"
-                  className="horario"
-                  disabled={vagas < pessoas}
-                  aria-pressed={h.hora_inicio === hora}
-                  aria-label={`${h.hora_inicio}, ${texto}`}
-                  onClick={() => onEscolher(h.hora_inicio)}
-                >
-                  <span className="horario__hora">{h.hora_inicio}</span>
-                  <span className="horario__vagas">{texto}</span>
-                </button>
-              );
-            })}
+    <div className="calendario">
+      <p className="calendario__mes">{meses}</p>
+      <div className="calendario__grade" role="group" aria-label="Escolha o dia">
+        {SEMANA.map(([letra, nome]) => (
+          <abbr key={nome} title={nome} className="calendario__semana">{letra}</abbr>
+        ))}
+        {Array.from({ length: vazios }, (_, i) => <span key={`v${i}`} aria-hidden="true" />)}
+        {dias.map((iso, i) => {
+          const r = rotuloDia(iso);
+          const fechado = !gatil.diasAbertos.includes(diaDaSemana(iso));
+          return (
+            <button
+              key={iso}
+              type="button"
+              className="calendario__dia"
+              disabled={fechado}
+              aria-pressed={iso === selecionado}
+              aria-label={`${r.longo}${i === 0 ? ', hoje' : ''}${fechado ? ', fechado' : ''}`}
+              onClick={() => onEscolher(iso)}
+            >
+              <span className="calendario__num">{r.numero}</span>
+              {i === 0 && <span className="calendario__marca">hoje</span>}
+            </button>
+          );
+        })}
       </div>
-      <p className="nota">{nota}</p>
+      <p className="nota">Dias riscados: gatil fechado. Dá pra reservar até {gatil.antecedenciaMaxDias} dias antes.</p>
+    </div>
+  );
+}
+
+function Horarios({ grade, hora, onEscolher, onOutroDia }) {
+  if (grade.estado === 'carregando' || grade.estado === 'ocioso') {
+    return <div className="horarios" aria-busy="true">{Array.from({ length: 12 }, (_, i) => <div key={i} className="esqueleto" />)}</div>;
+  }
+  let vazio = null;
+  if (grade.estado === 'erro') vazio = grade.mensagem;
+  else if (!grade.aberto) vazio = 'O gatil não abre nesse dia. Os gatos tão de folga 😴';
+  else if (grade.horarios.length === 0) vazio = 'Os horários de hoje já passaram. Bora pra outro dia?';
+  else if (grade.horarios.every((h) => h.vagas_15min === 0)) vazio = 'Esse dia lotou! Escolhe outro?';
+  if (vazio) {
+    return (
+      <div className="vazio">
+        <p>{vazio}</p>
+        <button type="button" className="botao" onClick={onOutroDia}>Escolher outro dia</button>
+      </div>
+    );
+  }
+  return (
+    <>
+      <div className="horarios" role="group" aria-label="Horários disponíveis">
+        {grade.horarios.map((h) => {
+          const vagas = h.vagas_15min;
+          const texto = vagas === 0 ? 'esgotado' : vagas === 1 ? 'última vaga!' : `${vagas} vagas`;
+          return (
+            <button
+              key={h.hora_inicio}
+              type="button"
+              className={`horario${vagas > 0 && vagas <= 2 ? ' horario--poucas' : ''}`}
+              disabled={vagas === 0}
+              aria-pressed={h.hora_inicio === hora}
+              aria-label={`${h.hora_inicio}, ${texto}`}
+              onClick={() => onEscolher(h.hora_inicio)}
+            >
+              <span className="horario__hora">{h.hora_inicio}</span>
+              <span className="horario__vagas">{texto}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="nota">Vagas para sessões a partir desse horário.</p>
     </>
   );
 }
 
-function Confirmacao({ ref, codigo, resumo, onNova }) {
+function Confirmacao({ refTitulo, codigo, resumo, total, onNova }) {
   const [copiado, setCopiado] = useState(null);
   async function copiar() {
     try {
@@ -296,18 +403,18 @@ function Confirmacao({ ref, codigo, resumo, onNova }) {
     }
   }
   return (
-    <div id="reserva" className="reserva">
-      <div ref={ref} className="confirmacao" tabIndex={-1}>
-        <LogoGato tamanho={72} />
-        <h3>Reserva confirmada!</h3>
-        <p>Guarde o seu código e apresente na recepção do gatil.</p>
-        <p className="confirmacao__codigo">{codigo}</p>
-        <p>{resumo}</p>
-        <div className="confirmacao__acoes">
-          <button className="botao botao--contorno" type="button" onClick={copiar}>{copiado ?? 'Copiar código'}</button>
-          <button className="botao" type="button" onClick={onNova}>Fazer outra reserva</button>
-        </div>
+    <section className="confirmacao" aria-labelledby="etapa-5">
+      <LogoGato tamanho={80} className="confirmacao__logo" />
+      <h3 id="etapa-5" ref={refTitulo} tabIndex={-1}>{CONFIG.textos.confirmacao.titulo}</h3>
+      <p>Seu código de reserva:</p>
+      <p className="confirmacao__codigo">{codigo}</p>
+      <p className="confirmacao__resumo">{resumo}<br />Total no local: <strong>{reais(total)}</strong></p>
+      <p className="confirmacao__aviso">{CONFIG.textos.confirmacao.cancelamento(gatil.cancelamentoAteHorasAntes)}</p>
+      <div className="etapa__acoes etapa__acoes--centro">
+        <button className="botao botao--secundario" type="button" onClick={copiar}>{copiado ?? 'Copiar código'}</button>
+        <a className="botao botao--secundario" href="#adocao">Conhecer os gatos</a>
+        <button className="botao" type="button" onClick={onNova}>Fazer outra reserva</button>
       </div>
-    </div>
+    </section>
   );
 }

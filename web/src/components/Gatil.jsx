@@ -2,37 +2,34 @@ import { CONFIG } from '../config.js';
 import { reais } from '../util.js';
 import Reserva from './Reserva.jsx';
 
-const REGRAS = [
-  'Higienize as mãos antes de entrar.',
-  'Gato dormindo não se acorda; colo só se ele quiser.',
-  'Não ofereça comida nem bebida aos gatos.',
-  'Crianças sempre acompanhadas de um adulto.',
-  'Fotos sem flash.',
-];
-
 export default function Gatil() {
+  const { gatil, textos } = CONFIG;
   return (
     <section id="gatil" className="secao secao--verde" aria-labelledby="titulo-gatil">
       <div className="container">
-        <header className="secao__topo">
+        <header className="secao__topo" data-revelar>
           <p className="sobretitulo">Gatil</p>
-          <h2 id="titulo-gatil">Um tempo com os gatos</h2>
-          <p>O espaço é dos gatos: as vagas por horário são limitadas para que eles fiquem tranquilos. Pagamento no local.</p>
+          <h2 id="titulo-gatil">{textos.gatil.titulo}</h2>
+          <p>{textos.gatil.subtitulo}</p>
         </header>
 
-        <div className="gatil__grade">
+        <div className="gatil__grade" data-revelar>
           <div className="precos">
-            {Object.entries(CONFIG.precosGatilCentavos).map(([minutos, centavos]) => (
-              <div key={minutos} className="preco">
-                <p className="preco__tempo">{minutos} minutos</p>
+            {Object.entries(gatil.precosCentavos).map(([minutos, centavos]) => (
+              <div key={minutos} className="preco cartao">
+                <p className="preco__tempo">{minutos} min</p>
                 <p className="preco__valor">{reais(centavos)}</p>
-                <p className="preco__por">por pessoa, pago no local</p>
+                <p className="preco__por">por pessoa</p>
               </div>
             ))}
           </div>
-          <div className="regras">
-            <h3>Regras do espaço</h3>
-            <ul>{REGRAS.map((r) => <li key={r}>{r}</li>)}</ul>
+          <div className="regras cartao">
+            <h3>Combinados do gatil</h3>
+            <ul>
+              {gatil.regras.map(([emoji, texto]) => (
+                <li key={texto}><span aria-hidden="true">{emoji}</span> {texto}</li>
+              ))}
+            </ul>
           </div>
         </div>
 

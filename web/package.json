@@ -8,9 +8,15 @@
     "dev": "vite",
     "prebuild": "node scripts/garantir-dependencias.cjs",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preprototipo": "node scripts/garantir-dependencias.cjs",
+    "prototipo": "vite --mode prototipo",
+    "prebuild:prototipo": "node scripts/garantir-dependencias.cjs",
+    "build:prototipo": "vite build --mode prototipo"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/nunito": "^5.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
