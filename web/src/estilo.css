@@ -98,14 +98,22 @@ abbr[title] { text-decoration: none; }
 .botao--secundario { background: var(--cor-superficie); color: var(--cor-texto); }
 .botao--claro { background: var(--cor-claro-fixo); color: var(--cor-botao-texto); }
 .botao--largo { width: 100%; }
-/* Orelhinhas de gato no botão principal de reserva (detalhe temático, com moderação) */
+/* Orelhinhas de gato nos botões "Reservar gatil" (detalhe temático, com moderação).
+   Duas camadas por cima da borda do botão: ::before = contorno escuro, ::after = miolo
+   verde, menor, com a base no mesmo nível. O miolo cobre a borda do botão na base da
+   orelha, então o contorno "entra" na orelha e ela parece parte do botão.
+   Medidas: orelha 19,2px de base x 12px de altura; contorno de ~2,5px (= --borda). */
 .topo__cta::before, .topo__cta::after, .barra-reserva .botao::before, .barra-reserva .botao::after {
-  content: ''; position: absolute; top: -9px; width: 14px; height: 12px;
-  background: inherit; border: var(--borda); border-bottom: 0; border-radius: 3px 3px 0 0;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  content: ''; position: absolute; left: 0; right: 0; bottom: 100%; pointer-events: none;
 }
-.topo__cta::before, .barra-reserva .botao::before { left: 22%; }
-.topo__cta::after, .barra-reserva .botao::after { right: 22%; }
+.topo__cta::before, .barra-reserva .botao::before {
+  height: 12px; background: var(--cor-borda);
+  clip-path: polygon(calc(22% - 9.6px) 100%, 22% 0, calc(22% + 9.6px) 100%, calc(78% - 9.6px) 100%, 78% 0, calc(78% + 9.6px) 100%);
+}
+.topo__cta::after, .barra-reserva .botao::after {
+  height: 8px; background: var(--cor-matcha);
+  clip-path: polygon(calc(22% - 6.4px) 100%, 22% 0, calc(22% + 6.4px) 100%, calc(78% - 6.4px) 100%, 78% 0, calc(78% + 6.4px) 100%);
+}
 
 .botao-icone {
   display: inline-grid; place-items: center; width: 44px; height: 44px; flex: none;
