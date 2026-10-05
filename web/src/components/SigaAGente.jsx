@@ -19,11 +19,15 @@ export default function SigaAGente() {
           </a>
         </header>
         <ul className="feed" data-revelar>
-          {CONFIG.feedInstagram.map((alt, i) => (
-            <li key={alt}>
-              <Foto alt={alt} proporcao="1/1" icone={ICONES[i % ICONES.length]} tom={TONS[i % TONS.length]} />
-            </li>
-          ))}
+          {CONFIG.feedInstagram.map((post, i) => {
+            // Cada item pode ser só o texto alternativo, ou { foto, alt }.
+            const { foto, alt } = typeof post === 'string' ? { alt: post } : post;
+            return (
+              <li key={alt}>
+                <Foto src={foto} alt={alt} proporcao="1/1" icone={ICONES[i % ICONES.length]} tom={TONS[i % TONS.length]} />
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>

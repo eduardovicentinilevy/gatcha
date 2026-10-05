@@ -5,12 +5,14 @@ const ICONES = { gato: TracoGato, xicara: IconeXicara, patinha: IconePatinha };
 
 /**
  * Foto com proporção fixa (sem "pulo" de layout) e lazy loading.
- * Sem URL (ou URL não-HTTPS), mostra um placeholder ilustrado com o texto
- * alternativo como rótulo acessível. [SUBSTITUIR por fotos reais]
+ * Aceita URL HTTPS (produção: fotos vindas da API) ou caminho do próprio site
+ * (ex.: "/img/gatos/mochi.jpg", arquivo em web/public/img/gatos/).
+ * Sem foto, mostra um placeholder ilustrado com o texto alternativo como rótulo acessível.
  */
 export default function Foto({ src, alt, proporcao = '4/3', icone = 'patinha', tom = 'matcha', className = '' }) {
   const classe = `foto foto--${proporcao.replace('/', 'x')} ${className}`;
-  if (typeof src === 'string' && src.startsWith('https://')) {
+  const valida = typeof src === 'string' && (src.startsWith('https://') || /^\/(?!\/)/.test(src));
+  if (valida) {
     return <img className={classe} src={src} alt={alt} loading="lazy" decoding="async" referrerPolicy="no-referrer" />;
   }
   const Icone = ICONES[icone] ?? IconePatinha;

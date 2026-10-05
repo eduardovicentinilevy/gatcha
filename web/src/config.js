@@ -198,7 +198,11 @@ export const CONFIG = Object.freeze({
     },
   ],
 
-  /** Grade "Siga a gente": textos alternativos dos placeholders. [SUBSTITUIR por fotos reais do Instagram] */
+  /**
+   * Grade "Siga a gente". [SUBSTITUIR por fotos reais do Instagram]
+   * Cada item pode ser só o texto alternativo (mostra ilustração) ou
+   * { foto: '/img/instagram/1.jpg', alt: 'descrição da foto' } (arquivo em web/public/img/instagram/).
+   */
   feedInstagram: [
     'Matchá latte com desenho de patinha na espuma',
     'Gato laranja dormindo em cima de uma almofada verde',
