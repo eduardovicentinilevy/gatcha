@@ -111,4 +111,3 @@ describe('Cancelamento pelo link do e-mail (integração)', { skip: !URL_BANCO &
     assert.equal(rows[0].status, 'confirmada');
   });
 });
-});
