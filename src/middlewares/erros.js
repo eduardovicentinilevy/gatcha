@@ -21,6 +21,9 @@ const PG_TRANSITORIOS = new Set([
   '57P01', // admin_shutdown
 ]);
 
+// Banco fora do ar ou endereço errado (erros de rede do driver).
+const BANCO_FORA = new Set(['ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN', 'ECONNRESET', 'ETIMEDOUT', '57P03' /* cannot_connect_now */, '28P01' /* senha do banco errada */, '3D000' /* banco não existe */]);
+
 export function rotaNaoEncontrada(_req, _res, next) {
   next(new AppError(404, 'ROTA_NAO_ENCONTRADA', 'Rota não encontrada.'));
 }
@@ -50,6 +53,12 @@ export function tratadorDeErros(err, req, res, next) {
     status = err.status;
     codigo = 'REQUISICAO_INVALIDA';
     mensagem = 'Requisição inválida.';
+  } else if (BANCO_FORA.has(err?.code) || BANCO_FORA.has(err?.cause?.code)) {
+    // Postgres desligado/inacessível: 503 claro em vez de "erro inesperado".
+    status = 503;
+    codigo = 'BANCO_INDISPONIVEL';
+    mensagem = 'O sistema está sem acesso ao banco de dados agora. Tente de novo em instantes.';
+    res.set('Retry-After', '5');
   } else if (PG_TRANSITORIOS.has(err?.code) || /timeout exceeded when trying to connect/i.test(err?.message ?? '')) {
     status = 503;
     codigo = 'SERVICO_OCUPADO';
