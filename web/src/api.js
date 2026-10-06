@@ -54,7 +54,13 @@ export async function requisitar(url, { metodo = 'GET', corpo, sinal, cabecalhos
   const dados = await resposta.json().catch(() => null);
   if (!resposta.ok) {
     const erro = dados?.erro ?? {};
-    const mensagem = erro.mensagem ?? MENSAGENS_PADRAO[resposta.status] ?? MENSAGENS_PADRAO[500];
+    // Sem o JSON de erro da API = a API nem respondeu (em dev, o proxy do Vite devolve 500 vazio).
+    const semApi = !dados?.erro && resposta.status >= 500;
+    const mensagem =
+      erro.mensagem ??
+      (semApi && import.meta.env.DEV ? 'A API não respondeu. Confira se o npm run dev está rodando e sem erros no terminal.' : null) ??
+      MENSAGENS_PADRAO[resposta.status] ??
+      MENSAGENS_PADRAO[500];
     throw new ErroApi(resposta.status, erro.codigo ?? 'ERRO_HTTP', mensagem, erro.detalhes);
   }
   return dados;
