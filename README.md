@@ -40,7 +40,8 @@ Enquanto `/api/cardapio` e `/api/gatos` não existem, o site usa os JSON de `web
 
 ## Painel administrativo (`/admin`)
 
-Abra `http://localhost:5173/admin` (ou `/admin` no domínio) e entre com um usuário criado por `npm run admin:criar -- email@...`.
+Abra `http://localhost:5173/admin` (ou clique em **Área da equipe** no rodapé do site) e entre com um usuário criado por `npm run admin:criar -- email@...`.
+Em desenvolvimento, `npm run dev` gera o `JWT_SECRET` no seu `.env` se estiver vazio e aplica as migrações pendentes; em produção o segredo vem do Secret Manager.
 
 | Aba | O que faz |
 |---|---|

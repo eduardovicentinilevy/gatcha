@@ -10,8 +10,9 @@
   },
   "scripts": {
     "start": "node src/server.js",
-    "predev": "node scripts/preparar-dev.js",
+    "predev": "node scripts/preparar-dev.js --migrar",
     "dev": "node --watch --env-file=.env src/server.js",
+    "preweb:dev": "node scripts/preparar-dev.js",
     "web:dev": "npm --prefix web run dev",
     "build": "npm run web:build",
     "web:build": "npm --prefix web run build",
@@ -27,6 +28,7 @@
     "lgpd:exportar": "node --env-file=.env scripts/titular.js exportar",
     "prelgpd:apagar": "node scripts/preparar-dev.js",
     "lgpd:apagar": "node --env-file=.env scripts/titular.js apagar",
+    "prelgpd:expurgar": "node scripts/preparar-dev.js",
     "lgpd:expurgar": "node --env-file=.env scripts/expurgar-dados.js",
     "predev:popular": "node scripts/preparar-dev.js",
     "dev:popular": "node --env-file=.env scripts/popular-exemplo.js",

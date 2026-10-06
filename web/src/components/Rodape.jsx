@@ -9,6 +9,7 @@ const LINKS = [
   ['/#adocao', 'Adoção'],
   ['/#visite', 'Como chegar'],
   ['/privacidade', 'Privacidade'],
+  ['/admin', 'Área da equipe'],
 ];
 
 /** Selo "Aberto agora / Fechado agora", recalculado a cada minuto. */

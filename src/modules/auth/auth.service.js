@@ -25,7 +25,7 @@ const credenciaisInvalidas = () => new AppError(401, 'CREDENCIAIS_INVALIDAS', 'E
 
 export async function entrar({ email, senha }, { ip } = {}) {
   if (!loginConfigurado()) {
-    throw new AppError(503, 'LOGIN_INDISPONIVEL', 'O login do painel ainda não foi configurado.');
+    throw new AppError(503, 'LOGIN_INDISPONIVEL', 'O login do painel ainda não foi configurado: defina JWT_SECRET no servidor (em desenvolvimento, rode npm run dev de novo que ele é gerado).');
   }
 
   // Fase 1 (curta, com lock por e-mail): confere o bloqueio e RESERVA a tentativa
