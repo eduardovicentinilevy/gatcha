@@ -3,13 +3,17 @@
  * nem SQL — orquestra o domínio puro (disponibilidade.js) e o Repository,
  * e define o escopo transacional.
  */
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { config } from '../../config/env.js';
 import { pool } from '../../db/pool.js';
 import { comTransacao } from '../../db/transacao.js';
-import { conflito, requisicaoInvalida } from '../../lib/erros.js';
+import { conflito, naoEncontrado, requisicaoInvalida } from '../../lib/erros.js';
+import { enviarEmail } from '../../lib/email.js';
+import { logger, serializarErro } from '../../lib/logger.js';
 import { gerarCodigoReserva } from '../../lib/codigo-reserva.js';
 import { agoraNoFuso, diaDaSemana, parseHora, somarDias } from '../../lib/tempo.js';
 import { mapearOcupacao, montarGrade, vagasLivres } from './disponibilidade.js';
+import { montarEmailConfirmacao } from './reservas.email.js';
 import * as repo from './reservas.repository.js';
 
 const { gatil } = config;
@@ -83,7 +87,11 @@ export async function criarReserva(dados, { agora = agoraNoFuso(gatil.fuso) } = 
     throw requisicaoInvalida('HORARIO_NO_PASSADO', 'Este horário já passou. Escolha um horário futuro.');
   }
 
-  return comTransacao(async (client) => {
+  // Token do link de cancelamento: 192 bits aleatórios. Só o hash vai para o banco.
+  const token = randomBytes(24).toString('base64url');
+  const tokenHash = hashDoToken(token);
+
+  const reserva = await comTransacao(async (client) => {
     // Ordem dos locks é fixa em todas as transações: contato, depois data (sem deadlock).
     await repo.travarContato(client, dados);
     await repo.travarAgendaDoDia(client, dados.data);
@@ -118,10 +126,59 @@ export async function criarReserva(dados, { agora = agoraNoFuso(gatil.fuso) } = 
     }
 
     for (let tentativa = 1; tentativa <= MAX_TENTATIVAS_CODIGO; tentativa++) {
-      const reserva = await repo.inserirReserva(client, { ...dados, codigo: gerarCodigoReserva() });
-      if (reserva) return reserva;
+      const criada = await repo.inserirReserva(client, { ...dados, codigo: gerarCodigoReserva(), tokenHash });
+      if (criada) return criada;
     }
     // Probabilidade astronômica com 31^6 combinações; se acontecer, é bug ou ataque.
     throw new Error('Não foi possível gerar um código de reserva único');
   });
+
+  // Depois do COMMIT e sem esperar: e-mail lento ou fora do ar não pode derrubar uma reserva já confirmada.
+  // Sem dados pessoais no log (LGPD): só o código da reserva.
+  enviarEmail({ para: dados.email, ...montarEmailConfirmacao({ reserva, token }) }).catch((err) =>
+    logger.error('Falha ao enviar o e-mail de confirmação', { reserva: reserva.codigo, erro: serializarErro(err) }),
+  );
+  return reserva;
+}
+
+const hashDoToken = (token) => createHash('sha256').update(token).digest('hex');
+const HASH_FALSO = hashDoToken('token-inexistente');
+
+/** Minutos desde um marco fixo para uma data AAAA-MM-DD + minutos do dia (comparar instantes no fuso do negócio). */
+const minutosAbsolutos = (data, minutos) => Date.parse(`${data}T00:00:00Z`) / 60_000 + minutos;
+
+/**
+ * DELETE /api/reservas/:codigo — cancelamento pelo link do e-mail.
+ * O token é a credencial: código ou token errado dão a MESMA resposta 404 (não revela quais
+ * códigos existem) e a comparação é em tempo constante. Só reservas confirmadas e dentro do prazo.
+ */
+export async function cancelarReserva({ codigo, token }, { agora = agoraNoFuso(gatil.fuso) } = {}) {
+  const reserva = await repo.buscarParaCancelamento(pool, codigo);
+  const esperado = Buffer.from(reserva?.token_cancelamento_hash ?? HASH_FALSO, 'hex');
+  const informado = Buffer.from(hashDoToken(token), 'hex');
+  if (!reserva?.token_cancelamento_hash || !timingSafeEqual(esperado, informado)) {
+    throw naoEncontrado('Reserva não encontrada ou link inválido.');
+  }
+
+  if (reserva.status !== 'confirmada') {
+    throw conflito(
+      'RESERVA_NAO_ATIVA',
+      reserva.status === 'cancelada' ? 'Essa reserva já foi cancelada.' : 'Essa reserva já foi concluída.',
+    );
+  }
+
+  const horas = gatil.cancelamentoAteHorasAntes;
+  const faltam = minutosAbsolutos(reserva.data, parseHora(reserva.hora_inicio)) - minutosAbsolutos(agora.data, agora.minutos);
+  if (faltam < horas * 60) {
+    throw conflito(
+      'FORA_DO_PRAZO_DE_CANCELAMENTO',
+      horas === 0
+        ? 'Essa reserva já começou, então não dá mais pra cancelar pelo site.'
+        : `O cancelamento pelo site vai até ${horas} ${horas === 1 ? 'hora' : 'horas'} antes do horário. Fala com a gente pelo Instagram.`,
+    );
+  }
+
+  const cancelada = await repo.cancelarReserva(pool, codigo);
+  if (!cancelada) throw conflito('RESERVA_NAO_ATIVA', 'Essa reserva já foi cancelada.'); // outro clique chegou antes
+  return cancelada;
 }

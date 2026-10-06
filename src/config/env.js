@@ -118,6 +118,22 @@ const schema = z
     RESERVA_MAX_PESSOAS: inteiro(4, 1, 50),
     RESERVA_ANTECEDENCIA_MAX_DIAS: inteiro(14, 0, 365),
     RESERVA_MAX_ATIVAS_POR_CONTATO: inteiro(3, 1, 100),
+    // Cancelamento pelo link do e-mail: até N horas antes do horário da reserva.
+    CANCELAMENTO_ATE_HORAS_ANTES: inteiro(1, 0, 72),
+    RATE_LIMIT_CANCELAMENTO_POR_15MIN: inteiro(20, 1, 1_000),
+
+    // E-mail (confirmação e link de cancelamento).
+    //  log      = só desenvolvimento: escreve o e-mail no terminal (o link de cancelamento fica visível lá).
+    //  smtp     = envia de verdade por EMAIL_SMTP_URL (SEGREDO, ex.: smtps://usuario:senha@smtp.exemplo.com:465).
+    //  desligado = não envia nada.
+    EMAIL_TRANSPORTE: z.enum(['log', 'smtp', 'desligado']).default('log'),
+    EMAIL_SMTP_URL: z.string().trim().default(''),
+    EMAIL_REMETENTE: z.string().trim().min(3).max(200).default('Gatchá <nao-responda@localhost>'),
+    // Endereço público do site: base dos links enviados por e-mail (sem barra no final).
+    SITE_URL: z
+      .url({ protocol: /^https?$/ })
+      .transform((v) => v.replace(/\/+$/, ''))
+      .default('http://localhost:5173'),
 
     // Painel administrativo: login (bcrypt) + token JWT de curta duração.
     // JWT_SECRET é SEGREDO (Secret Manager em produção): >= 32 caracteres aleatórios,
@@ -144,6 +160,13 @@ const schema = z
   .superRefine((env, ctx) => {
     if (env.RESERVA_MAX_PESSOAS > env.GATIL_CAPACIDADE) {
       ctx.addIssue({ code: 'custom', path: ['RESERVA_MAX_PESSOAS'], message: 'Não pode exceder GATIL_CAPACIDADE' });
+    }
+    if (env.EMAIL_TRANSPORTE === 'smtp' && !env.EMAIL_SMTP_URL) {
+      ctx.addIssue({ code: 'custom', path: ['EMAIL_SMTP_URL'], message: 'Obrigatória quando EMAIL_TRANSPORTE=smtp' });
+    }
+    if (env.NODE_ENV === 'production' && env.EMAIL_TRANSPORTE === 'log') {
+      // O modo "log" escreve o link de cancelamento (credencial) no log: proibido em produção.
+      ctx.addIssue({ code: 'custom', path: ['EMAIL_TRANSPORTE'], message: 'Em produção use smtp (ou desligado)' });
     }
     try {
       new Intl.DateTimeFormat('pt-BR', { timeZone: env.TZ_NEGOCIO });
@@ -177,6 +200,7 @@ function carregar() {
       corsOrigins: e.CORS_ORIGINS,
       rateLimitPublicoPorMin: e.RATE_LIMIT_PUBLICO_POR_MIN,
       rateLimitReservasPor15Min: e.RATE_LIMIT_RESERVAS_POR_15MIN,
+      rateLimitCancelamentoPor15Min: e.RATE_LIMIT_CANCELAMENTO_POR_15MIN,
       servirFrontend: e.SERVIR_FRONTEND,
     }),
     gatil: Object.freeze({
@@ -187,7 +211,10 @@ function carregar() {
       maxPessoasPorReserva: e.RESERVA_MAX_PESSOAS,
       antecedenciaMaxDias: e.RESERVA_ANTECEDENCIA_MAX_DIAS,
       maxReservasAtivasPorContato: e.RESERVA_MAX_ATIVAS_POR_CONTATO,
+      cancelamentoAteHorasAntes: e.CANCELAMENTO_ATE_HORAS_ANTES,
     }),
+    siteUrl: e.SITE_URL,
+    email: Object.freeze({ transporte: e.EMAIL_TRANSPORTE, smtpUrl: e.EMAIL_SMTP_URL, remetente: e.EMAIL_REMETENTE }),
     auth: Object.freeze({
       jwtSecret: e.JWT_SECRET,
       tokenMinutos: e.ADMIN_TOKEN_MINUTOS,

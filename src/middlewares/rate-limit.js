@@ -40,3 +40,19 @@ export const limiteLogin = rateLimit({
   windowMs: 15 * 60_000,
   limit: config.auth.rateLimitLoginPor15Min,
 });
+
+/** Cancelamento pelo link do e-mail: o token é longo demais para adivinhar; o teto só barra abuso. */
+export const limiteCancelamento = rateLimit({
+  ...comum,
+  identifier: 'cancelar-reserva',
+  windowMs: 15 * 60_000,
+  limit: config.http.rateLimitCancelamentoPor15Min,
+});
+
+/** "Quero conhecer" (interesse em adoção): como a reserva, evita spam de formulário. */
+export const limiteInteresse = rateLimit({
+  ...comum,
+  identifier: 'interesse-adocao',
+  windowMs: 15 * 60_000,
+  limit: config.http.rateLimitReservasPor15Min,
+});

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { exigirAdmin } from './auth.middleware.js';
+import { rotasDoPainelDados } from '../painel/painel.routes.js';
 
 /**
  * Tudo em /api/admin/* exige login. As telas do painel (reservas, gatos, cardápio,
@@ -12,3 +13,5 @@ rotasDoPainel.use('/admin', exigirAdmin);
 rotasDoPainel.get('/admin/eu', (req, res) => {
   res.json({ usuario: { email: req.admin.email } });
 });
+
+rotasDoPainel.use('/admin', rotasDoPainelDados);

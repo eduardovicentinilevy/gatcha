@@ -7,21 +7,22 @@
  * codigo, id) são recusados, prevenindo mass assignment.
  */
 import { z } from 'zod';
+import { RE_CODIGO_RESERVA } from '../../lib/codigo-reserva.js';
 import { config } from '../../config/env.js';
 import { isDataValida } from '../../lib/tempo.js';
 
-const dataISO = z
+export const dataISO = z
   .string({ error: 'Informe a data no formato AAAA-MM-DD' })
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use o formato AAAA-MM-DD')
   .refine(isDataValida, 'Data inexistente');
 
-const horaInicio = z
+export const horaInicio = z
   .string({ error: 'Informe o horário no formato HH:MM' })
   .regex(/^([01]\d|2[0-3]):(00|15|30|45)$/, 'Use HH:MM em intervalos de 15 minutos (ex.: 14:30)');
 
 // Letras de qualquer idioma (acentos inclusos), espaço, apóstrofo, ponto e hífen.
 // Bloqueia <, >, ", &, etc. — o nome aparece no painel e no e-mail (defesa contra XSS armazenado).
-const nome = z
+export const nome = z
   .string({ error: 'Informe o nome' })
   .max(200, 'Nome muito longo')
   .transform((s) => s.normalize('NFC').trim().replace(/\s+/g, ' '))
@@ -34,7 +35,7 @@ const nome = z
   );
 
 // Aceita "(11) 91234-5678", "+55 11 91234-5678", "11912345678"... e armazena só dígitos (DDD + número).
-const telefone = z
+export const telefone = z
   .string({ error: 'Informe o telefone' })
   .max(25, 'Telefone inválido')
   .regex(/^[\d\s()+.-]+$/, 'Telefone inválido')
@@ -42,7 +43,7 @@ const telefone = z
   .transform((d) => (d.length >= 12 && d.startsWith('55') ? d.slice(2) : d))
   .pipe(z.string().regex(/^[1-9]{2}\d{8,9}$/, 'Informe DDD + número (10 ou 11 dígitos)'));
 
-const email = z
+export const email = z
   .string({ error: 'Informe o e-mail' })
   .trim()
   .toLowerCase()
@@ -63,4 +64,13 @@ export const criarReservaBody = z.strictObject({
   nome,
   telefone,
   email,
+});
+
+export const cancelarReservaParams = z.strictObject({
+  codigo: z.string().regex(RE_CODIGO_RESERVA, 'Código inválido'),
+});
+
+// 24 bytes em base64url = 32 caracteres.
+export const cancelarReservaBody = z.strictObject({
+  token: z.string().regex(/^[A-Za-z0-9_-]{32}$/, 'Link inválido'),
 });

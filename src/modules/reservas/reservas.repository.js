@@ -90,8 +90,8 @@ export async function contarReservasAtivasDoContato(executor, { email, telefone,
  */
 export async function inserirReserva(client, r) {
   const { rows } = await client.query(
-    `INSERT INTO reservas (codigo, data, hora_inicio, duracao_min, pessoas, nome, telefone, email)
-     VALUES ($1, $2::date, $3::time, $4, $5, $6, $7, $8)
+    `INSERT INTO reservas (codigo, data, hora_inicio, duracao_min, pessoas, nome, telefone, email, token_cancelamento_hash)
+     VALUES ($1, $2::date, $3::time, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (codigo) DO NOTHING
      RETURNING codigo,
                data,
@@ -101,7 +101,28 @@ export async function inserirReserva(client, r) {
                nome,
                status,
                criado_em`,
-    [r.codigo, r.data, r.hora_inicio, r.duracao_min, r.pessoas, r.nome, r.telefone, r.email],
+    [r.codigo, r.data, r.hora_inicio, r.duracao_min, r.pessoas, r.nome, r.telefone, r.email, r.tokenHash],
+  );
+  return rows[0] ?? null;
+}
+
+/** Dados mínimos para decidir um cancelamento (inclui o hash do token, que nunca sai da API). */
+export async function buscarParaCancelamento(executor, codigo) {
+  const { rows } = await executor.query(
+    `SELECT codigo, data, to_char(hora_inicio, 'HH24:MI') AS hora_inicio, status, token_cancelamento_hash
+       FROM reservas WHERE codigo = $1`,
+    [codigo],
+  );
+  return rows[0] ?? null;
+}
+
+/** Cancela só se ainda estiver confirmada (UPDATE condicional: dois cliques não cancelam duas vezes). */
+export async function cancelarReserva(executor, codigo) {
+  const { rows } = await executor.query(
+    `UPDATE reservas SET status = 'cancelada', cancelada_em = now()
+      WHERE codigo = $1 AND status = 'confirmada'
+      RETURNING codigo, data, to_char(hora_inicio, 'HH24:MI') AS hora_inicio, status`,
+    [codigo],
   );
   return rows[0] ?? null;
 }

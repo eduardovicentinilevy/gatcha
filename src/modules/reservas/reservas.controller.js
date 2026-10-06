@@ -15,3 +15,8 @@ export async function criarReserva(req, res) {
   // Devolve só o necessário: e-mail e telefone não ecoam na resposta (minimização, LGPD).
   res.status(201).json({ reserva });
 }
+
+export async function cancelarReserva(req, res) {
+  const reserva = await service.cancelarReserva({ codigo: req.validado.params.codigo, token: req.validado.body.token });
+  res.json({ reserva });
+}
