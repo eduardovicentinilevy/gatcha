@@ -9,10 +9,12 @@ import { conflito, naoEncontrado, requisicaoInvalida } from '../../lib/erros.js'
 import { agoraNoFuso, somarDias } from '../../lib/tempo.js';
 import { validar } from '../../middlewares/validar.js';
 import * as repo from './painel.repository.js';
+import { rotasDeEnvioDeImagens } from '../imagens/imagens.routes.js';
 import * as s from './painel.schemas.js';
 
 export const rotasDoPainelDados = Router();
 const r = rotasDoPainelDados;
+r.use(rotasDeEnvioDeImagens); // POST /api/admin/imagens (fotos de gatos e do cardápio)
 const hoje = () => agoraNoFuso(config.gatil.fuso).data;
 
 /** Violações de UNIQUE/FK do Postgres viram 409 com mensagem útil, em vez de 500. */

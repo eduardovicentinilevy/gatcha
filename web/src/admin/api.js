@@ -33,3 +33,28 @@ export async function admin(metodo, rota, corpo) {
     throw erro;
   }
 }
+
+/** Envia uma foto (o servidor reprocessa e devolve { url, largura, altura }). */
+export async function enviarImagem(arquivo) {
+  let resposta;
+  try {
+    resposta = await fetch(`${CONFIG.apiBase}/admin/imagens`, {
+      method: 'POST',
+      headers: { 'Content-Type': arquivo.type, Authorization: `Bearer ${token}`, Accept: 'application/json' },
+      body: arquivo,
+      credentials: 'same-origin',
+    });
+  } catch {
+    throw new ErroApi(0, 'SEM_CONEXAO', 'Sem conexão com o servidor. Confere a internet e tenta de novo.');
+  }
+  const dados = await resposta.json().catch(() => null);
+  if (!resposta.ok) {
+    if (resposta.status === 401) {
+      token = null;
+      aoExpirar();
+    }
+    const mensagem = resposta.status === 413 ? 'Foto grande demais.' : (dados?.erro?.mensagem ?? 'Não deu pra enviar a foto.');
+    throw new ErroApi(resposta.status, dados?.erro?.codigo ?? 'ERRO_HTTP', mensagem);
+  }
+  return dados.imagem;
+}

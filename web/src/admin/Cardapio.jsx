@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import Campo from '../components/Campo.jsx';
+import CampoFoto from './CampoFoto.jsx';
+import { Miniatura } from './Gatos.jsx';
 import { reais } from '../util.js';
 import { admin } from './api.js';
 import { Aviso, Carregando, deCentavos, paraCentavos, tratarErroDeFormulario, useCarregar } from './comum.jsx';
@@ -49,6 +51,7 @@ export default function Cardapio() {
               {itens.filter((i) => i.categoria === cat).map((i) => (
                 <li key={i.id} className={`cartao admin-item${i.ativo ? '' : ' admin-item--cancelada'}`}>
                   <div className="admin-item__principal">
+                    <Miniatura url={i.foto_url} />
                     <p className="admin-item__hora">{reais(i.preco_centavos)}</p>
                     <div>
                       <p className="admin-item__titulo">{i.nome}</p>
@@ -124,8 +127,8 @@ function FormItem({ item, categorias, onFechar, onSalvo }) {
         <datalist id="categorias-cardapio">{categorias.map((c) => <option key={c} value={c} />)}</datalist>
         <Campo id="item-nome" rotulo="Nome" name="nome" value={form.nome} onChange={alterar} erro={erros.nome} maxLength={100} />
         <Campo id="item-preco" rotulo="Preço (R$)" name="preco" inputMode="decimal" value={form.preco} onChange={alterar} erro={erros.preco_centavos} placeholder="22,00" />
-        <Campo id="item-foto" rotulo="Foto" opcional name="foto_url" value={form.foto_url} onChange={alterar} erro={erros.foto_url} dica="Link https:// ou /img/cardapio/arquivo.jpg" />
         <Campo id="item-descricao" rotulo="Descrição" opcional multilinha largo name="descricao" value={form.descricao} onChange={alterar} erro={erros.descricao} maxLength={500} />
+        <CampoFoto id="item-foto" valor={form.foto_url} onChange={(url) => setForm((f) => ({ ...f, foto_url: url }))} erro={erros.foto_url} />
         <fieldset className="admin-form__largo admin-selos">
           <legend>Selos</legend>
           {Object.entries(SELOS).map(([v, t]) => (

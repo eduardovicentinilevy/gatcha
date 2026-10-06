@@ -726,3 +726,20 @@ label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
 .admin-selos legend { font-weight: 800; margin-bottom: 8px; padding: 0; }
 @media (min-width: 640px) { .admin-form { padding: 22px 24px 24px; } }
 .sem-quebra { white-space: nowrap; }
+
+/* Fotos no painel */
+.admin-foto__rotulo { display: block; font-weight: 800; margin-bottom: 6px; }
+.admin-foto__linha { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.admin-foto__previa {
+  width: 120px; aspect-ratio: 1; flex: none; border: var(--borda); border-radius: var(--raio-p); overflow: hidden;
+  display: grid; place-items: center; background: var(--cor-superficie2); color: var(--cor-texto-suave); font-size: .85rem; font-weight: 700;
+}
+.admin-foto__previa img { width: 100%; height: 100%; object-fit: cover; }
+.admin-foto__acoes { flex: 1 1 200px; min-width: 0; }
+.admin-foto__botoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-foto__link { margin-top: 10px; font-size: .9rem; }
+.admin-foto__link summary { cursor: pointer; font-weight: 700; color: var(--cor-matcha-forte); }
+.admin-foto__link input { width: 100%; min-height: 44px; margin-top: 8px; padding: .5em .8em; border: var(--borda); border-radius: var(--raio-p); background: var(--cor-superficie); color: var(--cor-texto); font: inherit; }
+.admin-miniatura { width: 56px; height: 56px; flex: none; border: 2px solid var(--cor-borda); border-radius: 10px; overflow: hidden; background: var(--cor-superficie2); }
+.admin-miniatura img { width: 100%; height: 100%; object-fit: cover; }
+.admin-miniatura { display: grid; place-items: center; color: var(--cor-texto-suave); } .admin-miniatura svg { width: 24px; height: 24px; opacity: .6; }

@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
 import Campo from '../components/Campo.jsx';
+import { IconePatinha } from '../components/Icones.jsx';
+import CampoFoto from './CampoFoto.jsx';
 import { idade } from '../util.js';
 import { admin } from './api.js';
 import { Aviso, Carregando, tratarErroDeFormulario, useCarregar } from './comum.jsx';
@@ -44,6 +46,7 @@ export default function Gatos() {
           {lista.map((g) => (
             <li key={g.id} className={`cartao admin-item${g.status === 'adotado' ? ' admin-item--cancelada' : ''}`}>
               <div className="admin-item__principal">
+                <Miniatura url={g.foto_url} />
                 <div>
                   <p className="admin-item__titulo">{g.nome}</p>
                   <p className="admin-item__meta">{[idade(g.idade_meses), g.sexo === 'femea' ? 'fêmea' : 'macho'].filter(Boolean).join(' · ')}</p>
@@ -61,6 +64,10 @@ export default function Gatos() {
       </Carregando>
     </section>
   );
+}
+
+export function Miniatura({ url }) {
+  return <div className="admin-miniatura">{url ? <img src={url} alt="" loading="lazy" /> : <IconePatinha aria-hidden="true" />}</div>;
 }
 
 function FormGato({ gato, onFechar, onSalvo }) {
@@ -111,7 +118,7 @@ function FormGato({ gato, onFechar, onSalvo }) {
           <select name="status" value={form.status} onChange={alterar}>{Object.entries(STATUS).map(([v, t]) => <option key={v} value={v}>{t}</option>)}</select>
         </label>
         <Campo id="gato-personalidade" rotulo="Personalidade" opcional multilinha largo name="personalidade" value={form.personalidade} onChange={alterar} erro={erros.personalidade} maxLength={500} dica="Separe por vírgula: cada parte vira uma etiqueta no site (ex.: calmo, rei do colo)." />
-        <Campo id="gato-foto" rotulo="Foto" opcional largo name="foto_url" value={form.foto_url} onChange={alterar} erro={erros.foto_url} dica="Link https:// da foto ou caminho no site, ex.: /img/gatos/matcha.jpg" />
+        <CampoFoto id="gato-foto" valor={form.foto_url} onChange={(url) => setForm((f) => ({ ...f, foto_url: url }))} erro={erros.foto_url} />
       </div>
       <div className="admin-form__acoes">
         <button type="button" className="botao botao--secundario" onClick={onFechar}>Cancelar</button>
