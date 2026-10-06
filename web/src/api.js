@@ -30,7 +30,7 @@ const MENSAGENS_PADRAO = {
   503: 'O sistema tá ocupado agora. Tenta de novo em alguns segundos.',
 };
 
-export async function requisitar(url, { metodo = 'GET', corpo, sinal } = {}) {
+export async function requisitar(url, { metodo = 'GET', corpo, sinal, cabecalhos } = {}) {
   const controle = new AbortController();
   const timer = setTimeout(() => controle.abort(), CONFIG.timeoutMs);
   sinal?.addEventListener('abort', () => controle.abort());
@@ -38,7 +38,7 @@ export async function requisitar(url, { metodo = 'GET', corpo, sinal } = {}) {
   try {
     resposta = await fetch(url, {
       method: metodo,
-      headers: corpo ? { 'Content-Type': 'application/json', Accept: 'application/json' } : { Accept: 'application/json' },
+      headers: { Accept: 'application/json', ...(corpo && { 'Content-Type': 'application/json' }), ...cabecalhos },
       body: corpo ? JSON.stringify(corpo) : undefined,
       signal: controle.signal,
       credentials: 'same-origin',
@@ -105,4 +105,7 @@ export const api = {
   horarios: (data, sinal) => requisitar(`${CONFIG.apiBase}/horarios?data=${encodeURIComponent(data)}`, { sinal }),
   criarReserva: (dados) => requisitar(`${CONFIG.apiBase}/reservas`, { metodo: 'POST', corpo: dados }),
   registrarInteresse: (dados) => requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
+  // O token do link vai no corpo (não na URL), para não aparecer em logs de acesso.
+  cancelarReserva: (codigo, token) =>
+    requisitar(`${CONFIG.apiBase}/reservas/${encodeURIComponent(codigo)}`, { metodo: 'DELETE', corpo: { token } }),
 };

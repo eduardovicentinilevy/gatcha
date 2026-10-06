@@ -148,7 +148,7 @@ function DialogoInteresse({ gato, onFechar }) {
       if (erro instanceof ErroApi && erro.codigo === 'DADOS_INVALIDOS') setErros(erro.errosDeCampo);
       setAviso({
         tipo: 'erro',
-        texto: erro instanceof ErroApi && erro.status === 404 ? 'O formulário online ainda não está no ar. Fala com a gente no café!' : erro.message,
+        texto: erro.message,
       });
     } finally {
       setEnviando(false);

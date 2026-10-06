@@ -662,3 +662,67 @@ abbr[title] { text-decoration: none; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ---------- Cancelamento pelo link do e-mail ---------- */
+.cancelar h1:focus { outline: none; }
+.cancelar__acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+
+/* ---------- Painel administrativo ---------- */
+.campo select, .admin-filtros select, .admin-filtros input {
+  width: 100%; min-height: 50px; padding: .6em .9em; border-radius: var(--raio-p); border: var(--borda);
+  background: var(--cor-superficie); color: var(--cor-texto); font: inherit;
+}
+.campo > select { margin-top: 6px; }
+.campo select:focus, .admin-filtros select:focus, .admin-filtros input:focus { outline: none; box-shadow: 3px 3px 0 var(--cor-matcha); }
+label.campo { font-weight: 800; }
+label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
+.admin { min-height: 100dvh; background: var(--cor-fundo); }
+.admin__topo { position: sticky; top: 0; z-index: 50; background: var(--cor-superficie); border-bottom: var(--borda); }
+.admin__topo-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 64px; }
+.admin__marca { display: inline-flex; align-items: center; gap: 10px; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.25rem; color: var(--cor-texto); text-decoration: none; }
+.admin__marca small { font-family: var(--fonte-texto); font-size: .8rem; font-weight: 700; color: var(--cor-texto-suave); }
+.admin__topo-acoes { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.admin__usuario { font-size: .88rem; color: var(--cor-texto-suave); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34vw; }
+@media (max-width: 520px) { .admin__usuario { display: none; } }
+.admin__abas { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
+.admin__abas::-webkit-scrollbar { display: none; }
+.admin__aba {
+  flex: none; min-height: 40px; padding: .3em 1em; border-radius: 999px; border: 2px solid var(--cor-borda);
+  background: transparent; color: var(--cor-texto); font: inherit; font-weight: 800; cursor: pointer;
+}
+.admin__aba[aria-current="page"] { background: var(--cor-matcha); color: var(--cor-botao-texto); box-shadow: 2px 2px 0 var(--cor-sombra); }
+.admin__conteudo { padding-block: 24px 64px; }
+.admin__cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.admin__cabecalho h1 { margin: 0; font-size: clamp(1.6rem, 6vw, 2.2rem); }
+.admin__subtitulo { font-size: 1.2rem; margin-top: 28px; }
+.admin-login { max-width: 440px; margin: 24px auto; padding: 24px 20px; display: grid; gap: 16px; }
+.admin-login h1 { margin: 0; font-size: 1.8rem; }
+.admin-filtros { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
+.admin-filtros label { display: grid; gap: 4px; font-weight: 800; font-size: .9rem; flex: 1 1 150px; max-width: 240px; }
+.admin-dia { margin-top: 22px; }
+.admin-dia__titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 1.15rem; margin: 0 0 10px; text-transform: capitalize; }
+.admin-dia__titulo span { font-family: var(--fonte-texto); font-size: .9rem; color: var(--cor-texto-suave); text-transform: none; }
+.admin-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.admin-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 14px; box-shadow: 3px 3px 0 var(--cor-sombra); }
+.admin-item__principal { display: flex; gap: 14px; align-items: flex-start; min-width: 0; flex: 1 1 260px; }
+.admin-item__principal > div { min-width: 0; }
+.admin-item__hora { margin: 0; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.2rem; min-width: 3.2em; }
+.admin-item__titulo { margin: 0; font-weight: 800; font-size: 1.05rem; }
+.admin-item__meta { margin: 2px 0 0; font-size: .9rem; color: var(--cor-texto-suave); overflow-wrap: anywhere; }
+.admin-item__mensagem { margin: 6px 0 0; font-size: .92rem; font-style: italic; overflow-wrap: anywhere; }
+.admin-item__acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.admin-item--cancelada { box-shadow: none; border-style: dashed; background: var(--cor-superficie2); }
+.admin-codigo { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85rem; }
+.admin-status { font-size: .8rem; }
+.admin-status--confirmada, .admin-status--disponivel { background: var(--cor-matcha-suave); }
+.admin-status--compareceu, .admin-status--em_processo { background: var(--cor-destaque); color: var(--cor-botao-texto); }
+.admin-status--cancelada, .admin-status--adotado { background: var(--cor-superficie2); }
+.admin-form { padding: 18px 16px 20px; margin: 16px 0; display: grid; gap: 16px; }
+.admin-form h2 { margin: 0; font-size: 1.3rem; }
+.admin-form__grade { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); }
+.admin-form__largo { grid-column: 1 / -1; }
+.admin-form__acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.admin-selos { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.admin-selos legend { font-weight: 800; margin-bottom: 8px; padding: 0; }
+@media (min-width: 640px) { .admin-form { padding: 22px 24px 24px; } }
+.sem-quebra { white-space: nowrap; }

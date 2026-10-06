@@ -17,9 +17,12 @@ import { reduzirMovimento } from './util.js';
 const TITULOS = {
   inicio: 'Gatchá · Cat café de matchá na República',
   privacidade: 'Aviso de privacidade · Gatchá',
+  cancelar: 'Cancelar reserva · Gatchá',
+  admin: 'Painel · Gatchá',
 };
 
-export const paginaDoCaminho = (caminho) => (caminho.replace(/\/+$/, '') === '/privacidade' ? 'privacidade' : 'inicio');
+const CAMINHOS = { '/privacidade': 'privacidade', '/cancelar': 'cancelar', '/admin': 'admin' };
+export const paginaDoCaminho = (caminho) => CAMINHOS[caminho.replace(/\/+$/, '')] ?? 'inicio';
 
 const suportaTransicao = () => typeof document.startViewTransition === 'function';
 

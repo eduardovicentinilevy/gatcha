@@ -28,6 +28,8 @@
     "prelgpd:apagar": "node scripts/preparar-dev.js",
     "lgpd:apagar": "node --env-file=.env scripts/titular.js apagar",
     "lgpd:expurgar": "node --env-file=.env scripts/expurgar-dados.js",
+    "predev:popular": "node scripts/preparar-dev.js",
+    "dev:popular": "node --env-file=.env scripts/popular-exemplo.js",
     "predev:limpar-reservas": "node scripts/preparar-dev.js",
     "dev:limpar-reservas": "node --env-file=.env scripts/limpar-reservas-dev.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",

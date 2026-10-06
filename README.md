@@ -3,8 +3,8 @@
 API REST do Gatchá Cat Café: reservas do gatil, cardápio e galeria de adoção.
 Node.js 22 + Express 5 + PostgreSQL, hospedada no Google Cloud Run.
 
-> **Status:** módulo de **Reservas** pronto (`GET /api/horarios`, `POST /api/reservas`) e **site público** em `web/public`.
-> Próximos módulos: cancelamento por código, e-mail de confirmação, cardápio, adoção, auth JWT e painel admin.
+> **Status:** reservas (com e-mail e cancelamento pelo link), cardápio, gatos, interesses de adoção, painel administrativo com login e site público prontos.
+> Pendente: deploy, conteúdo real (fotos, cores, textos legais) e integração com o sistema do Gatchá.
 
 ## Site (front-end)
 
@@ -37,6 +37,29 @@ Enquanto `/api/cardapio` e `/api/gatos` não existem, o site usa os JSON de `web
 - **Segurança:** o React escapa todo texto dinâmico; CSP estrita sem `unsafe-inline` em `firebase.json`; fontes servidas pelo próprio site; mapa do Google só carrega quando a pessoa pede (LGPD).
 - **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, foco movido a cada etapa da reserva, `prefers-reduced-motion` respeitado.
 - **Deploy:** `npm run build && firebase deploy --only hosting`.
+
+## Painel administrativo (`/admin`)
+
+Abra `http://localhost:5173/admin` (ou `/admin` no domínio) e entre com um usuário criado por `npm run admin:criar -- email@...`.
+
+| Aba | O que faz |
+|---|---|
+| Reservas | Lista por período e status, com contato; marca "Chegou" (compareceu) ou cancela (a vaga volta pra agenda) |
+| Bloqueios | Fecha horários do gatil (evento, limpeza); avisa se já havia reservas no intervalo |
+| Gatos | Cadastra, edita e apaga gatos; "adotado" sai do site e continua no painel |
+| Cardápio | Cadastra, edita, tira do site ou apaga itens (preço, selos, foto) |
+| Interessados | Quem clicou em "Quero conhecer"; marca como repassado à ONG |
+
+- Segurança: token de 15 min **só na memória da aba** (recarregar = entrar de novo), todas as rotas `/api/admin/*` exigem login e ficam no log de acessos, página com `noindex`.
+- Fotos: link `https://...` ou arquivo do próprio site, ex.: `/img/gatos/matcha.jpg` (coloque o arquivo em `web/public/img/gatos/`).
+- Dados de exemplo no banco local: `npm run dev:popular` (cardápio e gatos de `web/public/dados-exemplo`; só preenche tabelas vazias).
+
+## Cancelamento pelo e-mail
+
+Toda reserva envia um e-mail com o link `SITE_URL/cancelar#CODIGO.TOKEN`. O token tem 192 bits e só o hash SHA-256 fica no banco. O `#` nunca chega ao servidor nem aos logs, e a página tira o token da barra de endereço. O cancelamento vale até `CANCELAMENTO_ATE_HORAS_ANTES` (1 h) antes do horário.
+
+- **Desenvolvimento:** `EMAIL_TRANSPORTE=log` mostra o e-mail (com o link) no terminal da API.
+- **Produção:** `EMAIL_TRANSPORTE=smtp` e `EMAIL_SMTP_URL` no Secret Manager (qualquer SMTP: Brevo, SES, Google Workspace...). Com `log` em produção, a API não sobe, porque o link é uma credencial. Ajuste `SITE_URL` e `EMAIL_REMETENTE` (de preferência com SPF/DKIM no domínio).
 
 ## Arquitetura
 

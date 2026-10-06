@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useTema } from './tema.js';
 import { usePagina } from './navegacao.js';
 import { reduzirMovimento } from './util.js';
@@ -15,6 +15,10 @@ import Privacidade from './components/Privacidade.jsx';
 import BarraReserva from './components/BarraReserva.jsx';
 import Atendimento from './components/Atendimento.jsx';
 import Gatinho from './components/Gatinho.jsx';
+import Cancelar from './components/Cancelar.jsx';
+
+// O painel só é baixado por quem abre /admin: o site público não carrega esse código.
+const Admin = lazy(() => import('./admin/Admin.jsx'));
 
 /**
  * Microanimações ao rolar: elementos com [data-revelar] surgem suavemente ao
@@ -46,8 +50,8 @@ function useRevelarAoRolar() {
   }, []);
 }
 
-/** Duas páginas apenas: não justifica um roteador. O Firebase reescreve tudo para o index.html
- *  e a troca entre elas é animada (src/navegacao.js). */
+/** Poucas páginas: não justifica um roteador. O Firebase reescreve tudo para o index.html
+ *  e a troca entre elas é animada (src/navegacao.js). O painel (/admin) tem layout próprio. */
 export default function App() {
   const [tema, alternarTema] = useTema();
   const [gatinho, setGatinho] = useState(false);
@@ -56,12 +60,22 @@ export default function App() {
   useRevelarAoRolar();
   const classePagina = animarSemApi ? 'pagina pagina--entrando' : 'pagina';
 
+  if (pagina === 'admin') {
+    return (
+      <Suspense fallback={<p className="vazio">Carregando o painel…</p>}>
+        <Admin tema={tema} onAlternarTema={alternarTema} />
+      </Suspense>
+    );
+  }
+
   return (
     <>
       <a className="pular" href="#conteudo">Pular para o conteúdo</a>
       <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
       {pagina === 'privacidade' ? (
         <Privacidade key="privacidade" className={classePagina} />
+      ) : pagina === 'cancelar' ? (
+        <Cancelar key="cancelar" className={classePagina} />
       ) : (
         <main id="conteudo" key="inicio" className={classePagina}>
           <Hero />
