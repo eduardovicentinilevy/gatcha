@@ -17,5 +17,7 @@ if (faltando.length === 0) process.exit(0);
 
 console.log(`Instalando dependências do site que faltam (${faltando.join(', ')})...`);
 // shell: true para o Windows encontrar o npm.cmd
-const r = spawnSync('npm', ['ci', '--no-audit', '--no-fund'], { cwd: raiz, stdio: 'inherit', shell: true });
+// install (não ci): só acrescenta o que falta, sem apagar node_modules (no Windows, apagar
+// falha com EPERM se o Vite estiver aberto usando os arquivos).
+const r = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: raiz, stdio: 'inherit', shell: true });
 process.exit(r.status ?? 1);

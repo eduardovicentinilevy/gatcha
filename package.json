@@ -35,7 +35,7 @@
     "predev:limpar-reservas": "node scripts/preparar-dev.js",
     "dev:limpar-reservas": "node --env-file=.env scripts/limpar-reservas-dev.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
-    "postinstall": "npm --prefix web ci --no-audit --no-fund"
+    "postinstall": "node web/scripts/garantir-dependencias.cjs"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
