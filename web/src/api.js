@@ -108,10 +108,5 @@ export async function carregarAvaliacoes(sinal) {
 }
 
 export const api = {
-  horarios: (data, sinal) => requisitar(`${CONFIG.apiBase}/horarios?data=${encodeURIComponent(data)}`, { sinal }),
-  criarReserva: (dados) => requisitar(`${CONFIG.apiBase}/reservas`, { metodo: 'POST', corpo: dados }),
   registrarInteresse: (dados) => requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
-  // O token do link vai no corpo (não na URL), para não aparecer em logs de acesso.
-  cancelarReserva: (codigo, token) =>
-    requisitar(`${CONFIG.apiBase}/reservas/${encodeURIComponent(codigo)}`, { metodo: 'DELETE', corpo: { token } }),
 };

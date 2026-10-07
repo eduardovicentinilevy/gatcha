@@ -4,7 +4,6 @@ import { IconeChat, IconeFechar, IconeInstagram, IconeWhatsapp } from './Icones.
 
 /**
  * Botão flutuante de atendimento + painel com WhatsApp, perguntas frequentes e Instagram.
- * No celular fica acima da barra "Reservar gatil" (posição via CSS), sem cobri-la.
  */
 export default function Atendimento() {
   const [aberto, setAberto] = useState(false);

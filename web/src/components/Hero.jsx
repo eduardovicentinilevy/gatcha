@@ -77,9 +77,9 @@ async function montarDestaques() {
     id: 'gatil',
     selo: 'Gatil',
     titulo: `A partir de ${reais(Math.min(...Object.values(precosCentavos)))}`,
-    texto: `Sessões de ${Object.keys(precosCentavos).join(' ou ')} minutos com os gatos. Reserva em menos de 1 minuto, pagamento no local.`,
+    texto: `Sessões de ${Object.keys(precosCentavos).join(' ou ')} minutos com os gatos. Reserva no balcão, pagamento no local.`,
     foto: { alt: 'Ilustração de gato', icone: 'gato', tom: 'creme' },
-    link: ['#reserva', 'Reservar horário'],
+    link: ['#gatil', 'Ver horários e regras'],
   });
 
   destaques.push({
@@ -122,7 +122,7 @@ export default function Hero() {
           <h1>{t.titulo}</h1>
           <p className="hero__sub">{t.subtitulo}</p>
           <div className="hero__acoes">
-            <a className="botao botao--grande" href="#reserva">Reservar gatil</a>
+            <a className="botao botao--grande" href="#gatil">Conhecer o gatil</a>
             <a className="botao botao--grande botao--claro" href="#cardapio">Ver cardápio</a>
           </div>
         </div>

@@ -1,7 +1,8 @@
 /**
  * Atende pedidos de titulares (LGPD art. 18) por e-mail ou telefone.
  *   npm run lgpd:exportar -- pessoa@email.com    -> mostra tudo que temos (JSON)
- *   npm run lgpd:apagar   -- pessoa@email.com    -> elimina reservas e interesses
+ *   npm run lgpd:apagar   -- pessoa@email.com    -> elimina os interesses de adoção
+ * O site só guarda dados pessoais de quem pediu para conhecer um gato (as reservas são no balcão).
  * Aceita e-mail ou telefone (só dígitos). Confirme a identidade da pessoa ANTES
  * (ex.: o pedido tem que partir do próprio e-mail cadastrado). Não registra dados
  * pessoais no log: só a quantidade apagada.
@@ -19,30 +20,18 @@ if (!['exportar', 'apagar'].includes(acao) || contato.length < 5) {
   process.exit(1);
 }
 
+const filtro = 'lower(contato) = $1 OR ($2 <> \'\' AND regexp_replace(contato, \'\\D\', \'\', \'g\') = $2)';
+const nada = () => console.error('Nada encontrado para esse contato (confira se o e-mail/telefone é o mesmo do cadastro).');
+
 try {
-  const filtroReservas = 'email = $1 OR ($2 <> \'\' AND telefone = $2)';
-  const filtroInteresses = 'lower(contato) = $1 OR ($2 <> \'\' AND regexp_replace(contato, \'\\D\', \'\', \'g\') = $2)';
   if (acao === 'exportar') {
-    const reservas = await pool.query(`SELECT codigo, data, hora_inicio, duracao_min, pessoas, nome, telefone, email, status, criado_em FROM reservas WHERE ${filtroReservas} ORDER BY data`, [contato, soDigitos]);
-    const interesses = await pool.query(`SELECT gato_id, nome, contato, mensagem, criado_em FROM interesses_adocao WHERE ${filtroInteresses} ORDER BY criado_em`, [contato, soDigitos]);
-    console.log(JSON.stringify({ reservas: reservas.rows, interesses_adocao: interesses.rows }, null, 2));
-    if (!reservas.rowCount && !interesses.rowCount) console.error('Nada encontrado para esse contato (confira se o e-mail/telefone é o mesmo do cadastro).');
+    const interesses = await pool.query(`SELECT gato_id, nome, contato, mensagem, status, criado_em FROM interesses_adocao WHERE ${filtro} ORDER BY criado_em`, [contato, soDigitos]);
+    console.log(JSON.stringify({ interesses_adocao: interesses.rows }, null, 2));
+    if (!interesses.rowCount) nada();
   } else {
-    // As duas eliminações valem juntas ou nenhuma (não deixa o pedido pela metade).
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const r = await client.query(`DELETE FROM reservas WHERE ${filtroReservas}`, [contato, soDigitos]);
-      const i = await client.query(`DELETE FROM interesses_adocao WHERE ${filtroInteresses}`, [contato, soDigitos]);
-      await client.query('COMMIT');
-      console.log(`Eliminados: ${r.rowCount} reserva(s) e ${i.rowCount} interesse(s) de adoção.`);
-      if (!r.rowCount && !i.rowCount) console.error('Nada encontrado para esse contato (confira se o e-mail/telefone é o mesmo do cadastro).');
-    } catch (err) {
-      await client.query('ROLLBACK');
-      throw err;
-    } finally {
-      client.release();
-    }
+    const i = await pool.query(`DELETE FROM interesses_adocao WHERE ${filtro}`, [contato, soDigitos]);
+    console.log(`Eliminados: ${i.rowCount} interesse(s) de adoção.`);
+    if (!i.rowCount) nada();
   }
 } catch (err) {
   console.error('Falha:', err.message);

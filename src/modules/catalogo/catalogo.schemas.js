@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { nome } from '../reservas/reservas.schemas.js';
+import { nome } from '../../lib/validacao.js';
 
 const contatoEmail = z.email();
 const contatoTelefone = /^[1-9]{2}\d{8,9}$/;

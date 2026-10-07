@@ -66,7 +66,7 @@ export default function Topo({ comMenu, tema, onAlternarTema, onEasterEgg }) {
           >
             {escuro ? <IconeSol /> : <IconeLua />}
           </button>
-          <a className="botao botao--pequeno topo__cta" href={comMenu ? '#reserva' : '/#reserva'}>Reservar gatil</a>
+          <a className="botao botao--pequeno topo__cta" href={comMenu ? '#gatil' : '/#gatil'}>Conhecer o gatil</a>
           {comMenu && (
             <button
               ref={botao}

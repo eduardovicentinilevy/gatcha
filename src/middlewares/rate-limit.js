@@ -25,14 +25,6 @@ export const limitePublico = rateLimit({
   limit: config.http.rateLimitPublicoPorMin,
 });
 
-/** Teto específico e bem mais baixo para criação de reservas (anti-spam / anti-bot). */
-export const limiteCriacaoReserva = rateLimit({
-  ...comum,
-  identifier: 'criar-reserva',
-  windowMs: 15 * 60_000,
-  limit: config.http.rateLimitReservasPor15Min,
-});
-
 /** Login do painel: teto por IP (além do bloqueio por e-mail feito no banco). */
 export const limiteLogin = rateLimit({
   ...comum,
@@ -41,18 +33,10 @@ export const limiteLogin = rateLimit({
   limit: config.auth.rateLimitLoginPor15Min,
 });
 
-/** Cancelamento pelo link do e-mail: o token é longo demais para adivinhar; o teto só barra abuso. */
-export const limiteCancelamento = rateLimit({
-  ...comum,
-  identifier: 'cancelar-reserva',
-  windowMs: 15 * 60_000,
-  limit: config.http.rateLimitCancelamentoPor15Min,
-});
-
-/** "Quero conhecer" (interesse em adoção): como a reserva, evita spam de formulário. */
+/** "Quero conhecer" (interesse em adoção): teto baixo contra spam de formulário. */
 export const limiteInteresse = rateLimit({
   ...comum,
   identifier: 'interesse-adocao',
   windowMs: 15 * 60_000,
-  limit: config.http.rateLimitReservasPor15Min,
+  limit: config.http.rateLimitInteressesPor15Min,
 });

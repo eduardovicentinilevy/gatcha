@@ -6,7 +6,7 @@ const URL_BANCO = process.env.TEST_DATABASE_URL;
 const SENHA = 'Matcha-e-gatos-2026!';
 
 describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_URL não definida' }, () => {
-  let servidor, base, pool, token, agoraNoFuso, somarDias, amanha;
+  let servidor, base, pool, token;
 
   const chamar = (metodo, rota, corpo, t = token) =>
     fetch(`${base}/api/admin${rota}`, {
@@ -15,24 +15,16 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
       body: corpo === undefined ? undefined : JSON.stringify(corpo),
     });
   const publico = (rota) => fetch(`${base}/api${rota}`);
-  const reservar = (extra = {}) =>
-    fetch(`${base}/api/reservas`, {
-      method: 'POST', headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ data: amanha, hora_inicio: '14:00', duracao_min: 15, pessoas: 2, nome: 'Cliente Teste', telefone: '11912345678', email: 'cliente@exemplo.com', ...extra }),
-    });
-
   before(async () => {
     configurarAmbienteDeTeste({ DATABASE_URL: URL_BANCO, DB_POOL_MAX: '10', JWT_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres-ok', RATE_LIMIT_LOGIN_POR_15MIN: '1000' });
     const { migrar } = await import('../../src/db/migrar.js');
     await migrar({ connectionString: URL_BANCO, ssl: false });
     ({ pool } = await import('../../src/db/pool.js'));
-    ({ agoraNoFuso, somarDias } = await import('../../src/lib/tempo.js'));
     const { gerarHash } = await import('../../src/modules/auth/senha.js');
     const { criarUsuario } = await import('../../src/modules/auth/auth.repository.js');
     await pool.query('TRUNCATE acessos_admin, usuarios_admin RESTART IDENTITY CASCADE');
     await criarUsuario(pool, { email: 'equipe@gatcha.com.br', senhaHash: await gerarHash(SENHA) });
     const { criarApp } = await import('../../src/app.js');
-    amanha = somarDias(agoraNoFuso('America/Sao_Paulo').data, 1);
     servidor = criarApp().listen(0);
     await new Promise((r) => servidor.once('listening', r));
     base = `http://127.0.0.1:${servidor.address().port}`;
@@ -41,7 +33,7 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE reservas, bloqueios, interesses_adocao, gatos, itens_cardapio RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE interesses_adocao, gatos, itens_cardapio RESTART IDENTITY CASCADE');
   });
 
   after(async () => {
@@ -50,7 +42,7 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
   });
 
   test('TODAS as rotas do painel exigem login (sem token ou com token falso = 401)', async () => {
-    const rotas = [['GET', '/reservas'], ['PATCH', '/reservas/GATCHA-AAAAAA', { status: 'cancelada' }], ['GET', '/bloqueios'], ['POST', '/bloqueios', {}], ['DELETE', '/bloqueios/1'],
+    const rotas = [
       ['GET', '/gatos'], ['POST', '/gatos', {}], ['PATCH', '/gatos/1', {}], ['DELETE', '/gatos/1'], ['GET', '/cardapio'], ['POST', '/cardapio', {}], ['PATCH', '/cardapio/1', {}], ['DELETE', '/cardapio/1'],
       ['GET', '/interesses'], ['PATCH', '/interesses/1', { status: 'repassado' }]];
     for (const [metodo, rota, corpo] of rotas) {
@@ -59,63 +51,13 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
     }
   });
 
-  test('reservas: lista com dados de contato, filtra por status e cancelar libera a vaga', async () => {
-    await reservar({ pessoas: 4 });
-    const lista = await (await chamar('GET', `/reservas?de=${amanha}&ate=${amanha}`)).json();
-    assert.equal(lista.reservas.length, 1);
-    const r = lista.reservas[0];
-    assert.equal(r.nome, 'Cliente Teste');
-    assert.equal(r.telefone, '11912345678');
-    assert.ok(!('token_cancelamento_hash' in r));
-
-    assert.equal((await chamar('PATCH', `/reservas/${r.codigo}`, { status: 'cancelada' })).status, 200);
-    const horarios = await (await fetch(`${base}/api/horarios?data=${amanha}`)).json();
-    assert.equal(horarios.horarios.find((h) => h.hora_inicio === '14:00').vagas_15min, 6);
-    assert.equal((await (await chamar('GET', `/reservas?de=${amanha}&ate=${amanha}&status=confirmada`)).json()).reservas.length, 0);
-
-    // cancelada é definitiva; código inexistente = 404; status inválido = 400
-    assert.equal((await chamar('PATCH', `/reservas/${r.codigo}`, { status: 'confirmada' })).status, 409);
-    assert.equal((await chamar('PATCH', '/reservas/GATCHA-ZZZZZZ', { status: 'cancelada' })).status, 404);
-    assert.equal((await chamar('PATCH', `/reservas/${r.codigo}`, { status: 'qualquer' })).status, 400);
-    assert.equal((await chamar('PATCH', `/reservas/${r.codigo}`, { status: 'cancelada', nome: 'X' })).status, 400);
-  });
-
-  test('reservas: marcar comparecimento e voltar atrás', async () => {
-    await reservar();
-    const { codigo } = (await (await chamar('GET', `/reservas?de=${amanha}&ate=${amanha}`)).json()).reservas[0];
-    assert.equal((await chamar('PATCH', `/reservas/${codigo}`, { status: 'compareceu' })).status, 200);
-    assert.equal((await chamar('PATCH', `/reservas/${codigo}`, { status: 'cancelada' })).status, 409);
-    assert.equal((await chamar('PATCH', `/reservas/${codigo}`, { status: 'confirmada' })).status, 200);
-  });
-
-  test('reservas: período invertido ou longo demais é recusado', async () => {
-    assert.equal((await chamar('GET', `/reservas?de=${amanha}&ate=2020-01-01`)).status, 400);
-    assert.equal((await chamar('GET', '/reservas?de=2024-01-01&ate=2026-12-31')).status, 400);
-  });
-
-  test('bloqueios: criar fecha o horário na grade pública, avisa reservas afetadas e apagar reabre', async () => {
-    await reservar({ hora_inicio: '14:00' });
-    const res = await chamar('POST', '/bloqueios', { data: amanha, hora_inicio: '14:00', hora_fim: '15:00', motivo: 'Limpeza' });
-    assert.equal(res.status, 201);
-    const corpo = await res.json();
-    assert.equal(corpo.reservas_afetadas, 1);
-    assert.equal(corpo.bloqueio.motivo, 'Limpeza');
-    const grade = async () => (await (await fetch(`${base}/api/horarios?data=${amanha}`)).json()).horarios.find((h) => h.hora_inicio === '14:15').vagas_15min;
-    assert.equal(await grade(), 0);
-    const outra = await reservar({ hora_inicio: '14:15', email: 'outro@exemplo.com', telefone: '11999990000' });
-    assert.equal(outra.status, 409);
-    assert.equal((await outra.json()).erro.codigo, 'HORARIO_BLOQUEADO');
-    assert.equal((await chamar('DELETE', `/bloqueios/${corpo.bloqueio.id}`)).status, 204);
-    assert.equal(await grade(), 6);
-    assert.equal((await chamar('DELETE', `/bloqueios/${corpo.bloqueio.id}`)).status, 404);
-  });
-
-  test('bloqueios: validação (fim depois do início, grade de 15 min, 24:00 permitido)', async () => {
-    const post = (b) => chamar('POST', '/bloqueios', { data: amanha, hora_inicio: '14:00', hora_fim: '15:00', ...b });
-    assert.equal((await post({ hora_fim: '13:00' })).status, 400);
-    assert.equal((await post({ hora_inicio: '14:10' })).status, 400);
-    assert.equal((await post({ data: '2026-02-30' })).status, 400);
-    assert.equal((await post({ hora_inicio: '18:00', hora_fim: '24:00' })).status, 201);
+  test('sem reserva online: rotas de reserva e bloqueio não existem e as tabelas foram apagadas', async () => {
+    for (const [metodo, rota] of [['GET', '/api/horarios?data=2026-10-10'], ['POST', '/api/reservas'], ['DELETE', '/api/reservas/GATCHA-AAAAAA']]) {
+      assert.equal((await fetch(`${base}${rota}`, { method: metodo })).status, 404, `${metodo} ${rota}`);
+    }
+    for (const rota of ['/reservas', '/bloqueios']) assert.equal((await chamar('GET', rota)).status, 404, rota);
+    const { rows } = await pool.query("SELECT to_regclass('reservas') AS r, to_regclass('bloqueios') AS b");
+    assert.deepEqual(rows[0], { r: null, b: null });
   });
 
   test('gatos: criar aparece no site; adotado some do site; apagar com interessado é 409', async () => {

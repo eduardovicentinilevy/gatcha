@@ -5,7 +5,7 @@ import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp } 
 
 const LINKS = [
   ['/#cardapio', 'Cardápio'],
-  ['/#reserva', 'Reservar gatil'],
+  ['/#gatil', 'O gatil'],
   ['/#adocao', 'Adoção'],
   ['/#visite', 'Como chegar'],
   ['/privacidade', 'Privacidade'],
@@ -38,7 +38,7 @@ export default function Rodape() {
         <div className="rodape__chamada">
           <p className="rodape__chamada-texto">Te vemos no gatil? 🐾</p>
           <div className="rodape__chamada-acoes">
-            <a className="botao" href="/#reserva">Reservar gatil</a>
+            <a className="botao" href="/#gatil">Conhecer o gatil</a>
             <a className="botao botao--claro" href={linkInstagram()} target="_blank" rel="noopener noreferrer">
               <IconeInstagram /> @{contato.instagram}
             </a>

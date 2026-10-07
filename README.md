@@ -1,10 +1,11 @@
 # Gatchá API
 
-API REST do Gatchá Cat Café: reservas do gatil, cardápio e galeria de adoção.
+API REST do Gatchá Cat Café: cardápio, galeria de adoção e painel da equipe.
 Node.js 22 + Express 5 + PostgreSQL, hospedada no Google Cloud Run.
 
-> **Status:** reservas (com e-mail e cancelamento pelo link), cardápio, gatos, interesses de adoção, painel administrativo com login e site público prontos.
-> Pendente: deploy, conteúdo real (fotos, cores, textos legais) e integração com o sistema do Gatchá.
+> **Status:** site público (cardápio, gatil, adoção, visite), interesses de adoção e painel da equipe com login e envio de fotos prontos.
+> **Sem reserva online:** por decisão do Gatchá, a reserva da área dos gatos continua no balcão (como há mais de 4 anos, para evitar atrasos). O site só informa preços, horários e regras. O código antigo de reservas está no histórico do Git.
+> Pendente: deploy e conteúdo real (fotos, cores, textos legais).
 
 ## Site (front-end)
 
@@ -14,7 +15,7 @@ React 19 + Vite em `web/`, publicado no Firebase Hosting. Visual neo-brutalista 
 
 ### Desenvolvimento
 
-O site precisa da API (horários, reservas e avaliações vêm dela). Suba o banco e a API, depois o site:
+O site precisa da API (cardápio, gatos e avaliações vêm dela). Suba o banco e a API, depois o site:
 
 ```bash
 npm run db:up && npm run migrate:dev   # Postgres local (Docker) e tabelas
@@ -22,20 +23,20 @@ npm run dev                            # API em http://localhost:8080
 npm run web:dev                        # site em http://localhost:5173 (repassa /api para a 8080)
 ```
 
-Enquanto `/api/cardapio` e `/api/gatos` não existem, o site usa os JSON de `web/public/dados-exemplo/` (mesmo formato da API) como cardápio e gatos de exemplo.
+Se a API não responder, o site usa os JSON de `web/public/dados-exemplo/` (mesmo formato da API) como cardápio e gatos de exemplo.
 
 ### Onde mexer
 
 | O quê | Onde |
 |---|---|
 | Cores (claro/escuro), textos, preços, horários, regras, FAQ, avaliações, contatos | `web/src/config.js` (procure `[SUBSTITUIR]` e `[CONFIRMAR]`) |
-| Cardápio e gatos de exemplo (até a API ter essas rotas) | `web/public/dados-exemplo/*.json` |
+| Cardápio e gatos de exemplo (reserva de quando a API não responde; `npm run dev:popular` copia para o banco local) | `web/public/dados-exemplo/*.json` |
 | Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
-| Fluxo de reserva | `web/src/components/Reserva.jsx` |
+| Seção do gatil (preços, horários, regras, aviso de reserva no balcão) | `web/src/components/Gatil.jsx` + `gatil` em `config.js` |
 | Transição entre páginas | `web/src/navegacao.js` + bloco "Transição entre páginas" em `estilo.css` |
 
 - **Segurança:** o React escapa todo texto dinâmico; CSP estrita sem `unsafe-inline` em `firebase.json`; fontes servidas pelo próprio site; mapa do Google só carrega quando a pessoa pede (LGPD).
-- **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, foco movido a cada etapa da reserva, `prefers-reduced-motion` respeitado.
+- **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, `prefers-reduced-motion` respeitado.
 - **Deploy:** `npm run build && firebase deploy --only hosting`.
 
 ## Painel administrativo (`/admin`)
@@ -45,8 +46,6 @@ Em desenvolvimento, `npm run dev` gera o `JWT_SECRET` no seu `.env` se estiver v
 
 | Aba | O que faz |
 |---|---|
-| Reservas | Lista por período e status, com contato; marca "Chegou" (compareceu) ou cancela (a vaga volta pra agenda) |
-| Bloqueios | Fecha horários do gatil (evento, limpeza); avisa se já havia reservas no intervalo |
 | Gatos | Cadastra, edita e apaga gatos; "adotado" sai do site e continua no painel |
 | Cardápio | Cadastra, edita, tira do site ou apaga itens (preço, selos, foto) |
 | Interessados | Quem clicou em "Quero conhecer"; marca como repassado à ONG |
@@ -54,13 +53,6 @@ Em desenvolvimento, `npm run dev` gera o `JWT_SECRET` no seu `.env` se estiver v
 - Segurança: token de 15 min **só na memória da aba** (recarregar = entrar de novo), todas as rotas `/api/admin/*` exigem login e ficam no log de acessos, página com `noindex`.
 - **Fotos (Gatos e Cardápio):** botão "Enviar foto" direto do celular ou computador (JPG, PNG ou WebP). O navegador reduz fotos grandes antes de enviar, e a API **reprocessa toda imagem**: WebP de no máximo 1600 px, orientação corrigida, **sem metadados** (o GPS da foto do celular não vai pro site) e recusa de arquivos disfarçados. As fotos ficam no Postgres (tabela `imagens`) e são servidas em `/api/imagens/<id>.webp` com cache longo. Fotos trocadas ou sem uso são apagadas pelo `npm run lgpd:expurgar` depois de 1 dia. Ainda dá pra colar um link `https://...`.
 - Dados de exemplo no banco local: `npm run dev:popular` (cardápio e gatos de `web/public/dados-exemplo`; só preenche tabelas vazias).
-
-## Cancelamento pelo e-mail
-
-Toda reserva envia um e-mail com o link `SITE_URL/cancelar#CODIGO.TOKEN`. O token tem 192 bits e só o hash SHA-256 fica no banco. O `#` nunca chega ao servidor nem aos logs, e a página tira o token da barra de endereço. O cancelamento vale até `CANCELAMENTO_ATE_HORAS_ANTES` (1 h) antes do horário.
-
-- **Desenvolvimento:** `EMAIL_TRANSPORTE=log` mostra o e-mail (com o link) no terminal da API.
-- **Produção:** `EMAIL_TRANSPORTE=smtp` e `EMAIL_SMTP_URL` no Secret Manager (qualquer SMTP: Brevo, SES, Google Workspace...). Com `log` em produção, a API não sobe, porque o link é uma credencial. Ajuste `SITE_URL` e `EMAIL_REMETENTE` (de preferência com SPF/DKIM no domínio).
 
 ## Arquitetura
 
@@ -73,79 +65,50 @@ src/
 │   ├── pool.js               # pg.Pool único por instância
 │   ├── transacao.js          # Unit of Work: BEGIN/COMMIT/ROLLBACK
 │   └── migrar.js             # migrações SQL versionadas
-├── lib/                      # erros, logger JSON, datas, gerador de código
+├── lib/                      # erros, logger JSON, datas, validações comuns
 ├── middlewares/              # contexto/log, validação, rate limit, error handler
-└── modules/reservas/
-    ├── reservas.routes.js      # rota -> [rate limit] -> [validação] -> controller
-    ├── reservas.controller.js  # adaptador HTTP fino
-    ├── reservas.service.js     # regras de negócio + escopo transacional
-    ├── reservas.repository.js  # único lugar com SQL (parametrizado)
-    ├── reservas.schemas.js     # contratos de entrada (Zod, strict)
-    └── disponibilidade.js      # domínio puro: cálculo de vagas
+└── modules/
+    ├── catalogo/             # público: GET /cardapio, GET /gatos, POST /interesses
+    ├── imagens/              # fotos do painel (reprocessadas) e GET /imagens/<id>.webp
+    ├── painel/               # /api/admin/*: gatos, cardápio, interessados
+    ├── auth/                 # login do painel (bcrypt + JWT), log de acessos
+    ├── avaliacoes/           # avaliações do Google Maps (cache)
+    └── lgpd/                 # expurgo dos dados vencidos
 ```
-
-### Como a "Regra de Ouro" é garantida
-
-Duas pessoas nunca ocupam a mesma última vaga. Dentro de uma transação:
-
-1. `pg_advisory_xact_lock(<data>)` — requisições para o **mesmo dia** fazem fila; dias diferentes seguem em paralelo.
-2. Lê a ocupação do dia (em `READ COMMITTED`, cada instrução enxerga o que foi commitado antes dela — inclusive a reserva de quem estava na frente da fila).
-3. Calcula as vagas com a mesma função pura usada pelo `GET /horarios`.
-4. `INSERT` + `COMMIT` (libera o lock).
-
-O teste `REGRA DE OURO` dispara 20 requisições simultâneas contra um Postgres real. Sem o lock, ele detecta overbooking (6 reservas de 2 pessoas numa capacidade de 6); com o lock, entram exatamente 3.
 
 ## API
 
-### `GET /api/horarios?data=AAAA-MM-DD`
+### Rotas
 
-```json
-200 {
-  "data": "2026-10-06", "aberto": true, "capacidade": 8,
-  "horarios": [
-    { "hora_inicio": "10:30", "vagas_15min": 8, "vagas_30min": 6 },
-    { "hora_inicio": "17:15", "vagas_15min": 8, "vagas_30min": 0 }
-  ]
-}
-```
-Dia fechado: `aberto: false` e `horarios: []`. Horários que já começaram (hoje) são omitidos.
+| Rota | O que faz |
+|---|---|
+| `GET /api/cardapio` | Itens ativos do cardápio |
+| `GET /api/gatos` | Gatos para adoção (adotados saem) |
+| `POST /api/interesses` | "Quero conhecer" um gato (`gato_id`, `nome`, `contato`, `mensagem?`) |
+| `GET /api/avaliacoes` | Avaliações do Google Maps |
+| `GET /api/imagens/<id>.webp` | Fotos enviadas pelo painel |
+| `POST /api/auth/login` | Login do painel |
+| `/api/admin/*` | Painel (exige login): gatos, cardápio, interessados, envio de fotos |
 
-**Horários do Gatchá** (perfil oficial): café de segunda a sábado, 10h às 18h30; **área dos gatos** 10h30 às 11h50 e 13h10 às 17h30.
-Na API: `GATIL_DIAS=1,2,3,4,5,6` e `GATIL_JANELAS=10:30-11:50,13:10-17:30`. A agenda trabalha em células de 15 min e
-arredonda as janelas **para dentro** (10:30-11:45 e 13:15-17:30): nunca se vende um minuto fora do horário real, e nenhuma sessão atravessa a pausa
-dos gatos. No site, os mesmos horários ficam em `web/src/config.js` (rodapé, "Visite", gatil, FAQ, selo "Aberto agora"): se mudar um, mude o outro.
-
-### `POST /api/reservas`
-
-```json
-{ "data": "2026-10-06", "hora_inicio": "14:30", "duracao_min": 30, "pessoas": 2,
-  "nome": "Ana Júlia", "telefone": "(11) 91234-5678", "email": "ana@exemplo.com" }
-```
-```json
-201 { "reserva": { "codigo": "GATCHA-7K3QXP", "data": "2026-10-06", "hora_inicio": "14:30",
-                   "duracao_min": 30, "pessoas": 2, "nome": "Ana Júlia", "status": "confirmada",
-                   "criado_em": "..." } }
-```
+**Horários do Gatchá** (perfil oficial): café de segunda a sábado, 10h às 18h30; **área dos gatos** 10h30 às 11h50 e 13h10 às 17h30. Ficam em `web/src/config.js` (rodapé, "Visite", gatil, FAQ, selo "Aberto agora").
 
 ### Erros (formato único)
 
 ```json
-{ "erro": { "codigo": "VAGAS_INSUFICIENTES", "mensagem": "...", "detalhes": { "vagas_disponiveis": 1 }, "request_id": "..." } }
+{ "erro": { "codigo": "GATO_INDISPONIVEL", "mensagem": "...", "request_id": "..." } }
 ```
 
 | HTTP | `codigo` | Quando |
 |---|---|---|
 | 400 | `DADOS_INVALIDOS` | Falha de schema (detalhes por campo em `detalhes.campos`) |
 | 400 | `JSON_INVALIDO` | Corpo não é JSON válido |
-| 400 | `DATA_FORA_DO_PERIODO` | Data no passado ou além de 14 dias |
-| 400 | `DIA_FECHADO` / `HORARIO_FORA_DO_FUNCIONAMENTO` / `HORARIO_NO_PASSADO` | Regras da agenda |
-| 409 | `VAGAS_INSUFICIENTES` | Não cabe mais gente no horário |
-| 409 | `HORARIO_BLOQUEADO` | Equipe bloqueou o horário |
-| 409 | `LIMITE_DE_RESERVAS_ATIVAS` | Contato já tem N reservas futuras |
+| 401 | `NAO_AUTENTICADO` | Rota do painel sem login válido |
+| 409 | `GATO_INDISPONIVEL` | Interesse num gato já adotado |
+| 409 | `ITEM_DUPLICADO` / `GATO_COM_INTERESSADOS` | Conflitos do painel |
 | 413 | `CORPO_MUITO_GRANDE` | Corpo > 10 KB |
 | 415 | `TIPO_DE_CONTEUDO_NAO_SUPORTADO` | Sem `Content-Type: application/json` |
 | 429 | `MUITAS_REQUISICOES` | Rate limit (header `Retry-After`) |
-| 503 | `SERVICO_OCUPADO` | Lock/statement timeout, deadlock (header `Retry-After`) |
+| 503 | `SERVICO_OCUPADO` / `BANCO_INDISPONIVEL` | Banco ocupado ou fora do ar (header `Retry-After`) |
 | 500 | `ERRO_INTERNO` | Falha inesperada (detalhes só no log, via `request_id`) |
 
 ## Segurança e LGPD
@@ -155,11 +118,11 @@ dos gatos. No site, os mesmos horários ficam em `web/src/config.js` (rodapé, "
 | Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
 | Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
 | Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado ou senha trocada = sessão encerrada |
-| Limite de requisições nas rotas públicas | Por IP (reservas, geral e login) + bloqueio no banco, válido em todas as instâncias: 5 falhas/15 min por e-mail+IP e 30 no total por e-mail (quem erra de propósito de outro IP não tranca a equipe) |
+| Limite de requisições nas rotas públicas | Por IP (geral, interesses e login) + bloqueio no banco, válido em todas as instâncias: 5 falhas/15 min por e-mail+IP e 30 no total por e-mail (quem erra de propósito de outro IP não tranca a equipe) |
 | HTTPS | Firebase Hosting / Cloud Run + HSTS (helmet) |
 | Log de acessos ao painel | Tabela `acessos_admin`: quem, quando, método, rota, status e IP. Nunca senha, token ou corpo |
-| Só nome e contato coletados + aviso | Página `/privacidade` (controlador, bases legais, compartilhamento, prazos, direitos) |
-| Reservas > 90 dias apagadas | `npm run lgpd:expurgar` (também apaga interesses de adoção e acessos vencidos) |
+| Só nome e contato coletados + aviso | Página `/privacidade` (controlador, bases legais, compartilhamento, prazos, direitos). O site não guarda reservas: elas são no balcão |
+| Dados vencidos apagados | `npm run lgpd:expurgar` (interesses de adoção e acessos ao painel vencidos, fotos sem uso) |
 
 ### Atenção em produção: `TRUST_PROXY`
 
@@ -189,15 +152,13 @@ Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativa
     --uri "https://run.googleapis.com/v2/projects/PROJETO/locations/southamerica-east1/jobs/gatcha-expurgo:run" --http-method POST \
     --oauth-service-account-email CONTA@PROJETO.iam.gserviceaccount.com
   ```
-- **Testes locais bateram no limite de reservas por contato?** (`409 LIMITE_DE_RESERVAS_ATIVAS`: por padrão, 3 reservas ativas por e-mail/celular.)
-  Apague as reservas de teste do banco local com `npm run dev:limpar-reservas` (recusa rodar em produção ou em banco que não seja da sua máquina).
 - **Pedido de um titular** (confirme a identidade antes: o pedido deve vir do próprio e-mail/celular cadastrado):
   `npm run lgpd:exportar -- pessoa@email.com` (cópia dos dados) e `npm run lgpd:apagar -- pessoa@email.com` (eliminação).
 - **Antes de publicar** preencha em `web/src/config.js` (`lgpd`): razão social, CNPJ e e-mail para pedidos dos titulares, e peça a revisão do texto a um advogado.
 
 ## Avaliações do Google Maps
 
-`GET /api/avaliacoes` busca nota, total e até 5 avaliações na **Places API (New)** do Google. A chave fica só no servidor e o resultado fica em cache por `AVALIACOES_CACHE_HORAS` (padrão 6h). Sem chave (ou no protótipo), o site mostra as avaliações de exemplo de `web/src/config.js`.
+`GET /api/avaliacoes` busca nota, total e até 5 avaliações na **Places API (New)** do Google. A chave fica só no servidor e o resultado fica em cache por `AVALIACOES_CACHE_HORAS` (padrão 6h). Sem chave, o site mostra as avaliações de exemplo de `web/src/config.js`.
 
 1. No [Google Cloud Console](https://console.cloud.google.com/): crie/escolha um projeto, ative o faturamento e ative a **Places API (New)**.
 2. Em *APIs e serviços → Credenciais*, crie uma **chave de API** e restrinja-a à *Places API (New)*.
@@ -235,10 +196,9 @@ gcloud run deploy gatcha-api --source . --region southamerica-east1 \
 ```
 
 - **Migrações**: rodar `node scripts/migrate.js` como Cloud Run Job antes de liberar a nova revisão — nunca no boot.
-- **LGPD**: agendar `node scripts/expurgar-dados.js` (Cloud Run Job + Cloud Scheduler, diário) para apagar reservas com mais de 90 dias.
+- **LGPD**: agendar `node scripts/expurgar-dados.js` (Cloud Run Job + Cloud Scheduler, diário) para apagar os dados vencidos.
 - **Conexões**: `max-instances × DB_POOL_MAX` deve caber no `max_connections` do Postgres gerenciado.
 
-## Pendências de negócio (valores provisórios em `.env.example`)
+## Pendências de negócio
 
-Dias e horários vieram do perfil do Gatchá (seg–sáb; área dos gatos 10h30–11h50 e 13h10–17h30) e ainda valem uma confirmação na ligação.
-Capacidade do gatil e limite de pessoas por reserva seguem provisórios — todos são configuráveis por variável de ambiente, sem mudar código.
+Dias e horários vieram do perfil do Gatchá (seg–sáb; área dos gatos 10h30–11h50 e 13h10–17h30); preços e regras também estão em `web/src/config.js`.

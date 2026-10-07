@@ -1,7 +1,7 @@
 {
   "name": "gatcha-api",
   "version": "0.1.0",
-  "description": "API REST do Gatchá Cat Café: reservas do gatil, cardápio e adoção",
+  "description": "API REST do Gatchá Cat Café: cardápio, gatos para adoção e painel da equipe",
   "private": true,
   "type": "module",
   "main": "src/server.js",
@@ -32,8 +32,6 @@
     "lgpd:expurgar": "node --env-file=.env scripts/expurgar-dados.js",
     "predev:popular": "node scripts/preparar-dev.js",
     "dev:popular": "node --env-file=.env scripts/popular-exemplo.js",
-    "predev:limpar-reservas": "node scripts/preparar-dev.js",
-    "dev:limpar-reservas": "node --env-file=.env scripts/limpar-reservas-dev.js",
     "test": "node --test --test-concurrency=1 \"test/**/*.test.js\"",
     "postinstall": "node web/scripts/garantir-dependencias.cjs"
   },
@@ -44,7 +42,6 @@
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
     "jose": "^6.2.12",
-    "nodemailer": "^10.0.15",
     "pg": "^8.23.1",
     "sharp": "^0.35.5",
     "zod": "^4.6.5"

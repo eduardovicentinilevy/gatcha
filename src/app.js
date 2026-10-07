@@ -16,7 +16,6 @@ import { config } from './config/env.js';
 import { contextoDaRequisicao } from './middlewares/contexto.js';
 import { limitePublico } from './middlewares/rate-limit.js';
 import { rotaNaoEncontrada, tratadorDeErros } from './middlewares/erros.js';
-import { rotasDeReservas } from './modules/reservas/reservas.routes.js';
 import { rotasDoCatalogo } from './modules/catalogo/catalogo.routes.js';
 import { rotasDeImagens } from './modules/imagens/imagens.routes.js';
 import { rotasDeAvaliacoes } from './modules/avaliacoes/avaliacoes.routes.js';
@@ -62,12 +61,11 @@ export function criarApp() {
 
   app.use('/api', limitePublico);
   app.use('/api', (_req, res, next) => {
-    res.set('Cache-Control', 'no-store'); // vagas mudam a todo instante; dados pessoais não ficam em cache
+    res.set('Cache-Control', 'no-store'); // dados pessoais e do painel não ficam em cache
     next();
   });
   app.use(express.json({ limit: '10kb', strict: true }));
 
-  app.use('/api', rotasDeReservas);
   app.use('/api', rotasDoCatalogo);
   app.use('/api', rotasDeImagens);
   app.use('/api', rotasDeAvaliacoes);

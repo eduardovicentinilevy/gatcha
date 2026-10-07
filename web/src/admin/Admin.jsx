@@ -3,15 +3,11 @@ import { IconeLua, IconeSol } from '../components/Icones.jsx';
 import LogoGato from '../components/LogoGato.jsx';
 import Campo from '../components/Campo.jsx';
 import { definirAoExpirar, entrar, sair } from './api.js';
-import Reservas from './Reservas.jsx';
-import Bloqueios from './Bloqueios.jsx';
 import Gatos from './Gatos.jsx';
 import Cardapio from './Cardapio.jsx';
 import Interessados from './Interessados.jsx';
 
 const ABAS = [
-  ['reservas', 'Reservas', Reservas],
-  ['bloqueios', 'Bloqueios', Bloqueios],
   ['gatos', 'Gatos', Gatos],
   ['cardapio', 'Cardápio', Cardapio],
   ['interessados', 'Interessados', Interessados],
@@ -21,7 +17,7 @@ const ABAS = [
 export default function Admin({ tema, onAlternarTema }) {
   const [usuario, setUsuario] = useState(null);
   const [motivoSaida, setMotivoSaida] = useState(null);
-  const [aba, setAba] = useState('reservas');
+  const [aba, setAba] = useState('gatos');
 
   useEffect(() => {
     const meta = document.createElement('meta');

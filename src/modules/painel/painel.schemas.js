@@ -3,12 +3,9 @@
  * "strict" (campo extra = erro, evita mass assignment) e normalização na borda.
  */
 import { z } from 'zod';
-import { RE_CODIGO_RESERVA } from '../../lib/codigo-reserva.js';
-import { dataISO, horaInicio } from '../reservas/reservas.schemas.js';
 
 const id = z.string().regex(/^[1-9]\d{0,15}$/, 'Identificador inválido').transform(Number);
 export const idParams = z.strictObject({ id });
-export const codigoParams = z.strictObject({ codigo: z.string().regex(RE_CODIGO_RESERVA, 'Código inválido') });
 
 /** Texto livre: sem caracteres de controle (quebra de linha simples permitida), aparado; vazio vira null. */
 const textoOpcional = (max) =>
@@ -37,21 +34,6 @@ const fotoUrl = z
 
 /** PATCH: pelo menos um campo. */
 const algumCampo = (schema) => schema.refine((o) => Object.keys(o).length > 0, 'Envie ao menos um campo para alterar');
-
-// ---------------------------------------------------------------- reservas
-export const listarReservasQuery = z.strictObject({
-  de: dataISO.optional(),
-  ate: dataISO.optional(),
-  status: z.enum(['confirmada', 'cancelada', 'compareceu']).optional(),
-});
-export const alterarReservaBody = z.strictObject({ status: z.enum(['confirmada', 'cancelada', 'compareceu']) });
-
-// ---------------------------------------------------------------- bloqueios
-const horaFim = z.union([horaInicio, z.literal('24:00')]);
-export const listarBloqueiosQuery = z.strictObject({ de: dataISO.optional() });
-export const criarBloqueioBody = z
-  .strictObject({ data: dataISO, hora_inicio: horaInicio, hora_fim: horaFim, motivo: textoOpcional(200).optional().transform((m) => m ?? null) })
-  .refine((b) => b.hora_fim > b.hora_inicio, { path: ['hora_fim'], message: 'O fim precisa ser depois do início' });
 
 // ---------------------------------------------------------------- gatos
 const gatoCampos = {

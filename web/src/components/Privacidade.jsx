@@ -5,7 +5,7 @@ import { CONFIG } from '../config.js';
  * contato, prazos) vêm de CONFIG.lgpd; os prazos precisam bater com os da API.
  */
 export default function Privacidade({ className = '' }) {
-  const { controlador, contatoTitular, retencaoReservasDias, retencaoInteressesDias, atualizadoEm } = CONFIG.lgpd;
+  const { controlador, contatoTitular, retencaoInteressesDias, atualizadoEm } = CONFIG.lgpd;
   const contato = contatoTitular ? <a href={`mailto:${contatoTitular}`}>{contatoTitular}</a> : 'a equipe do Gatchá, no balcão do café';
   const data = new Date(`${atualizadoEm}T12:00:00`).toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -27,25 +27,23 @@ export default function Privacidade({ className = '' }) {
 
       <h2>Quais dados coletamos e por quê</h2>
       <ul>
-        <li><strong>Reserva do gatil:</strong> nome, celular e e-mail, e o dia, horário, duração e número de pessoas. Usamos para confirmar, organizar e, se necessário, cancelar a sua reserva (base legal: execução do serviço que você pediu).</li>
         <li><strong>Interesse em adoção:</strong> nome, um contato (e-mail ou celular) e a mensagem que você escrever. Usamos para repassar seu interesse à ONG Abrigo São Gabriel (base legal: o seu consentimento, dado ao marcar a caixa do formulário).</li>
       </ul>
       <p>
-        Não pedimos CPF, endereço, dados de pagamento nem dados sensíveis. O pagamento é feito no balcão. O site não usa cookies de
+        O site não faz reservas (elas são feitas no balcão) e não pedimos CPF, endereço, dados de pagamento nem dados sensíveis. O site não usa cookies de
         rastreamento nem de publicidade; só guarda, no seu próprio navegador, a sua escolha de tema claro ou escuro.
       </p>
 
       <h2>Com quem compartilhamos</h2>
       <ul>
         <li><strong>ONG Abrigo São Gabriel:</strong> recebe apenas os pedidos de interesse em adoção.</li>
-        <li><strong>Prestadores de tecnologia</strong> (hospedagem do site e da API, banco de dados e envio de e-mails), que tratam os dados só em nosso nome e para este fim.</li>
+        <li><strong>Prestadores de tecnologia</strong> (hospedagem do site e da API e banco de dados), que tratam os dados só em nosso nome e para este fim.</li>
         <li><strong>Google:</strong> o mapa da página “Visite” só carrega quando você clica em “Mostrar mapa”; nesse momento o Google recebe os dados técnicos da sua visita (como o IP). As avaliações exibidas vêm do Google Maps.</li>
       </ul>
       <p>Não vendemos seus dados nem os usamos para marketing.</p>
 
       <h2>Por quanto tempo guardamos</h2>
       <ul>
-        <li><strong>Reservas:</strong> apagadas automaticamente {retencaoReservasDias} dias após a data da visita.</li>
         <li><strong>Interesses de adoção:</strong> apagados automaticamente {retencaoInteressesDias} dias após o envio.</li>
       </ul>
 
@@ -53,7 +51,7 @@ export default function Privacidade({ className = '' }) {
       <p>
         Você pode, a qualquer momento e gratuitamente, pedir: confirmação de que tratamos seus dados; acesso a eles; correção; eliminação;
         informações sobre com quem compartilhamos; e a retirada do consentimento. Basta escrever para {contato} pelo mesmo e-mail ou
-        celular usado na reserva, para confirmarmos que o pedido é seu. Respondemos em até 15 dias. Se achar que algo não foi
+        celular que você informou, para confirmarmos que o pedido é seu. Respondemos em até 15 dias. Se achar que algo não foi
         resolvido, você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).
       </p>
 

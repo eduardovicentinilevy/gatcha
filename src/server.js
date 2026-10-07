@@ -13,10 +13,10 @@ const servidor = criarApp().listen(config.port, () => {
   verificarBanco();
 });
 
-/** Avisa logo no boot se o banco estiver inacessível, em vez de só na primeira reserva. */
+/** Avisa logo no boot se o banco estiver inacessível, em vez de só na primeira requisição. */
 async function verificarBanco() {
   try {
-    await pool.query('SELECT 1 FROM reservas LIMIT 1');
+    await pool.query('SELECT 1');
   } catch (err) {
     const dica =
       err.code === '42P01'

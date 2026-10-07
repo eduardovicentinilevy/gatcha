@@ -12,10 +12,8 @@ import SigaAGente from './components/SigaAGente.jsx';
 import Visite from './components/Visite.jsx';
 import Rodape from './components/Rodape.jsx';
 import Privacidade from './components/Privacidade.jsx';
-import BarraReserva from './components/BarraReserva.jsx';
 import Atendimento from './components/Atendimento.jsx';
 import Gatinho from './components/Gatinho.jsx';
-import Cancelar from './components/Cancelar.jsx';
 
 // O painel só é baixado por quem abre /admin: o site público não carrega esse código.
 const Admin = lazy(() => import('./admin/Admin.jsx'));
@@ -74,8 +72,6 @@ export default function App() {
       <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
       {pagina === 'privacidade' ? (
         <Privacidade key="privacidade" className={classePagina} />
-      ) : pagina === 'cancelar' ? (
-        <Cancelar key="cancelar" className={classePagina} />
       ) : (
         <main id="conteudo" key="inicio" className={classePagina}>
           <Hero />
@@ -88,7 +84,6 @@ export default function App() {
         </main>
       )}
       <Rodape />
-      <BarraReserva pagina={pagina} />
       <Atendimento />
       <Gatinho visivel={gatinho} onSumir={esconderGatinho} />
     </>

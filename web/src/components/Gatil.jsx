@@ -1,7 +1,6 @@
 import { CONFIG } from '../config.js';
 import { reais } from '../util.js';
 import { IconeRelogio } from './Icones.jsx';
-import Reserva from './Reserva.jsx';
 
 export default function Gatil() {
   const { gatil, textos } = CONFIG;
@@ -44,7 +43,13 @@ export default function Gatil() {
           </div>
         </div>
 
-        <Reserva />
+        <div id="reserva" className="balcao cartao" data-revelar>
+          <span className="balcao__icone" aria-hidden="true">🐾</span>
+          <div>
+            <h3>{textos.gatil.reservaTitulo}</h3>
+            <p>{textos.gatil.reservaTexto}</p>
+          </div>
+        </div>
       </div>
     </section>
   );

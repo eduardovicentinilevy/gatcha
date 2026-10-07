@@ -121,21 +121,17 @@ export const CONFIG = Object.freeze({
   ],
 
   // ---------------------------------------------------------------------------
-  // Gatil e reserva
+  // Gatil (a reserva é feita no balcão, como o Gatchá faz há mais de 4 anos)
   // ---------------------------------------------------------------------------
   gatil: {
     fuso: 'America/Sao_Paulo',
-    antecedenciaMaxDias: 14,
-    /** 0 = domingo ... 6 = sábado. Deve bater com GATIL_DIAS da API. */
+    /** 0 = domingo ... 6 = sábado. */
     diasAbertos: DIAS_ABERTOS,
     diasTexto: DIAS_TEXTO,
-    /** Horários da área dos gatos. Devem bater com GATIL_JANELAS da API (que arredonda para dentro, de 15 em 15 min). */
+    /** Horários da área dos gatos. */
     janelas: JANELAS_GATOS,
-    /** [CONFIRMAR] Deve bater com RESERVA_MAX_PESSOAS da API. */
-    maxPessoasPorReserva: 4,
     /** [CONFIRMAR] Guias citam R$ 15 (15 min) e R$ 25 (30 min), por pessoa. */
     precosCentavos: { 15: 1500, 30: 2500 },
-    cancelamentoAteHorasAntes: 1,
     /** Regras oficiais do Gatchá (placa "Regras Gatcha"), na voz dos gatos como no original. */
     regras: [
       ['👟', 'Deixe os sapatos no armário.'],
@@ -159,7 +155,7 @@ export const CONFIG = Object.freeze({
     hero: {
       selo: 'Galeria Metrópole · República · SP',
       titulo: 'Bora tomar um matchá com companhia peluda?',
-      subtitulo: 'Reserve seu horário no gatil em menos de 1 minuto e conheça os gatos antes de chegar.',
+      subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Conheça os gatos antes de chegar.',
     },
     cardapio: {
       titulo: 'Verde por dentro, fofo por fora',
@@ -168,6 +164,9 @@ export const CONFIG = Object.freeze({
     gatil: {
       titulo: 'Um tempinho com os gatos',
       subtitulo: 'O gatil é a casa deles: as vagas são limitadas pra todo mundo ficar de boa. Pagamento no local.',
+      reservaTitulo: 'A reserva é no balcão',
+      reservaTexto:
+        'Chegou no café? Fale com a equipe no balcão e reserve seu horário na área dos gatos, na hora. Assim ninguém perde a vez por atraso.',
     },
     adocao: {
       titulo: 'Eles tão procurando um lar',
@@ -177,12 +176,6 @@ export const CONFIG = Object.freeze({
     avaliacoes: { titulo: 'Quem foi, voltou' },
     instagram: { titulo: 'Siga a gente', subtitulo: 'Bastidores, gato novo no pedaço e matchá do dia.' },
     visite: { titulo: 'Vem pro 2º andar da Galeria Metrópole' },
-    confirmacao: {
-      titulo: 'Reserva feita! 🐾',
-      cancelamento: (horas) =>
-        `Mudou de planos? Dá pra cancelar pelo link do e-mail de confirmação até ${horas} hora antes.`,
-    },
-    privacidadeCurta: 'Só pedimos nome e contato pra confirmar sua reserva. Nada de spam, prometido.',
   },
 
   /** Carrossel do topo. O "gato do dia" e a "bebida destaque" vêm dos dados (gatos/cardápio). */
@@ -243,13 +236,9 @@ export const CONFIG = Object.freeze({
         'Clique em "Quero conhecer" no gato que te conquistou. A gente repassa seu contato pro Abrigo São Gabriel, que conduz a entrevista e a adoção responsável.',
     },
     {
-      pergunta: 'Preciso reservar?',
+      pergunta: 'Como reservo a área dos gatos?',
       resposta:
-        'Pro café, não. Pro gatil é bom reservar: as vagas por horário são limitadas. Sobrou vaga? Dá pra entrar na hora, direto no balcão.',
-    },
-    {
-      pergunta: 'Posso cancelar?',
-      resposta: 'Pode, pelo link do e-mail de confirmação, até 1 hora antes do horário.',
+        'Direto no balcão do café, na hora. É assim há mais de 4 anos: ninguém perde o horário por atraso e os gatos seguem a rotina deles.',
     },
     {
       pergunta: 'Tem opção vegana?',
@@ -280,7 +269,6 @@ export const CONFIG = Object.freeze({
   lgpd: {
     controlador: { razaoSocial: null, cnpj: null }, // [SUBSTITUIR] ex.: 'Gatchá Cat Café Ltda.', '00.000.000/0001-00'
     contatoTitular: null, // [SUBSTITUIR] e-mail para pedidos dos titulares, ex.: 'privacidade@gatcha.com.br'
-    retencaoReservasDias: 90,
     retencaoInteressesDias: 180,
     atualizadoEm: '2026-10-05',
   },

@@ -6,7 +6,7 @@
  *   círculo que cresce a partir do ponto clicado (CSS em estilo.css).
  * - Navegadores sem a API (ex.: Firefox): a página nova entra com um fade.
  * - prefers-reduced-motion: troca instantânea, sem animação.
- * - Links de âncora na MESMA página (#cardapio, #reserva…) seguem o comportamento
+ * - Links de âncora na MESMA página (#cardapio, #gatil…) seguem o comportamento
  *   normal do navegador (rolagem suave). Links externos, target="_blank" e
  *   cliques com Ctrl/Cmd/Shift também não são interceptados.
  */
@@ -17,11 +17,10 @@ import { reduzirMovimento } from './util.js';
 const TITULOS = {
   inicio: 'Gatchá · Cat café de matchá na República',
   privacidade: 'Aviso de privacidade · Gatchá',
-  cancelar: 'Cancelar reserva · Gatchá',
   admin: 'Painel · Gatchá',
 };
 
-const CAMINHOS = { '/privacidade': 'privacidade', '/cancelar': 'cancelar', '/admin': 'admin' };
+const CAMINHOS = { '/privacidade': 'privacidade', '/admin': 'admin' };
 export const paginaDoCaminho = (caminho) => CAMINHOS[caminho.replace(/\/+$/, '')] ?? 'inicio';
 
 const suportaTransicao = () => typeof document.startViewTransition === 'function';
@@ -63,7 +62,7 @@ function aposTrocar(pagina, hash) {
 export function usePagina() {
   const [pagina, setPagina] = useState(() => paginaDoCaminho(window.location.pathname));
   const paginaAtual = useRef(pagina); // lida nos listeners sem recriá-los
-  const [semApi, setSemApi] = useState(false); // ativa o fade de reserva no próximo render
+  const [semApi, setSemApi] = useState(false); // ativa o fade alternativo (sem View Transitions) no próximo render
 
   const trocar = useCallback((nova, hash, origem) => {
     const raiz = document.documentElement;

@@ -3,10 +3,8 @@
  * Cada handler é fino: valida (middleware), chama o repositório/serviço e responde.
  */
 import { Router } from 'express';
-import { config } from '../../config/env.js';
 import { pool } from '../../db/pool.js';
-import { conflito, naoEncontrado, requisicaoInvalida } from '../../lib/erros.js';
-import { agoraNoFuso, somarDias } from '../../lib/tempo.js';
+import { conflito, naoEncontrado } from '../../lib/erros.js';
 import { validar } from '../../middlewares/validar.js';
 import * as repo from './painel.repository.js';
 import { rotasDeEnvioDeImagens } from '../imagens/imagens.routes.js';
@@ -15,7 +13,6 @@ import * as s from './painel.schemas.js';
 export const rotasDoPainelDados = Router();
 const r = rotasDoPainelDados;
 r.use(rotasDeEnvioDeImagens); // POST /api/admin/imagens (fotos de gatos e do cardápio)
-const hoje = () => agoraNoFuso(config.gatil.fuso).data;
 
 /** Violações de UNIQUE/FK do Postgres viram 409 com mensagem útil, em vez de 500. */
 const tratar = (mensagens, handler) => async (req, res, next) => {
@@ -26,47 +23,6 @@ const tratar = (mensagens, handler) => async (req, res, next) => {
     next(mensagem ? conflito(...mensagem) : err);
   }
 };
-
-// ---------------------------------------------------------------- reservas
-r.get('/reservas', validar({ query: s.listarReservasQuery }), async (req, res) => {
-  const de = req.validado.query.de ?? hoje();
-  const ate = req.validado.query.ate ?? somarDias(de, 30);
-  if (ate < de) throw requisicaoInvalida('PERIODO_INVALIDO', 'A data final precisa ser depois da inicial.');
-  if (Date.parse(ate) - Date.parse(de) > 366 * 86_400_000) {
-    throw requisicaoInvalida('PERIODO_INVALIDO', 'Escolha um período de até 1 ano.');
-  }
-  res.json({ de, ate, reservas: await repo.listarReservas(pool, { de, ate, status: req.validado.query.status }) });
-});
-
-// Transições permitidas: confirmada -> cancelada | compareceu; compareceu -> confirmada. Cancelada é definitiva
-// (reativar poderia estourar a capacidade de um horário que já foi vendido de novo).
-const ORIGENS = { cancelada: ['confirmada'], compareceu: ['confirmada'], confirmada: ['compareceu'] };
-r.patch('/reservas/:codigo', validar({ params: s.codigoParams, body: s.alterarReservaBody }), async (req, res) => {
-  const { codigo } = req.validado.params;
-  const para = req.validado.body.status;
-  const reserva = await repo.mudarStatusReserva(pool, { codigo, para, deStatus: ORIGENS[para] });
-  if (reserva) return res.json({ reserva });
-  if (!(await repo.existeReserva(pool, codigo))) throw naoEncontrado('Reserva não encontrada.');
-  throw conflito('TRANSICAO_INVALIDA', 'Essa reserva não pode mudar para esse status.');
-});
-
-// ---------------------------------------------------------------- bloqueios
-r.get('/bloqueios', validar({ query: s.listarBloqueiosQuery }), async (req, res) => {
-  res.json({ bloqueios: await repo.listarBloqueios(pool, req.validado.query.de ?? hoje()) });
-});
-
-r.post('/bloqueios', validar({ body: s.criarBloqueioBody }), async (req, res) => {
-  const b = req.validado.body;
-  const bloqueio = await repo.criarBloqueio(pool, b);
-  // Quem já tinha reserva nesse intervalo continua com ela: a equipe precisa avisar essas pessoas.
-  const reservasAfetadas = await repo.contarReservasAtingidas(pool, b);
-  res.status(201).json({ bloqueio, reservas_afetadas: reservasAfetadas });
-});
-
-r.delete('/bloqueios/:id', validar({ params: s.idParams }), async (req, res) => {
-  if (!(await repo.apagarBloqueio(pool, req.validado.params.id))) throw naoEncontrado('Bloqueio não encontrado.');
-  res.status(204).end();
-});
 
 // ---------------------------------------------------------------- gatos
 r.get('/gatos', async (_req, res) => res.json({ gatos: await repo.listarGatos(pool) }));

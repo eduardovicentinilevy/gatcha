@@ -159,19 +159,15 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     await assert.rejects(pool.query("INSERT INTO usuarios_admin (email, senha_hash) VALUES ('x@y.com', 'texto-puro')"), /usuarios_admin_hash_bcrypt/);
   });
 
-  test('LGPD: o expurgo apaga o vencido (reservas, interesses, acessos) e preserva o resto', async () => {
-    await pool.query('TRUNCATE reservas, interesses_adocao, gatos RESTART IDENTITY CASCADE');
-    const reserva = (codigo, dias) => pool.query(
-      `INSERT INTO reservas (codigo, data, hora_inicio, duracao_min, pessoas, nome, telefone, email)
-       VALUES ($1, (now() AT TIME ZONE 'America/Sao_Paulo')::date - $2::int, '14:00', 15, 1, 'Ana', '11912345678', 'a@b.com')`, [codigo, dias]);
-    await reserva('GATCHA-ANTIGA1', 91); await reserva('GATCHA-LIMITE1', 90); await reserva('GATCHA-RECENTE', 5);
+  test('LGPD: o expurgo apaga o vencido (interesses, acessos) e preserva o resto', async () => {
+    await pool.query('TRUNCATE interesses_adocao, gatos RESTART IDENTITY CASCADE');
     await pool.query("INSERT INTO gatos (nome, sexo) VALUES ('Mochi', 'macho')");
     await pool.query("INSERT INTO interesses_adocao (gato_id, nome, contato, criado_em) VALUES (1, 'Velho', 'v@v.com', now() - interval '200 days'), (1, 'Novo', 'n@n.com', now() - interval '10 days')");
     await pool.query("INSERT INTO acessos_admin (email, evento, criado_em) VALUES ('x@y.com', 'acesso', now() - interval '100 days'), ('x@y.com', 'acesso', now())");
-    const apagados = await expurgar(pool, { retencao: { reservasDias: 90, interessesDias: 180, acessosDias: 90 }, fuso: 'America/Sao_Paulo' });
-    assert.deepEqual(apagados, { reservas: 1, interesses: 1, acessos: 1 });
-    const { rows } = await pool.query('SELECT codigo FROM reservas ORDER BY codigo');
-    assert.deepEqual(rows.map((r) => r.codigo), ['GATCHA-LIMITE1', 'GATCHA-RECENTE']);
+    const apagados = await expurgar(pool, { retencao: { interessesDias: 180, acessosDias: 90 }, fuso: 'America/Sao_Paulo' });
+    assert.deepEqual(apagados, { interesses: 1, acessos: 1 });
+    const { rows } = await pool.query('SELECT nome FROM interesses_adocao');
+    assert.deepEqual(rows.map((r) => r.nome), ['Novo']);
   });
 });
 

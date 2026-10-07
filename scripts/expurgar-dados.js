@@ -1,5 +1,5 @@
 /**
- * Retenção LGPD: apaga reservas, interesses de adoção e log de acessos vencidos
+ * Retenção LGPD: apaga interesses de adoção e log de acessos vencidos
  * (prazos em src/config/env.js: RETENCAO_*_DIAS). Rodar DIARIAMENTE, como Cloud
  * Run Job disparado pelo Cloud Scheduler (ver README, seção LGPD).
  * Aproveita para apagar fotos que nenhum gato ou item usa mais.

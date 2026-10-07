@@ -45,15 +45,6 @@ export function paraCentavos(texto) {
 }
 export const deCentavos = (c) => reais(c).replace(/^R\$\s*/, '');
 
-export const somarDias = (iso, n) => {
-  const d = new Date(`${iso}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + n);
-  return d.toISOString().slice(0, 10);
-};
-
-/** Horários de 15 em 15 min para os selects de bloqueio. */
-export const HORAS = Array.from({ length: 97 }, (_, i) => `${String(Math.floor(i / 4)).padStart(2, '0')}:${String((i % 4) * 15).padStart(2, '0')}`);
-
 /** Erros por campo vindos da API (DADOS_INVALIDOS) ou mensagem geral. */
 export function tratarErroDeFormulario(erro, setErros, setAviso) {
   const campos = erro.errosDeCampo ?? {};
