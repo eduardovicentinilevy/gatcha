@@ -136,12 +136,19 @@ export const CONFIG = Object.freeze({
     /** [CONFIRMAR] Guias citam R$ 15 (15 min) e R$ 25 (30 min), por pessoa. */
     precosCentavos: { 15: 1500, 30: 2500 },
     cancelamentoAteHorasAntes: 1,
+    /** Regras oficiais do Gatchá (placa "Regras Gatcha"), na voz dos gatos como no original. */
     regras: [
-      ['🧼', 'Mãos lavadas antes de entrar. Os gatos agradecem.'],
-      ['😴', 'Gato dormindo não se acorda. Colo só se ele pedir.'],
-      ['🚫', 'Nada de petiscos ou bebidas pros gatos (nem um golinho de matchá).'],
-      ['👧', 'Menores de 12 anos sempre com um adulto responsável.'],
-      ['📸', 'Foto pode, flash não.'],
+      ['👟', 'Deixe os sapatos no armário.'],
+      ['🧼', 'Higienize bem as mãos.'],
+      ['🚪', 'Aguarde nossa equipe autorizar a sua entrada/saída e cuidado com a cabeça e com o degrau.'],
+      ['🤫', 'Fale baixo e, se estivermos dormindo, não nos acorde, por favor.'],
+      ['📵', 'Celular sempre no silencioso e sem flash.'],
+      ['👃', 'Sempre nos deixe te cheirar primeiro.'],
+      ['🤲', 'Adoramos um carinho, mas por favor não nos pegue no colo nem puxe nossos rabos e patas.'],
+      ['🍤', 'Quer nos dar petisco? É só chamar alguém da equipe antes.'],
+      ['👧', 'Crianças com menos de 10 anos devem ser supervisionadas por algum responsável.'],
+      ['🤧', 'Caso tenha alergia, aconselhamos a não permanecer em nossa área.'],
+      ['🐾', 'Nós possuímos unhas e gostamos de dar mordidinhas para brincar. Não nos responsabilizamos pelos arranhões e mordidas.'],
     ],
   },
 
@@ -228,7 +235,7 @@ export const CONFIG = Object.freeze({
     },
     {
       pergunta: 'Posso levar criança?',
-      resposta: 'Pode sim! Menores de 12 anos entram com um adulto responsável, e todo mundo segue as regras do gatil.',
+      resposta: 'Pode sim! Crianças com menos de 10 anos ficam sempre com um responsável, e todo mundo segue as regras do gatil.',
     },
     {
       pergunta: 'Como funciona a adoção?',

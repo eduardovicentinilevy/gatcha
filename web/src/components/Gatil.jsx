@@ -35,7 +35,7 @@ export default function Gatil() {
             </div>
           </div>
           <div className="regras cartao">
-            <h3>Combinados do gatil</h3>
+            <h3>Regras do Gatchá</h3>
             <ul>
               {gatil.regras.map(([emoji, texto]) => (
                 <li key={texto}><span className="regras__emoji" aria-hidden="true">{emoji}</span><span>{texto}</span></li>
