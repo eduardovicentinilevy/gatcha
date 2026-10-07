@@ -60,7 +60,7 @@ export default function Reservas() {
           return (
             <div key={data} className="admin-dia">
               <h2 className="admin-dia__titulo">
-                {rotuloDia(data).longo}
+                {primeiraMaiuscula(rotuloDia(data).longo)}
                 <span>{pessoas} {pessoas === 1 ? 'pessoa' : 'pessoas'}</span>
               </h2>
               <ul className="admin-lista">
@@ -102,6 +102,8 @@ export default function Reservas() {
     </section>
   );
 }
+
+const primeiraMaiuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 function formatarTelefone(t) {
   return t.length === 11 ? `(${t.slice(0, 2)}) ${t.slice(2, 7)}-${t.slice(7)}` : `(${t.slice(0, 2)}) ${t.slice(2, 6)}-${t.slice(6)}`;
