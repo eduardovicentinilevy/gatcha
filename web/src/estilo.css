@@ -700,7 +700,8 @@ label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
 .admin-filtros { display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0; }
 .admin-filtros label { display: grid; gap: 4px; font-weight: 800; font-size: .9rem; flex: 1 1 150px; max-width: 240px; }
 .admin-dia { margin-top: 22px; }
-.admin-dia__titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 1.15rem; margin: 0 0 10px; text-transform: capitalize; }
+.admin-dia__titulo { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 1.15rem; margin: 0 0 10px; }
+.admin-dia__titulo::first-letter { text-transform: uppercase; }
 .admin-dia__titulo span { font-family: var(--fonte-texto); font-size: .9rem; color: var(--cor-texto-suave); text-transform: none; }
 .admin-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .admin-item { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 14px; box-shadow: 3px 3px 0 var(--cor-sombra); }
