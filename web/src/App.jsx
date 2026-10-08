@@ -4,6 +4,7 @@ import { usePagina } from './navegacao.js';
 import { reduzirMovimento } from './util.js';
 import Topo from './components/Topo.jsx';
 import Hero from './components/Hero.jsx';
+import Faixa from './components/Faixa.jsx';
 import Cardapio from './components/Cardapio.jsx';
 import Gatil from './components/Gatil.jsx';
 import Adocao from './components/Adocao.jsx';
@@ -75,6 +76,7 @@ export default function App() {
       ) : (
         <main id="conteudo" key="inicio" className={classePagina}>
           <Hero />
+          <Faixa />
           <Cardapio />
           <Gatil />
           <Adocao />

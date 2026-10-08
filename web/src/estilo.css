@@ -15,6 +15,8 @@
   --raio-p: 12px;
   --topo-altura: 64px;
   --transicao: 160ms ease;
+  /* Traço ondulado (máscara: a cor vem do background de quem usa). */
+  --rabisco: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 92 16'%3E%3Cpath d='M3 8Q13 1 24 8T46 8T68 8T89 8' fill='none' stroke='%23000' stroke-width='3.6' stroke-linecap='round'/%3E%3C/svg%3E");
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -35,15 +37,16 @@ body {
   overflow-x: hidden;
 }
 img, svg, iframe { display: block; max-width: 100%; }
-h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.08; margin: 0 0 .5em; letter-spacing: -.02em; font-weight: 800; }
+h1, h2, h3 { font-family: var(--fonte-titulo); line-height: 1.08; margin: 0 0 .5em; letter-spacing: -.02em; font-weight: 800; text-wrap: balance; }
 h1 { font-size: clamp(2.3rem, 10vw, 4.4rem); }
 h2 { font-size: clamp(1.8rem, 7vw, 3rem); }
 h3 { font-size: 1.25rem; }
-p { margin: 0 0 1em; }
+p { margin: 0 0 1em; text-wrap: pretty; }
 a { color: var(--cor-matcha-forte); text-underline-offset: 3px; }
 button, input, textarea { font: inherit; color: inherit; }
 ul { margin: 0; padding: 0; }
 abbr[title] { text-decoration: none; }
+::selection { background: var(--cor-matcha); color: var(--cor-botao-texto); }
 
 :focus-visible { outline: 3px solid var(--cor-matcha-forte); outline-offset: 3px; border-radius: 8px; }
 [tabindex="-1"]:focus { outline: none; }
@@ -91,7 +94,7 @@ abbr[title] { text-decoration: none; }
 .botao--secundario { background: var(--cor-superficie); color: var(--cor-texto); }
 .botao--claro { background: var(--cor-claro-fixo); color: var(--cor-botao-texto); }
 .botao--largo { width: 100%; }
-/* Orelhinhas de gato nos botões "Reservar gatil" (detalhe temático, com moderação).
+/* Orelhinhas de gato no botão "Conhecer o gatil" do topo (detalhe temático, com moderação).
    Duas camadas por cima da borda do botão: ::before = contorno escuro, ::after = miolo
    verde, menor, com a base no mesmo nível. O miolo cobre a borda do botão na base da
    orelha, então o contorno "entra" na orelha e ela parece parte do botão.
@@ -158,7 +161,11 @@ abbr[title] { text-decoration: none; }
 .selo--adesivo { position: absolute; top: 12px; left: 12px; transform: rotate(-3deg); box-shadow: 2px 2px 0 var(--cor-sombra); }
 
 /* ---------- Topo ---------- */
-.topo { view-transition-name: topo; /* fica parado na transição entre páginas */ position: sticky; top: 0; z-index: 50; background: var(--cor-fundo); border-bottom: var(--borda); }
+.topo {
+  view-transition-name: topo; /* fica parado na transição entre páginas */ position: sticky; top: 0; z-index: 50;
+  background: color-mix(in srgb, var(--cor-fundo) 88%, transparent); border-bottom: var(--borda);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4);
+}
 .topo__barra { height: var(--topo-altura); display: flex; align-items: center; gap: 10px; }
 .marca { display: inline-flex; align-items: center; gap: 10px; color: var(--cor-texto); text-decoration: none; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.4rem; letter-spacing: -.02em; user-select: none; }
 .marca svg { border-radius: 50%; border: 2.5px solid var(--cor-borda); }
@@ -192,13 +199,20 @@ abbr[title] { text-decoration: none; }
 
 /* ---------- Seções ---------- */
 .secao { padding: 64px 0; }
+@media (min-width: 900px) { .secao { padding: 88px 0; } }
 .secao--verde { background: var(--cor-matcha-suave); border-block: var(--borda); }
 .secao--creme { background: var(--cor-superficie2); border-block: var(--borda); }
 .secao__topo { max-width: 680px; margin-bottom: 28px; }
 .secao__topo p:not(.sobretitulo) { color: var(--cor-texto-suave); font-size: 1.08rem; }
 .sobretitulo {
-  display: inline-block; font-family: var(--fonte-titulo); font-weight: 800; font-size: .85rem;
-  text-transform: uppercase; letter-spacing: .1em; color: var(--cor-matcha-forte); margin-bottom: .6em;
+  display: inline-flex; align-items: center; gap: .55em; margin-bottom: .9em; padding: .3em .9em;
+  font-family: var(--fonte-titulo); font-weight: 800; font-size: .8rem; text-transform: uppercase; letter-spacing: .1em;
+  color: var(--cor-matcha-forte); background: var(--cor-superficie); border: 2px solid currentColor; border-radius: 999px;
+}
+.sobretitulo::before { content: ''; width: .6em; height: .6em; flex: none; border-radius: 50%; background: var(--cor-matcha); }
+.secao__topo h2::after, .visite__info h2::after {
+  content: ''; display: block; width: 92px; height: 14px; margin-top: .3em; background: var(--cor-matcha);
+  -webkit-mask: var(--rabisco) center / 100% 100% no-repeat; mask: var(--rabisco) center / 100% 100% no-repeat;
 }
 .nota { color: var(--cor-texto-suave); font-size: .9rem; margin: 10px 0 0; }
 .vazio { text-align: center; padding: 24px 12px; color: var(--cor-texto-suave); }
@@ -207,13 +221,35 @@ abbr[title] { text-decoration: none; }
 .lista li + li { margin-top: 4px; }
 
 /* ---------- Hero ---------- */
-.hero { padding: 24px 0 44px; overflow: hidden; border-bottom: var(--borda); }
+.hero {
+  padding: 24px 0 76px; overflow: hidden; border-bottom: var(--borda);
+  /* brilho verde atrás do logo + textura de bolinhas bem discreta */
+  background-image:
+    radial-gradient(70% 34% at 50% 10%, color-mix(in srgb, var(--cor-matcha) 30%, transparent), transparent 75%),
+    radial-gradient(color-mix(in srgb, var(--cor-claro-fixo) 8%, transparent) 1.2px, transparent 1.6px);
+  background-size: auto, 22px 22px;
+}
 .hero__grade { display: grid; gap: 16px; align-items: center; }
 .hero h1 { margin-top: 14px; max-width: 13ch; }
+.hero__destaque { position: relative; color: var(--cor-matcha-forte); white-space: nowrap; }
+.hero__destaque::after {
+  content: ''; position: absolute; left: 2%; right: 2%; bottom: -.1em; height: .2em; background: var(--cor-matcha);
+  -webkit-mask: var(--rabisco) 0 50% / auto 100% repeat-x; mask: var(--rabisco) 0 50% / auto 100% repeat-x;
+}
 .hero__sub { font-size: 1.12rem; color: var(--cor-texto-suave); max-width: 36ch; }
 .hero__acoes { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+.hero__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 22px 0 0; color: var(--cor-texto-suave); font-weight: 700; font-size: .95rem; }
+.hero__status .status { margin: 0; }
 .hero__arte { position: relative; display: grid; place-items: center; order: -1; }
-.hero__logo { width: min(38vw, 150px); aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-claro-fixo); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
+/* Selo: logo no meio de um anel de texto que gira quando o cursor passa por cima. */
+.hero__selo { position: relative; width: min(46vw, 180px); aspect-ratio: 1; display: grid; place-items: center; }
+.hero__anel {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  fill: var(--cor-matcha-forte); font-family: var(--fonte-titulo); font-size: 16px; font-weight: 800;
+  transition: rotate 1.4s cubic-bezier(.2, .8, .2, 1);
+}
+.hero__arte:hover .hero__anel { rotate: 120deg; }
+.hero__logo { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-claro-fixo); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
 .hero__logo svg { width: 100%; height: 100%; }
 .hero__patinha { position: absolute; color: var(--cor-matcha); width: 34px; height: 34px; }
 .hero__patinha--1 { top: 4%; left: 12%; transform: rotate(-20deg); }
@@ -221,10 +257,29 @@ abbr[title] { text-decoration: none; }
 .hero__destaques { margin-top: 40px; }
 
 @media (min-width: 900px) {
-  .hero { padding: 64px 0; }
+  .hero { padding: 64px 0 88px; background-image:
+    radial-gradient(42% 60% at 80% 34%, color-mix(in srgb, var(--cor-matcha) 26%, transparent), transparent 75%),
+    radial-gradient(color-mix(in srgb, var(--cor-claro-fixo) 8%, transparent) 1.2px, transparent 1.6px); }
   .hero__grade { grid-template-columns: 1.3fr 1fr; }
   .hero__arte { order: 0; }
-  .hero__logo { width: 320px; }
+  .hero__selo { width: 420px; }
+}
+
+/* ---------- Faixa entre o topo e o cardápio ---------- */
+/* Altura zero: a faixa fica centrada na divisa das seções, por cima das duas. */
+.faixa { position: relative; z-index: 2; height: 0; overflow-x: clip; pointer-events: none; }
+.faixa__trilho {
+  position: absolute; top: 0; left: -60px; display: flex; width: max-content; margin: 0; padding: 9px 0;
+  translate: 0 -50%; rotate: -1.5deg; transform-origin: calc(60px + 50vw) 50%; /* gira em torno do meio da tela */
+  background: var(--cor-matcha); color: var(--cor-botao-texto); border-block: var(--borda); box-shadow: 0 4px 0 var(--cor-sombra);
+  font-family: var(--fonte-titulo); font-weight: 800; font-size: .95rem; line-height: 1.2; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+}
+.faixa__trilho span { display: inline-flex; align-items: center; gap: 16px; padding-right: 16px; }
+.faixa__trilho svg { width: 16px; height: 16px; }
+.faixa + .secao { padding-top: 88px; }
+@media (min-width: 900px) {
+  .faixa__trilho { font-size: 1.1rem; padding-block: 11px; }
+  .faixa + .secao { padding-top: 112px; }
 }
 
 /* ---------- Carrossel ---------- */
@@ -273,6 +328,9 @@ abbr[title] { text-decoration: none; }
 }
 .chip[aria-pressed="true"] { background: var(--cor-texto); color: var(--cor-fundo); }
 .chip:active { transform: translate(2px, 2px); box-shadow: none; }
+@media (hover: hover) {
+  .chip:not([aria-pressed="true"]):hover { background: var(--cor-matcha-suave); transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--cor-sombra); }
+}
 .busca { display: flex; align-items: center; gap: 8px; border: var(--borda); border-radius: 999px; background: var(--cor-superficie); padding: 0 16px; min-height: 48px; }
 .busca svg { width: 20px; height: 20px; flex: none; color: var(--cor-texto-suave); }
 .busca input { border: 0; background: none; outline: none; width: 100%; min-height: 44px; }
@@ -296,7 +354,7 @@ abbr[title] { text-decoration: none; }
 .item__preco { margin: 0; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.3rem; line-height: 1; }
 
 /* ---------- Gatil ---------- */
-.gatil__grade { display: grid; gap: 18px; margin-bottom: 36px; }
+.gatil__grade { display: grid; gap: 18px; }
 .gatil__lado { display: grid; gap: 14px; }
 .precos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .preco { padding: 14px 10px; text-align: center; }
@@ -313,7 +371,9 @@ abbr[title] { text-decoration: none; }
   border: 2px solid var(--cor-borda); border-radius: var(--raio-p); background: var(--cor-matcha-suave);
 }
 .regras { padding: 18px 20px; }
+.regras h3 { padding-bottom: 10px; margin-bottom: 12px; border-bottom: 2.5px solid var(--cor-borda); }
 .regras ul { list-style: none; display: grid; gap: 8px; }
+.regras li + li { padding-top: 8px; border-top: 1.5px dashed color-mix(in srgb, var(--cor-texto) 18%, transparent); }
 .regras li { display: flex; gap: 10px; }
 .regras__emoji { flex: none; width: 1.5em; text-align: center; }
 /* Aviso: a reserva é feita no balcão */
@@ -368,7 +428,10 @@ abbr[title] { text-decoration: none; }
 
 /* ---------- Avaliações ---------- */
 .avaliacoes { list-style: none; display: grid; gap: 18px; }
-@media (min-width: 900px) { .avaliacoes { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 900px) {
+  .avaliacoes { display: block; columns: 2; column-gap: 18px; }
+  .avaliacao { break-inside: avoid; margin-bottom: 18px; }
+}
 .avaliacao { position: relative; padding: 22px 20px 18px; display: flex; flex-direction: column; overflow: hidden; }
 .avaliacao::before {
   content: '“'; position: absolute; top: 2px; right: 16px; font-family: var(--fonte-titulo); font-weight: 800;
@@ -418,7 +481,18 @@ abbr[title] { text-decoration: none; }
 .contatos { display: flex; flex-wrap: wrap; gap: 12px; }
 .mapa { overflow: hidden; min-height: 300px; display: flex; background: var(--cor-superficie); }
 .mapa iframe { width: 100%; min-height: 360px; border: 0; }
-.mapa__capa { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center; }
+.mapa__capa {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 24px; text-align: center;
+  /* ruas desenhadas em CSS; o miolo fica liso para o texto */
+  --rua: color-mix(in srgb, var(--cor-texto) 7%, transparent);
+  --avenida: color-mix(in srgb, var(--cor-matcha) 40%, transparent);
+  background:
+    radial-gradient(closest-side, var(--cor-superficie) 60%, transparent) center / 86% 74% no-repeat,
+    linear-gradient(32deg, transparent calc(50% - 8px), var(--avenida) calc(50% - 8px) calc(50% + 8px), transparent calc(50% + 8px)),
+    linear-gradient(-62deg, transparent calc(30% - 5px), var(--rua) calc(30% - 5px) calc(30% + 5px), transparent calc(30% + 5px)),
+    linear-gradient(var(--rua) 2px, transparent 2px) 0 0 / 52px 52px,
+    linear-gradient(90deg, var(--rua) 2px, transparent 2px) 0 0 / 52px 52px;
+}
 .mapa__capa > svg { width: 48px; height: 48px; color: var(--cor-matcha); }
 .mapa__capa p { margin: 0; }
 @media (min-width: 900px) { .visite { grid-template-columns: 1fr 1fr; align-items: stretch; } }

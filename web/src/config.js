@@ -154,8 +154,12 @@ export const CONFIG = Object.freeze({
     hero: {
       selo: 'Galeria Metrópole · República · SP',
       titulo: 'Bora tomar um matchá com companhia peluda?',
+      /** Palavra do título que ganha destaque (cor + traço). Precisa existir no título; senão, nada é destacado. */
+      tituloDestaque: 'matchá',
       subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Conheça os gatos antes de chegar.',
     },
+    /** Faixa decorativa entre o topo e o cardápio (repete as frases para preencher a largura). */
+    faixa: ['Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
     cardapio: {
       titulo: 'Verde por dentro, fofo por fora',
       subtitulo: 'Matchá de verdade, café passado com carinho e umas comidinhas pra acompanhar.',

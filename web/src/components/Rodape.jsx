@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { CONFIG, linkInstagram, linkWhatsapp } from '../config.js';
-import { cafeAberto } from '../util.js';
 import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp } from './Icones.jsx';
+import StatusFuncionamento from './Status.jsx';
 
 const LINKS = [
   ['/#cardapio', 'Cardápio'],
@@ -11,21 +10,6 @@ const LINKS = [
   ['/privacidade', 'Privacidade'],
   ['/admin', 'Área da equipe'],
 ];
-
-/** Selo "Aberto agora / Fechado agora", recalculado a cada minuto. */
-function StatusFuncionamento() {
-  const [aberto, setAberto] = useState(cafeAberto);
-  useEffect(() => {
-    const t = setInterval(() => setAberto(cafeAberto()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <span className={`status${aberto ? ' status--aberto' : ''}`}>
-      <span className="status__ponto" aria-hidden="true" />
-      {aberto ? 'Aberto agora' : 'Fechado agora'}
-    </span>
-  );
-}
 
 export default function Rodape() {
   const { endereco, funcionamento, contato, marca } = CONFIG;

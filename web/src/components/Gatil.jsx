@@ -32,6 +32,13 @@ export default function Gatil() {
               </ul>
               <p className="nota">Fora desses horários a área dos gatos fica fechada: é a hora do descanso deles 😴</p>
             </div>
+            <div id="reserva" className="balcao cartao">
+              <span className="balcao__icone" aria-hidden="true">🐾</span>
+              <div>
+                <h3>{textos.gatil.reservaTitulo}</h3>
+                <p>{textos.gatil.reservaTexto}</p>
+              </div>
+            </div>
           </div>
           <div className="regras cartao">
             <h3>Regras do Gatchá</h3>
@@ -40,14 +47,6 @@ export default function Gatil() {
                 <li key={texto}><span className="regras__emoji" aria-hidden="true">{emoji}</span><span>{texto}</span></li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        <div id="reserva" className="balcao cartao" data-revelar>
-          <span className="balcao__icone" aria-hidden="true">🐾</span>
-          <div>
-            <h3>{textos.gatil.reservaTitulo}</h3>
-            <p>{textos.gatil.reservaTexto}</p>
           </div>
         </div>
       </div>
