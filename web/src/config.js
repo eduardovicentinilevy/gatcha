@@ -16,7 +16,6 @@ const intervalo = (abre, fecha) => ({ abre, fecha, texto: `${horaPorExtenso(abre
 /**
  * Horários do Gatchá (perfil oficial: "Seg à Sáb · 10h às 18h30 · Área dos gatos 10h30 às 11h50 ~ 13h10 às 17h30").
  * Fonte única: o site inteiro (rodapé, "Visite", gatil, FAQ, selo "Aberto agora") lê daqui.
- * Devem bater com GATIL_DIAS e GATIL_JANELAS da API (.env.example). [CONFIRMAR na ligação com o Gatchá]
  */
 const DIAS_ABERTOS = [1, 2, 3, 4, 5, 6]; // 0 = domingo ... 6 = sábado
 const DIAS_TEXTO = 'Segunda a sábado';
