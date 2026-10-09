@@ -38,7 +38,7 @@ export default function Privacidade({ className = '' }) {
       <ul>
         <li><strong>ONG Abrigo São Gabriel:</strong> recebe apenas os pedidos de interesse em adoção.</li>
         <li><strong>Prestadores de tecnologia</strong> (hospedagem do site e da API e banco de dados), que tratam os dados só em nosso nome e para este fim.</li>
-        <li><strong>Google:</strong> o mapa da página “Visite” só carrega quando você clica em “Mostrar mapa”; nesse momento o Google recebe os dados técnicos da sua visita (como o IP). As avaliações exibidas vêm do Google Maps.</li>
+        <li><strong>Google:</strong> o mapa da página “Visite” só carrega quando você clica em “Mostrar mapa”; nesse momento o Google recebe os dados técnicos da sua visita (como o IP).</li>
       </ul>
       <p>Não vendemos seus dados nem os usamos para marketing.</p>
 

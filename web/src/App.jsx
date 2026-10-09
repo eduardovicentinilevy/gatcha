@@ -8,7 +8,6 @@ import Faixa from './components/Faixa.jsx';
 import Cardapio from './components/Cardapio.jsx';
 import Gatil from './components/Gatil.jsx';
 import Adocao from './components/Adocao.jsx';
-import Avaliacoes from './components/Avaliacoes.jsx';
 import SigaAGente from './components/SigaAGente.jsx';
 import Visite from './components/Visite.jsx';
 import Rodape from './components/Rodape.jsx';
@@ -80,7 +79,6 @@ export default function App() {
           <Cardapio />
           <Gatil />
           <Adocao />
-          <Avaliacoes />
           <SigaAGente />
           <Visite />
         </main>

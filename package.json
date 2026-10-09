@@ -20,8 +20,6 @@
     "migrate": "node scripts/migrate.js",
     "premigrate:dev": "node scripts/preparar-dev.js",
     "migrate:dev": "node --env-file=.env scripts/migrate.js",
-    "preplaces:id": "node scripts/preparar-dev.js",
-    "places:id": "node --env-file=.env scripts/buscar-place-id.js",
     "preadmin:criar": "node scripts/preparar-dev.js",
     "admin:criar": "node --env-file=.env scripts/criar-admin.js",
     "prelgpd:exportar": "node scripts/preparar-dev.js",

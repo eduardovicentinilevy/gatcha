@@ -427,39 +427,6 @@ abbr[title] { text-decoration: none; }
 .dialogo h3 { padding-right: 52px; font-size: 1.5rem; }
 .dialogo__fechar { position: absolute; top: 14px; right: 14px; margin: 0; }
 
-/* ---------- Avaliações ---------- */
-.avaliacoes { list-style: none; display: grid; gap: 18px; }
-@media (min-width: 900px) {
-  .avaliacoes { display: block; columns: 2; column-gap: 18px; }
-  .avaliacao { break-inside: avoid; margin-bottom: 18px; }
-}
-.avaliacao { position: relative; padding: 22px 20px 18px; display: flex; flex-direction: column; overflow: hidden; }
-.avaliacao::before {
-  content: '“'; position: absolute; top: 2px; right: 16px; font-family: var(--fonte-titulo); font-weight: 800;
-  font-size: 5rem; line-height: .9; color: var(--cor-matcha); opacity: .4; pointer-events: none;
-}
-.avaliacao:nth-child(4n + 2), .avaliacao:nth-child(4n + 3) { background: var(--cor-matcha-suave); }
-.estrelas { display: flex; gap: 2px; margin: 0 0 10px; }
-.estrelas svg { width: 20px; height: 20px; color: var(--cor-superficie2); }
-.estrelas svg.cheia { color: var(--cor-estrela); }
-.avaliacao blockquote { margin: 0; flex: 1; font-size: 1.05rem; position: relative; padding-right: 44px; }
-.avaliacao__autor { display: flex; align-items: center; gap: 10px; margin: 14px 0 0; font-weight: 800; }
-.avaliacao__inicial {
-  display: grid; place-items: center; width: 36px; height: 36px; flex: none; border-radius: 50%;
-  border: 2px solid var(--cor-borda); background: var(--cor-destaque); color: var(--cor-botao-texto); font-family: var(--fonte-titulo);
-}
-
-/* Avaliações do Google */
-.avaliacoes__resumo { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin: 4px 0 0; }
-.avaliacoes__resumo strong { font-family: var(--fonte-titulo); font-size: 2rem; line-height: 1; color: var(--cor-texto); }
-.avaliacoes__resumo .estrelas { margin: 0; }
-.avaliacoes__resumo span { font-weight: 700; }
-.avaliacao__texto--abreviado { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
-.avaliacao__mais { align-self: flex-start; margin-top: 6px; font-size: .9rem; }
-.avaliacao__autor a { color: inherit; }
-.avaliacao__quando { display: block; font-weight: 600; color: var(--cor-texto-suave); }
-.avaliacoes__fonte { margin: 18px 0 0; font-size: .9rem; color: var(--cor-texto-suave); }
-
 /* ---------- Siga a gente ---------- */
 .siga { display: grid; gap: 24px; }
 .siga .secao__topo .botao { margin-top: 8px; }

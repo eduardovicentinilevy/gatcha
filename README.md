@@ -15,7 +15,7 @@ React 19 + Vite em `web/`, publicado no Firebase Hosting. Visual neo-brutalista 
 
 ### Desenvolvimento
 
-O site precisa da API (cardápio, gatos e avaliações vêm dela). Suba o banco e a API, depois o site:
+O site precisa da API (cardápio e gatos vêm dela). Suba o banco e a API, depois o site:
 
 ```bash
 npm run db:up && npm run migrate:dev   # Postgres local (Docker) e tabelas
@@ -29,7 +29,7 @@ Se a API não responder, o site usa os JSON de `web/public/dados-exemplo/` (mesm
 
 | O quê | Onde |
 |---|---|
-| Cores (claro/escuro), textos, preços, horários, regras, FAQ, avaliações, contatos | `web/src/config.js` (procure `[SUBSTITUIR]` e `[CONFIRMAR]`) |
+| Cores (claro/escuro), textos, preços, horários, regras, FAQ, contatos | `web/src/config.js` (procure `[SUBSTITUIR]` e `[CONFIRMAR]`) |
 | Cardápio e gatos de exemplo (reserva de quando a API não responde; `npm run dev:popular` copia para o banco local) | `web/public/dados-exemplo/*.json` |
 | Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
 | Seção do gatil (preços, horários, regras, aviso de reserva no balcão) | `web/src/components/Gatil.jsx` + `gatil` em `config.js` |
@@ -72,7 +72,6 @@ src/
     ├── imagens/              # fotos do painel (reprocessadas) e GET /imagens/<id>.webp
     ├── painel/               # /api/admin/*: gatos, cardápio, interessados
     ├── auth/                 # login do painel (bcrypt + JWT), log de acessos
-    ├── avaliacoes/           # avaliações do Google Maps (cache)
     └── lgpd/                 # expurgo dos dados vencidos
 ```
 
@@ -85,7 +84,6 @@ src/
 | `GET /api/cardapio` | Itens ativos do cardápio |
 | `GET /api/gatos` | Gatos para adoção (adotados saem) |
 | `POST /api/interesses` | "Quero conhecer" um gato (`gato_id`, `nome`, `contato`, `mensagem?`) |
-| `GET /api/avaliacoes` | Avaliações do Google Maps |
 | `GET /api/imagens/<id>.webp` | Fotos enviadas pelo painel |
 | `POST /api/auth/login` | Login do painel |
 | `/api/admin/*` | Painel (exige login): gatos, cardápio, interessados, envio de fotos |
@@ -155,15 +153,6 @@ Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativa
 - **Pedido de um titular** (confirme a identidade antes: o pedido deve vir do próprio e-mail/celular cadastrado):
   `npm run lgpd:exportar -- pessoa@email.com` (cópia dos dados) e `npm run lgpd:apagar -- pessoa@email.com` (eliminação).
 - **Antes de publicar** preencha em `web/src/config.js` (`lgpd`): razão social, CNPJ e e-mail para pedidos dos titulares, e peça a revisão do texto a um advogado.
-
-## Avaliações do Google Maps
-
-`GET /api/avaliacoes` busca nota, total e até 5 avaliações na **Places API (New)** do Google. A chave fica só no servidor e o resultado fica em cache por `AVALIACOES_CACHE_HORAS` (padrão 6h). Sem chave, o site mostra as avaliações de exemplo de `web/src/config.js`.
-
-1. No [Google Cloud Console](https://console.cloud.google.com/): crie/escolha um projeto, ative o faturamento e ative a **Places API (New)**.
-2. Em *APIs e serviços → Credenciais*, crie uma **chave de API** e restrinja-a à *Places API (New)*.
-3. No `.env`: `GOOGLE_PLACES_API_KEY=...`, depois rode `npm run places:id -- "Gatchá Galeria Metrópole São Paulo"` e copie o id para `GOOGLE_PLACE_ID`.
-4. Em produção, guarde a chave no Secret Manager (`--set-secrets GOOGLE_PLACES_API_KEY=...`).
 
 ## Rodando localmente
 

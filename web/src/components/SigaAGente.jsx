@@ -8,7 +8,7 @@ const TONS = ['matcha', 'creme', 'rosa', 'creme', 'matcha', 'rosa'];
 export default function SigaAGente() {
   const { instagram } = CONFIG.textos;
   return (
-    <section className="secao" aria-labelledby="titulo-instagram">
+    <section className="secao secao--creme" aria-labelledby="titulo-instagram">
       <div className="container siga">
         <header className="secao__topo" data-revelar>
           <p className="sobretitulo">@{CONFIG.contato.instagram}</p>

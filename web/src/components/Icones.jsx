@@ -21,9 +21,6 @@ export const IconeInstagram = (p) => <svg {...base} {...p}><rect x="3" y="3" wid
 export const IconeWhatsapp = (p) => (
   <svg {...base} {...p}><path d="M3.5 20.5l1.3-4.2A8.5 8.5 0 1 1 8 19.5Z" /><path d="M9 8.5c0 3.5 3 6.5 6.5 6.5l1-1.6-2-1-1 1c-1.2-.5-2.4-1.7-2.9-2.9l1-1-1-2-1.6 1Z" /></svg>
 );
-export const IconeEstrela = (p) => (
-  <svg {...base} fill="currentColor" stroke="none" {...p}><path d="M12 3.2l2.7 5.6 6.1.8-4.5 4.2 1.1 6-5.4-2.9-5.4 2.9 1.1-6L3.2 9.6l6.1-.8Z" /></svg>
-);
 
 /** Patinha (detalhe temático). */
 export const IconePatinha = (p) => (

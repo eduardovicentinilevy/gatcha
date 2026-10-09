@@ -64,7 +64,6 @@ export const CONFIG = Object.freeze({
       botaoTexto: '#14180F', // texto sobre botões, selos e blocos coloridos
       escuroFixo: '#14180F', // blocos sempre escuros (hero, rodapé)
       claroFixo: '#FFF8EC',
-      estrela: '#E8A400', // estrelas das avaliações
       fechado: '#E2725B', // bolinha do "Fechado agora"
     },
     escuro: {
@@ -85,7 +84,6 @@ export const CONFIG = Object.freeze({
       botaoTexto: '#10140D',
       escuroFixo: '#0A0D08',
       claroFixo: '#FFF8EC',
-      estrela: '#F2B417',
       fechado: '#F08A74',
     },
   },
@@ -176,7 +174,6 @@ export const CONFIG = Object.freeze({
       subtitulo:
         'Os gatos do gatil são do Abrigo São Gabriel, ONG parceira desde o primeiro dia. Todos castrados, vacinados e prontos pra te escolher.',
     },
-    avaliacoes: { titulo: 'Quem foi, voltou' },
     instagram: { titulo: 'Siga a gente', subtitulo: 'Bastidores, gato novo no pedaço e matchá do dia.' },
     visite: { titulo: 'Vem pro 2º andar da Galeria Metrópole' },
   },
@@ -186,42 +183,6 @@ export const CONFIG = Object.freeze({
     titulo: 'Adotar muda duas vidas',
     texto: 'Se apaixonou por algum gato? A gente te conecta com o Abrigo São Gabriel.',
   },
-
-  /**
-   * Avaliações reais do Google Maps (copiadas pelo dono do projeto), exibidas
-   * quando a Places API não está configurada. Texto original; trechos longos
-   * cortados com […]. Sobrenome abreviado por privacidade. `nota` só quando
-   * conhecida (sem nota = sem estrelas, para não inventar).
-   * [CONFIRMAR] autorização dos autores para uso no site (LGPD) antes de publicar.
-   * O ideal em produção é a Places API (GOOGLE_PLACES_API_KEY), que segue as regras do Google.
-   */
-  avaliacoes: [
-    {
-      nome: 'Rafaela',
-      fonte: 'Google Maps',
-      texto:
-        'Bem gostoso, fui com a minha namorada e ficamos 30 minutos com os gatinhos e foi muito incrível! Cada um tem uma personalidade bem diferente […] São varios gatinhos e queria levar todos eles mas não posso 🥲 fora os gatinhos, a bebida é bem gostosa […] O lugar é bem inclusivo, me senti muito acolhida',
-    },
-    {
-      nome: 'Eduardo C.',
-      fonte: 'Google Maps',
-      texto:
-        'A localização é maravilhosa, o ambiente é aconchegante, o atendimento é primoroso, o cardápio é bem estruturado com opção para público vegetariano ou até quem não quer sair da dieta! O matcha latte é sem açúcar (ponto positivo) e de qualidade superior, o pão de queijo com queijo da Canastra é uma delícia, para quem gosta de um docinho o cookie é delicioso. Pausa para falar do espaço dos gatinhos que é incrível, eu adorei a experiência! Amei o conceito de cat café 💚',
-    },
-    {
-      nome: 'iPhotoworks',
-      fonte: 'Google Maps',
-      texto:
-        'Um café padrão, com menu dominado por tudo relacionado a matcha. Para brincar com os gatos, é necessário fazer uma reserva, que pode ser feita dentro do próprio café. Os gatos também têm horário de descanso, então é importante prestar atenção no horário da visita caso você queira brincar com eles.',
-    },
-    {
-      nome: 'Hannah C.',
-      fonte: 'Google Maps',
-      nota: 4,
-      texto:
-        'Coisas pra comer gostosas, gostei do matcha com yakult, o resto achei bem normal (não achei brownie e café particularmente o ponto alto). O valor é 15 reais por 15 minutos. Minha única nota que baixou para 4 seria o estabelecimento ser muuuiito pequeno e tava muito cheio, muito barulhento, os funcionarios pareciam estressados. Gatinhos eram fofos.',
-    },
-  ],
 
   /** Perguntas frequentes do painel de atendimento. [CONFIRMAR respostas com o cliente] */
   faq: [
@@ -273,7 +234,7 @@ export const CONFIG = Object.freeze({
     controlador: { razaoSocial: null, cnpj: null }, // [SUBSTITUIR] ex.: 'Gatchá Cat Café Ltda.', '00.000.000/0001-00'
     contatoTitular: null, // [SUBSTITUIR] e-mail para pedidos dos titulares, ex.: 'privacidade@gatcha.com.br'
     retencaoInteressesDias: 180,
-    atualizadoEm: '2026-10-05',
+    atualizadoEm: '2026-10-09',
   },
 });
 

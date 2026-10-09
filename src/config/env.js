@@ -67,12 +67,6 @@ const schema = z
     // prazos propostos, [CONFIRMAR] com o Gatchá. (As reservas são feitas no balcão: o site não guarda nenhuma.)
     RETENCAO_INTERESSES_DIAS: inteiro(180, 30, 3650),
     RETENCAO_ACESSOS_DIAS: inteiro(90, 30, 3650),
-
-    // Avaliações do Google (Places API). Opcionais: sem elas, o site mostra as avaliações de exemplo.
-    // A chave é SEGREDO: em produção, venha do Secret Manager. Restrinja-a à "Places API (New)".
-    GOOGLE_PLACES_API_KEY: z.string().trim().default(''),
-    GOOGLE_PLACE_ID: z.string().trim().regex(/^[\w-]*$/, 'GOOGLE_PLACE_ID inválido').default(''),
-    AVALIACOES_CACHE_HORAS: inteiro(6, 1, 72),
   })
   .superRefine((env, ctx) => {
     try {
@@ -120,11 +114,6 @@ function carregar() {
     retencao: Object.freeze({
       interessesDias: e.RETENCAO_INTERESSES_DIAS,
       acessosDias: e.RETENCAO_ACESSOS_DIAS,
-    }),
-    google: Object.freeze({
-      placesApiKey: e.GOOGLE_PLACES_API_KEY,
-      placeId: e.GOOGLE_PLACE_ID,
-      cacheMs: e.AVALIACOES_CACHE_HORAS * 3_600_000,
     }),
   });
 }
