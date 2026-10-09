@@ -2,7 +2,7 @@ import { CONFIG, linkInstagram } from '../config.js';
 import Foto from './Foto.jsx';
 import { IconeInstagram } from './Icones.jsx';
 
-const ICONES = ['xicara', 'gato', 'patinha', 'gato', 'xicara', 'gato'];
+const ICONES = ['tigela', 'gato', 'doce', 'gato', 'xicara', 'onigiri'];
 const TONS = ['matcha', 'creme', 'rosa', 'creme', 'matcha', 'rosa'];
 
 export default function SigaAGente() {

@@ -2,15 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { CONFIG } from '../config.js';
 import { carregarCardapio } from '../api.js';
 import { normalizarBusca, reais } from '../util.js';
+import { compararCategorias, ilustracaoDaCategoria, SELOS } from '../categorias.js';
 import Foto from './Foto.jsx';
 import { IconeBusca } from './Icones.jsx';
-
-const SELOS = {
-  mais_pedido: ['Mais pedido', 'selo--destaque'],
-  vegano: ['Vegano', 'selo--matcha'],
-  novo: ['Novo', 'selo--rosa'],
-};
-const ORDEM_CATEGORIAS = ['Matchás', 'Cafés', 'Doces', 'Salgados'];
 
 export default function Cardapio() {
   const [itens, setItens] = useState(null);
@@ -27,7 +21,8 @@ export default function Cardapio() {
     carregarCardapio()
       .then(({ lista, exemplo }) => {
         if (!vivo) return;
-        setItens(lista.filter((i) => i.ativo));
+        // Em "Tudo", os itens aparecem agrupados pela ordem das categorias (sort é estável: mantém a ordem da API dentro de cada uma).
+        setItens(lista.filter((i) => i.ativo).sort((a, b) => compararCategorias(a.categoria, b.categoria)));
         setExemplo(exemplo);
       })
       .catch(() => vivo && setFalhou(true));
@@ -37,9 +32,7 @@ export default function Cardapio() {
   }, [tentativa]);
 
   const categorias = useMemo(() => {
-    const presentes = [...new Set((itens ?? []).map((i) => i.categoria))];
-    presentes.sort((a, b) => (ORDEM_CATEGORIAS.indexOf(a) + 1 || 99) - (ORDEM_CATEGORIAS.indexOf(b) + 1 || 99));
-    return ['Tudo', ...presentes];
+    return ['Tudo', ...new Set((itens ?? []).map((i) => i.categoria))];
   }, [itens]);
 
   const termo = normalizarBusca(busca);
@@ -74,7 +67,7 @@ export default function Cardapio() {
           {!itens && !falhou && [1, 2, 3, 4].map((n) => <li key={n} className="esqueleto esqueleto--card" />)}
           {visiveis.map((i) => (
             <li key={i.id} className="item cartao cartao--interativo">
-              <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} icone={i.categoria === 'Matchás' || i.categoria === 'Cafés' ? 'xicara' : 'patinha'} tom={i.categoria === 'Matchás' ? 'matcha' : 'creme'} />
+              <Foto src={i.foto_url} alt={`Foto de ${i.nome}`} {...ilustracaoDaCategoria(i.categoria)} />
               <div className="item__corpo">
                 <h3 className="item__nome">{i.nome}</h3>
                 {i.descricao && <p className="item__desc">{i.descricao}</p>}

@@ -1,12 +1,17 @@
 import { useRef, useState } from 'react';
 import Campo from '../components/Campo.jsx';
 import { IconePatinha } from '../components/Icones.jsx';
+import { ICONES } from '../components/Foto.jsx';
 import CampoFoto from './CampoFoto.jsx';
 import { idade } from '../util.js';
 import { admin } from './api.js';
 import { Aviso, Carregando, tratarErroDeFormulario, useCarregar } from './comum.jsx';
 
 const STATUS = { disponivel: 'Disponível', em_processo: 'Em processo', adotado: 'Adotado' };
+/** Resumo do topo: [singular, plural]. */
+const RESUMO = { disponivel: ['disponível', 'disponíveis'], em_processo: ['em processo', 'em processo'], adotado: ['adotado', 'adotados'] };
+/** Cores alternadas, como na galeria do site (Adocao.jsx). */
+const TONS = ['matcha', 'creme', 'rosa'];
 const VAZIO = { nome: '', sexo: 'femea', idade_meses: '', personalidade: '', foto_url: '', status: 'disponivel' };
 
 export default function Gatos() {
@@ -33,6 +38,14 @@ export default function Gatos() {
         <button type="button" className="botao botao--pequeno" onClick={() => setEditando('novo')}>Novo gato</button>
       </div>
       <p className="nota">Gatos adotados saem do site, mas continuam aqui.</p>
+      {lista.length > 0 && (
+        <ul className="admin-resumo" aria-label="Resumo">
+          {Object.entries(RESUMO).map(([status, [um, varios]]) => {
+            const n = lista.filter((g) => g.status === status).length;
+            return n > 0 && <li key={status} className={`selo admin-status admin-status--${status}`}>{n} {n === 1 ? um : varios}</li>;
+          })}
+        </ul>
+      )}
       {editando && (
         <FormGato
           gato={editando === 'novo' ? null : editando}
@@ -44,17 +57,18 @@ export default function Gatos() {
       <Carregando estado={estado} vazio={estado.dados && lista.length === 0 ? 'Nenhum gato cadastrado ainda.' : null}>
         <ul className="admin-lista">
           {lista.map((g) => (
-            <li key={g.id} className={`cartao admin-item${g.status === 'adotado' ? ' admin-item--cancelada' : ''}`}>
+            <li key={g.id} className={`cartao admin-item${g.status === 'adotado' ? ' admin-item--inativo' : ''}`}>
               <div className="admin-item__principal">
-                <Miniatura url={g.foto_url} />
-                <div>
-                  <p className="admin-item__titulo">{g.nome}</p>
+                <Miniatura url={g.foto_url} icone="gato" tom={TONS[g.id % TONS.length]} />
+                <div className="admin-item__texto">
+                  <p className="admin-item__titulo">
+                    {g.nome} <span className={`selo admin-status admin-status--${g.status}`}>{STATUS[g.status]}</span>
+                  </p>
                   <p className="admin-item__meta">{[idade(g.idade_meses), g.sexo === 'femea' ? 'fêmea' : 'macho'].filter(Boolean).join(' · ')}</p>
                   {g.personalidade && <p className="admin-item__meta">{g.personalidade}</p>}
                 </div>
               </div>
               <div className="admin-item__acoes">
-                <span className={`selo admin-status admin-status--${g.status}`}>{STATUS[g.status]}</span>
                 <button type="button" className="botao botao--pequeno" onClick={() => setEditando(g)}>Editar</button>
                 <button type="button" className="botao botao--pequeno botao--secundario" onClick={() => apagar(g)}>Apagar</button>
               </div>
@@ -66,8 +80,11 @@ export default function Gatos() {
   );
 }
 
-export function Miniatura({ url }) {
-  return <div className="admin-miniatura">{url ? <img src={url} alt="" loading="lazy" /> : <IconePatinha aria-hidden="true" />}</div>;
+/** Foto pequena da lista; sem foto, o mesmo desenho e cor que o site mostra. */
+export function Miniatura({ url, icone = 'patinha', tom = 'creme' }) {
+  if (url) return <div className="admin-miniatura"><img src={url} alt="" loading="lazy" /></div>;
+  const Icone = ICONES[icone] ?? IconePatinha;
+  return <div className={`admin-miniatura foto--${tom}`}><Icone aria-hidden="true" /></div>;
 }
 
 function FormGato({ gato, onFechar, onSalvo }) {

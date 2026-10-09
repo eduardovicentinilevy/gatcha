@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { CONFIG, linkInstagram } from '../config.js';
 import { carregarCardapio, carregarGatos } from '../api.js';
 import { agoraNoCafe, idade, reais } from '../util.js';
+import { ilustracaoDaCategoria } from '../categorias.js';
 import Carrossel from './Carrossel.jsx';
 import Foto from './Foto.jsx';
 import LogoGato from './LogoGato.jsx';
@@ -44,7 +45,7 @@ async function montarDestaques() {
       selo: 'Mais pedido',
       titulo: bebida.nome,
       texto: textoItem(bebida),
-      foto: { src: bebida.foto_url, alt: `Foto de ${bebida.nome}`, icone: 'xicara', tom: 'creme' },
+      foto: { src: bebida.foto_url, alt: `Foto de ${bebida.nome}`, icone: ilustracaoDaCategoria(bebida.categoria).icone, tom: 'creme' },
       link: ['#cardapio', 'Ver cardápio'],
     });
   }
@@ -56,7 +57,7 @@ async function montarDestaques() {
       selo: 'Novidade',
       titulo: novidade.nome,
       texto: textoItem(novidade),
-      foto: { src: novidade.foto_url, alt: `Foto de ${novidade.nome}`, icone: 'xicara', tom: 'rosa' },
+      foto: { src: novidade.foto_url, alt: `Foto de ${novidade.nome}`, icone: ilustracaoDaCategoria(novidade.categoria).icone, tom: 'rosa' },
       link: ['#cardapio', 'Provar a novidade'],
     });
   }
@@ -68,7 +69,7 @@ async function montarDestaques() {
       selo: 'Opção vegana',
       titulo: vegano.nome,
       texto: textoItem(vegano),
-      foto: { src: vegano.foto_url, alt: `Foto de ${vegano.nome}`, icone: 'patinha', tom: 'matcha' },
+      foto: { src: vegano.foto_url, alt: `Foto de ${vegano.nome}`, icone: ilustracaoDaCategoria(vegano.categoria).icone, tom: 'matcha' },
       link: ['#cardapio', 'Ver itens veganos'],
     });
   }
@@ -97,7 +98,7 @@ async function montarDestaques() {
     selo: `@${CONFIG.contato.instagram}`,
     titulo: 'Bastidores e gato novo',
     texto: 'Siga a gente pra saber quem chegou no gatil e qual é o matchá do dia.',
-    foto: { alt: 'Ilustração de xícara de matchá', icone: 'xicara', tom: 'matcha' },
+    foto: { alt: 'Ilustração de tigela de matchá', icone: 'tigela', tom: 'matcha' },
     link: [linkInstagram(), 'Seguir no Instagram', true],
   });
   return destaques;

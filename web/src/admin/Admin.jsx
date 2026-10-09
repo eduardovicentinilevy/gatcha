@@ -92,15 +92,22 @@ function Login({ aviso, onEntrar }) {
   }
 
   return (
-    <form className="cartao admin-login" onSubmit={enviar} noValidate>
-      <h1>Entrar no painel</h1>
-      {(erro || aviso) && <p className="alerta" role="alert">{erro ?? aviso}</p>}
-      <div className="campos">
-        <Campo id="login-email" rotulo="E-mail" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required largo />
-        <Campo id="login-senha" rotulo="Senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required largo />
-      </div>
-      <button className="botao botao--largo" disabled={enviando || !email || !senha}>{enviando ? 'Entrando…' : 'Entrar'}</button>
-      <p className="nota">Por segurança, a sessão dura poucos minutos e não fica salva no navegador. Esqueceu a senha? Peça a quem administra o sistema para redefinir.</p>
-    </form>
+    <>
+      <form className="cartao admin-login" onSubmit={enviar} noValidate aria-labelledby="titulo-login">
+        <div className="admin-login__logo"><LogoGato tamanho={72} /></div>
+        <div className="admin-login__topo">
+          <h1 id="titulo-login">Área da equipe</h1>
+          <p>Gatos, cardápio e pedidos de adoção do site, num lugar só.</p>
+        </div>
+        {(erro || aviso) && <p className="alerta" role="alert">{erro ?? aviso}</p>}
+        <div className="campos">
+          <Campo id="login-email" rotulo="E-mail" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required largo />
+          <Campo id="login-senha" rotulo="Senha" type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} required largo />
+        </div>
+        <button className="botao botao--largo" disabled={enviando || !email || !senha}>{enviando ? 'Entrando…' : 'Entrar'}</button>
+        <p className="nota">Por segurança, a sessão dura poucos minutos e não fica salva no navegador. Esqueceu a senha? Peça a quem administra o sistema para redefinir.</p>
+      </form>
+      <p className="admin-login__voltar"><a className="link" href="/">← Voltar ao site</a></p>
+    </>
   );
 }
