@@ -1,0 +1,2 @@
+# Falso positivo antigo (commit que criou a lista de senhas proibidas). Ver .gitleaks.toml.
+e90dead0f042fdddfe9ab40f70e86e13982c315d:src/modules/auth/senha.js:generic-api-key:18

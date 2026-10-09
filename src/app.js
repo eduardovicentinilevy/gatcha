@@ -13,7 +13,9 @@ import helmet from 'helmet';
 import cors from 'cors';
 import { z } from 'zod';
 import { config } from './config/env.js';
+import { logger } from './lib/logger.js';
 import { contextoDaRequisicao } from './middlewares/contexto.js';
+import { criarVerificadorDeProxy } from './middlewares/proxy.js';
 import { limitePublico } from './middlewares/rate-limit.js';
 import { rotaNaoEncontrada, tratadorDeErros } from './middlewares/erros.js';
 import { rotasDoCatalogo } from './modules/catalogo/catalogo.routes.js';
@@ -35,6 +37,8 @@ export function criarApp() {
   app.set('json escape', true);
 
   app.use(contextoDaRequisicao);
+  // Só em produção: em desenvolvimento não há proxy na frente e o aviso seria ruído.
+  if (config.isProducao) app.use(criarVerificadorDeProxy({ saltos: config.http.trustProxy, logger }));
   app.use(
     helmet({
       // Igual à CSP do firebase.json: o site só incorpora o mapa do Google (carregado sob demanda).

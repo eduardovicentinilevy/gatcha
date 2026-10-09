@@ -115,8 +115,12 @@ src/
 |---|---|
 | Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
 | Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
-| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado ou senha trocada = sessão encerrada |
-| Limite de requisições nas rotas públicas | Por IP (geral, interesses e login) + bloqueio no banco, válido em todas as instâncias: 5 falhas/15 min por e-mail+IP e 30 no total por e-mail (quem erra de propósito de outro IP não tranca a equipe) |
+| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado, senha trocada ou 2FA ativado/desativado = sessão encerrada |
+| 2FA (app autenticador) | Opcional por pessoa (`npm run admin:2fa`). Código de 6 dígitos (TOTP), sem reuso; segredo criptografado no banco; código errado conta no bloqueio e tem limite diário próprio (10) |
+| Limite de requisições | Login, "Quero conhecer" e envio de fotos contam **no banco** (valem para todas as instâncias; o IP é guardado só como HMAC). Teto geral das rotas públicas em memória. Além disso, bloqueio por e-mail: 5 falhas/15 min por e-mail+IP e 30 no total (quem erra de propósito de outro IP não tranca a equipe) |
+| Fotos | Reprocessadas (WebP novo, sem EXIF/GPS), até 8 MB por envio, 60 envios/15 min por pessoa e teto total de espaço (`IMAGENS_MAX_MB`, padrão 300) |
+| Banco com menor privilégio | Em produção a API usa um usuário que só lê e escreve dados (`db/producao/papeis.sql`); só as migrações usam o dono das tabelas. A API avisa no boot se estiver com poder demais e recusa a senha de exemplo |
+| Dependências e segredos | CI roda `npm audit` (API e site) e varre o histórico do Git atrás de segredos (gitleaks). Dependabot abre PRs semanais agrupados |
 | HTTPS | Firebase Hosting / Cloud Run + HSTS (helmet) |
 | Log de acessos ao painel | Tabela `acessos_admin`: quem, quando, método, rota, status e IP. Nunca senha, token ou corpo |
 | Só nome e contato coletados + aviso | Página `/privacidade` (controlador, bases legais, compartilhamento, prazos, direitos). O site não guarda reservas: elas são no balcão |
@@ -125,7 +129,11 @@ src/
 ### Atenção em produção: `TRUST_PROXY`
 
 O limite de tentativas e o log de acessos usam o IP do visitante, lido do `X-Forwarded-For`. O valor **precisa bater com os intermediários reais**:
-`TRUST_PROXY=1` com o Cloud Run direto, `TRUST_PROXY=2` com o Firebase Hosting na frente. Valor menor que o real faz todos os usuários parecerem um só IP (e o login bloqueia todo mundo); valor maior deixa o cliente forjar o próprio IP. Confira no primeiro deploy olhando o IP gravado em `acessos_admin`.
+`TRUST_PROXY=1` com o Cloud Run direto, `TRUST_PROXY=2` com o Firebase Hosting na frente. Valor menor que o real faz todos os usuários parecerem um só IP (e o login bloqueia todo mundo); valor maior deixa o cliente forjar o próprio IP.
+
+Para não errar sem perceber:
+- Em produção a API **não sobe** sem `TRUST_PROXY` definido.
+- Com tráfego real, ela confere o `X-Forwarded-For`: se o valor estiver **alto** (IP forjável), grava um **ERRO** no log; se parecer **baixo**, um aviso. Só as contagens, nunca IPs. Procure por `TRUST_PROXY` no Cloud Logging depois do primeiro deploy.
 
 ### Painel: primeiro acesso
 
@@ -137,6 +145,16 @@ winpty npm run admin:criar -- dona@gatcha.com.br     # Git Bash/Windows; no Linu
 ```
 
 A senha é digitada sem aparecer na tela. Para trocar uma senha: `... admin:criar -- email --redefinir`.
+
+**2FA (recomendado para cada pessoa da equipe):** com a pessoa do lado e o celular dela na mão,
+
+```bash
+npm run admin:2fa -- dona@gatcha.com.br               # mostra a chave para cadastrar no app e pede um código para confirmar
+npm run admin:2fa -- dona@gatcha.com.br --desativar   # celular perdido ou trocado (depois, ative de novo)
+```
+
+Depois de ativado, o login pede o código de 6 dígitos do app (Google Authenticator, Microsoft Authenticator, Authy...).
+O segredo fica criptografado com uma chave derivada do `JWT_SECRET`: **se trocar o `JWT_SECRET`, reative o 2FA de quem tinha** (o login avisa com erro claro em vez de deixar entrar).
 Login: `POST /api/auth/login` → `{ token, expira_em, usuario }`; depois `Authorization: Bearer <token>` nas rotas `/api/admin/*`.
 Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativado (503).
 
@@ -177,14 +195,18 @@ TEST_DATABASE_URL=postgres://gatcha:senha@localhost:5432/gatcha_test npm test
 
 ## Deploy (Cloud Run)
 
+**Uma vez, no banco de produção:** crie os dois usuários com `db/producao/papeis.sql` (instruções no próprio arquivo) e guarde as duas URLs no Secret Manager:
+`gatcha-database-url` (usuário `gatcha_app`, só lê e escreve) e `gatcha-database-url-migracao` (usuário `gatcha_migracao`, dono das tabelas).
+
 ```bash
 gcloud run deploy gatcha-api --source . --region southamerica-east1 \
-  --set-secrets DATABASE_URL=gatcha-database-url:latest \
-  --set-env-vars NODE_ENV=production,DB_SSL=true \
+  --set-secrets DATABASE_URL=gatcha-database-url:latest,JWT_SECRET=gatcha-jwt-secret:latest \
+  --set-env-vars NODE_ENV=production,DB_SSL=true,TRUST_PROXY=2 \
   --max-instances 4 --concurrency 40
 ```
 
-- **Migrações**: rodar `node scripts/migrate.js` como Cloud Run Job antes de liberar a nova revisão — nunca no boot.
+- **Migrações**: rodar `node scripts/migrate.js` como Cloud Run Job antes de liberar a nova revisão, nunca no boot, com `DATABASE_URL_MIGRACAO=gatcha-database-url-migracao:latest` além da `DATABASE_URL`.
+- **Validação no boot**: em produção a API recusa subir sem `TRUST_PROXY`, com `CORS_ORIGINS` inválido (ex.: `*`) ou com a senha de exemplo do banco; a mensagem diz o que corrigir.
 - **LGPD**: agendar `node scripts/expurgar-dados.js` (Cloud Run Job + Cloud Scheduler, diário) para apagar os dados vencidos.
 - **Conexões**: `max-instances × DB_POOL_MAX` deve caber no `max_connections` do Postgres gerenciado.
 

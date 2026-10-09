@@ -1,0 +1,14 @@
+# Varredura de segredos (gitleaks) no CI, com as regras padrão.
+# Falsos positivos conhecidos:
+#  - o segredo FALSO e fixo dos testes (liberado abaixo pelo valor exato);
+#  - a lista de senhas PROIBIDAS em src/modules/auth/senha.js (comentário
+#    "gitleaks:allow" na linha, e o commit antigo em .gitleaksignore).
+# Antes de liberar outra coisa, confirme que não é (nem nunca foi) um segredo de verdade.
+title = "Gatchá"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Segredo FALSO e fixo usado só nos testes (nunca vale fora deles)"
+regexes = ['''^segredo-de-teste-com-mais-de-32-caracteres-ok$''']

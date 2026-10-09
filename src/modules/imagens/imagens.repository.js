@@ -1,11 +1,18 @@
 /** SQL das fotos. O id é um UUID aleatório: não dá para adivinhar nem enumerar. */
 
-export async function inserirImagem(executor, { dados, largura, altura }) {
+/**
+ * Grava a foto só se o espaço total das fotos continuar dentro do teto (IMAGENS_MAX_MB).
+ * @returns {Promise<object | null>} a imagem, ou null se o espaço acabou
+ */
+export async function inserirImagem(executor, { dados, largura, altura }, { maxBytesTotal }) {
   const { rows } = await executor.query(
-    'INSERT INTO imagens (dados, largura, altura, bytes) VALUES ($1, $2, $3, $4) RETURNING id, largura, altura, bytes',
-    [dados, largura, altura, dados.length],
+    `INSERT INTO imagens (dados, largura, altura, bytes)
+     SELECT $1, $2, $3, $4::int
+      WHERE (SELECT coalesce(sum(bytes), 0) FROM imagens) + $4::int <= $5::bigint
+     RETURNING id, largura, altura, bytes`,
+    [dados, largura, altura, dados.length, maxBytesTotal],
   );
-  return rows[0];
+  return rows[0] ?? null;
 }
 
 export async function buscarImagem(executor, id) {

@@ -6,12 +6,24 @@ const URL_BANCO = process.env.TEST_DATABASE_URL;
 const SENHA = 'Matcha-e-gatos-2026!';
 
 describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_URL não definida' }, () => {
-  let servidor, base, pool, gerarHash, criarUsuario, expurgar;
+  let servidor, base, pool, gerarHash, criarUsuario, expurgar, totp, definirSegredo2fa;
 
   const post = (corpo, rota = '/api/auth/login') =>
     fetch(`${base}${rota}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) });
-  const login = (email = 'equipe@gatcha.com.br', senha = SENHA, ip) =>
-    fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(ip && { 'x-forwarded-for': ip }) }, body: JSON.stringify({ email, senha }) });
+  const login = (email = 'equipe@gatcha.com.br', senha = SENHA, ip, codigo) =>
+    fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(ip && { 'x-forwarded-for': ip }) }, body: JSON.stringify({ email, senha, ...(codigo && { codigo }) }) });
+  const corpo = async (res) => ({ status: res.status, ...(await res.json()) });
+  /** Ativa o 2FA do usuário 1 e devolve o segredo (o "celular" do teste). */
+  async function ativar2fa() {
+    const segredo = totp.gerarSegredo();
+    await definirSegredo2fa(pool, { id: 1, segredoCifrado: totp.cifrarSegredo(segredo, 1) });
+    return segredo;
+  }
+  /** Um código de 6 dígitos que certamente NÃO é o certo agora (nem 30 s antes/depois). */
+  const codigoErrado = (segredo) => {
+    const validos = [-30_000, 0, 30_000].map((d) => totp.gerarCodigo(segredo, { agora: Date.now() + d }));
+    return ['111111', '222222', '333333', '444444'].find((c) => !validos.includes(c));
+  };
   const eu = (token) => fetch(`${base}/api/admin/eu`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
 
   before(async () => {
@@ -25,6 +37,8 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     ({ gerarHash } = await import('../../src/modules/auth/senha.js'));
     ({ criarUsuario } = await import('../../src/modules/auth/auth.repository.js'));
     ({ expurgar } = await import('../../src/modules/lgpd/expurgo.js'));
+    totp = await import('../../src/modules/auth/totp.js');
+    ({ definirSegredo2fa } = await import('../../src/modules/auth/auth.repository.js'));
     const { criarApp } = await import('../../src/app.js');
     servidor = criarApp().listen(0);
     await new Promise((r) => servidor.once('listening', r));
@@ -32,7 +46,7 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE acessos_admin, usuarios_admin RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE acessos_admin, usuarios_admin, limites_taxa RESTART IDENTITY CASCADE');
     await criarUsuario(pool, { email: 'equipe@gatcha.com.br', senhaHash: await gerarHash(SENHA) });
   });
 
@@ -157,6 +171,74 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     assert.match(rows[0].senha_hash, /^\$2[aby]\$12\$/);
     assert.ok(!rows[0].senha_hash.includes(SENHA));
     await assert.rejects(pool.query("INSERT INTO usuarios_admin (email, senha_hash) VALUES ('x@y.com', 'texto-puro')"), /usuarios_admin_hash_bcrypt/);
+  });
+
+  test('2FA: só a senha não entra; senha + código do app entra; o mesmo código não serve de novo', async () => {
+    const segredo = await ativar2fa();
+    const semCodigo = await corpo(await login());
+    assert.equal(semCodigo.status, 401);
+    assert.equal(semCodigo.erro.codigo, 'CODIGO_2FA_NECESSARIO');
+    assert.equal(semCodigo.token, undefined);
+
+    const errado = await corpo(await login(undefined, undefined, undefined, codigoErrado(segredo)));
+    assert.equal(errado.status, 401);
+    assert.equal(errado.erro.codigo, 'CODIGO_2FA_INVALIDO');
+
+    const codigo = totp.gerarCodigo(segredo);
+    const certo = await corpo(await login(undefined, undefined, undefined, codigo.replace(/(\d{3})/, '$1 ')));
+    assert.equal(certo.status, 200, 'aceita "123 456", como alguns apps mostram');
+    assert.equal((await eu(certo.token)).status, 200);
+
+    const reuso = await corpo(await login(undefined, undefined, undefined, codigo));
+    assert.equal(reuso.status, 401, 'código já usado não vale de novo');
+    assert.equal(reuso.erro.codigo, 'CODIGO_2FA_INVALIDO');
+
+    const eventos = (await pool.query('SELECT evento FROM acessos_admin ORDER BY id')).rows.map((r) => r.evento);
+    assert.deepEqual(eventos, ['login_falha', 'falha_2fa', 'login_ok', 'acesso', 'falha_2fa']);
+  });
+
+  test('2FA: senha errada com código certo não diz nada sobre o código', async () => {
+    const segredo = await ativar2fa();
+    const r = await corpo(await login(undefined, 'Senha-Errada-123!', undefined, totp.gerarCodigo(segredo)));
+    assert.equal(r.status, 401);
+    assert.equal(r.erro.codigo, 'CREDENCIAIS_INVALIDAS');
+  });
+
+  test('2FA: código errado conta no bloqueio de força bruta', async () => {
+    const segredo = await ativar2fa();
+    for (let i = 0; i < 5; i++) assert.equal((await login(undefined, undefined, '203.0.113.9', codigoErrado(segredo))).status, 401);
+    const bloqueado = await corpo(await login(undefined, undefined, '203.0.113.9', totp.gerarCodigo(segredo)));
+    assert.equal(bloqueado.status, 429, 'nem o código certo passa durante o bloqueio');
+  });
+
+  test('2FA: código errado demais pausa a conta por 24 h (quem tem a senha não chuta códigos para sempre)', async () => {
+    const segredo = await ativar2fa();
+    await pool.query("UPDATE usuarios_admin SET senha_alterada_em = now() - interval '2 hours' WHERE id = 1"); // 2FA ativado há 2 h
+    // 10 códigos errados há 20 min: fora do bloqueio de 15 min, dentro do limite diário do 2FA.
+    await pool.query("INSERT INTO acessos_admin (usuario_id, email, evento, status, criado_em) SELECT 1, 'equipe@gatcha.com.br', 'falha_2fa', 401, now() - interval '20 minutes' FROM generate_series(1, 10)");
+    const r = await corpo(await login(undefined, undefined, '198.51.100.20', totp.gerarCodigo(segredo)));
+    assert.equal(r.status, 429);
+    assert.equal(r.erro.codigo, 'MUITAS_TENTATIVAS_2FA');
+    // Trocar a senha (quem tem a senha errada fora) zera a contagem.
+    await pool.query("UPDATE usuarios_admin SET senha_alterada_em = now() WHERE id = 1");
+    assert.equal((await login(undefined, undefined, '198.51.100.20', totp.gerarCodigo(segredo))).status, 200);
+  });
+
+  test('2FA: segredo ilegível (ex.: JWT_SECRET trocado) dá erro claro e NÃO deixa entrar', async () => {
+    const segredo = totp.gerarSegredo();
+    await definirSegredo2fa(pool, { id: 1, segredoCifrado: totp.cifrarSegredo(segredo, 99) }); // cifrado para outro usuário
+    const r = await corpo(await login(undefined, undefined, undefined, totp.gerarCodigo(segredo)));
+    assert.equal(r.status, 503);
+    assert.equal(r.erro.codigo, 'DOIS_FATORES_INDISPONIVEL');
+    assert.equal(r.token, undefined);
+  });
+
+  test('2FA: ativar ou desativar encerra as sessões abertas', async () => {
+    const { token } = await (await login()).json();
+    assert.equal((await eu(token)).status, 200);
+    await new Promise((r) => setTimeout(r, 1100)); // o token guarda o instante em segundos
+    await ativar2fa();
+    assert.equal((await eu(token)).status, 401);
   });
 
   test('LGPD: o expurgo apaga o vencido (interesses, acessos) e preserva o resto', async () => {

@@ -22,7 +22,7 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
     ({ pool } = await import('../../src/db/pool.js'));
     const { gerarHash } = await import('../../src/modules/auth/senha.js');
     const { criarUsuario } = await import('../../src/modules/auth/auth.repository.js');
-    await pool.query('TRUNCATE acessos_admin, usuarios_admin RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE acessos_admin, usuarios_admin, limites_taxa RESTART IDENTITY CASCADE');
     await criarUsuario(pool, { email: 'equipe@gatcha.com.br', senhaHash: await gerarHash(SENHA) });
     const { criarApp } = await import('../../src/app.js');
     servidor = criarApp().listen(0);

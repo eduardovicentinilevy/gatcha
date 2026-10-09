@@ -5,4 +5,11 @@ import { z } from 'zod';
 export const loginBody = z.strictObject({
   email: z.string({ error: 'Informe o e-mail' }).trim().toLowerCase().max(254).pipe(z.email('E-mail inválido')),
   senha: z.string({ error: 'Informe a senha' }).min(1, 'Informe a senha').max(200, 'Senha inválida'),
+  // Só para quem ativou o 2FA. Aceita "123 456" (como alguns apps mostram).
+  codigo: z
+    .string()
+    .max(20, 'Código inválido')
+    .transform((s) => s.replace(/\s/g, ''))
+    .pipe(z.string().regex(/^\d{6}$/, 'O código tem 6 dígitos'))
+    .optional(),
 });

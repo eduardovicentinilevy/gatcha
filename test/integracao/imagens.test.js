@@ -8,21 +8,25 @@ const SENHA = 'Matcha-e-gatos-2026!';
 const fixture = (nome) => readFileSync(new URL(`../fixtures/${nome}`, import.meta.url));
 
 describe('Fotos do painel (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_URL não definida' }, () => {
-  let servidor, base, pool, token, sharp, apagarImagensOrfas;
+  let servidor, base, pool, token, sharp, apagarImagensOrfas, LimitePostgres;
 
   const enviar = (corpo, tipo = 'image/jpeg', t = token) =>
     fetch(`${base}/api/admin/imagens`, { method: 'POST', headers: { 'content-type': tipo, ...(t && { authorization: `Bearer ${t}` }) }, body: corpo });
 
   before(async () => {
-    configurarAmbienteDeTeste({ DATABASE_URL: URL_BANCO, DB_POOL_MAX: '10', JWT_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres-ok', RATE_LIMIT_LOGIN_POR_15MIN: '1000' });
+    configurarAmbienteDeTeste({
+      DATABASE_URL: URL_BANCO, DB_POOL_MAX: '10', JWT_SECRET: 'segredo-de-teste-com-mais-de-32-caracteres-ok', RATE_LIMIT_LOGIN_POR_15MIN: '1000',
+      IMAGENS_MAX_MB: '10', RATE_LIMIT_FOTOS_POR_15MIN: '30',
+    });
     const { migrar } = await import('../../src/db/migrar.js');
     await migrar({ connectionString: URL_BANCO, ssl: false });
     ({ pool } = await import('../../src/db/pool.js'));
     ({ default: sharp } = await import('sharp'));
     ({ apagarImagensOrfas } = await import('../../src/modules/imagens/imagens.repository.js'));
+    ({ LimitePostgres } = await import('../../src/middlewares/limite-postgres.js'));
     const { gerarHash } = await import('../../src/modules/auth/senha.js');
     const { criarUsuario } = await import('../../src/modules/auth/auth.repository.js');
-    await pool.query('TRUNCATE acessos_admin, usuarios_admin RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE acessos_admin, usuarios_admin, limites_taxa RESTART IDENTITY CASCADE');
     await criarUsuario(pool, { email: 'equipe@gatcha.com.br', senhaHash: await gerarHash(SENHA) });
     const { criarApp } = await import('../../src/app.js');
     servidor = criarApp().listen(0);
@@ -33,7 +37,7 @@ describe('Fotos do painel (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE imagens, interesses_adocao, gatos, itens_cardapio RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE imagens, interesses_adocao, gatos, itens_cardapio, limites_taxa RESTART IDENTITY CASCADE');
   });
 
   after(async () => {
@@ -109,5 +113,26 @@ describe('Fotos do painel (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_
     assert.equal(await apagarImagensOrfas(pool), 1);
     assert.equal((await fetch(base + imagem.url)).status, 200);
     assert.equal((await fetch(base + solta.url)).status, 404);
+  });
+
+  test('teto de espaço: a foto que passaria do limite é recusada (507) e nada é gravado', async () => {
+    // Enche o banco até o teto do teste (IMAGENS_MAX_MB=10) com fotos falsas.
+    await pool.query('INSERT INTO imagens (dados, largura, altura, bytes) SELECT $1, 1, 1, $2 FROM generate_series(1, 4)', [Buffer.alloc(2_621_440), 2_621_440]);
+    const res = await enviar(fixture('pequena.png'), 'image/png');
+    assert.equal(res.status, 507);
+    assert.equal((await res.json()).erro.codigo, 'ESPACO_DE_FOTOS_CHEIO');
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM imagens')).rows[0].n, 4);
+
+    await pool.query('DELETE FROM imagens WHERE id IN (SELECT id FROM imagens LIMIT 1)');
+    assert.equal((await enviar(fixture('pequena.png'), 'image/png')).status, 201, 'liberou espaço, volta a aceitar');
+  });
+
+  test('envio de fotos tem limite por pessoa (429), barrado ANTES de ler a foto', async () => {
+    const limite = new LimitePostgres('fotos');
+    await pool.query("INSERT INTO limites_taxa (chave, contagem, expira_em) VALUES ($1, 30, now() + interval '10 minutes')", [limite.chave('usuario:1')]);
+    const res = await enviar(fixture('foto-celular.jpg'));
+    assert.equal(res.status, 429);
+    assert.equal((await res.json()).erro.codigo, 'MUITAS_REQUISICOES');
+    assert.equal((await pool.query('SELECT count(*)::int AS n FROM imagens')).rows[0].n, 0);
   });
 });

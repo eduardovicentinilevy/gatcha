@@ -22,6 +22,8 @@
     "migrate:dev": "node --env-file=.env scripts/migrate.js",
     "preadmin:criar": "node scripts/preparar-dev.js",
     "admin:criar": "node --env-file=.env scripts/criar-admin.js",
+    "preadmin:2fa": "node scripts/preparar-dev.js",
+    "admin:2fa": "node --env-file=.env scripts/admin-2fa.js",
     "prelgpd:exportar": "node scripts/preparar-dev.js",
     "lgpd:exportar": "node --env-file=.env scripts/titular.js exportar",
     "prelgpd:apagar": "node scripts/preparar-dev.js",

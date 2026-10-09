@@ -15,10 +15,11 @@ const MAX_BYTES = 72;
 
 // Senhas mais comuns em listas de vazamento (a checagem completa seria uma lista grande;
 // aqui cobrimos o óbvio + as regras de comprimento e variedade abaixo).
+// "gitleaks:allow": são senhas PROIBIDAS, não segredos (a varredura do CI as confunde).
 const COMUNS = new Set([
-  '123456789012', 'password1234', 'senha1234567', 'senha12345678', 'qwerty123456', 'abcdefghijkl',
-  'gatcha123456', 'gatchagatcha', 'matcha123456', 'mudar123456', 'admin1234567', 'administrador',
-  'brasil123456', 'saopaulo1234', 'iloveyou1234', '111111111111', '000000000000', 'abc123abc123',
+  '123456789012', 'password1234', 'senha1234567', 'senha12345678', 'qwerty123456', 'abcdefghijkl', // gitleaks:allow
+  'gatcha123456', 'gatchagatcha', 'matcha123456', 'mudar123456', 'admin1234567', 'administrador', // gitleaks:allow
+  'brasil123456', 'saopaulo1234', 'iloveyou1234', '111111111111', '000000000000', 'abc123abc123', // gitleaks:allow
 ]);
 
 /** @returns {string | null} mensagem do problema, ou null se a senha é aceitável */

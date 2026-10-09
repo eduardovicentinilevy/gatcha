@@ -12,8 +12,10 @@ export const definirAoExpirar = (fn) => {
   aoExpirar = fn;
 };
 
-export async function entrar(email, senha) {
-  const resposta = await requisitar(`${CONFIG.apiBase}/auth/login`, { metodo: 'POST', corpo: { email, senha } });
+/** `codigo`: só para quem tem 2FA (a API responde CODIGO_2FA_NECESSARIO quando falta). */
+export async function entrar(email, senha, codigo) {
+  const corpo = { email, senha, ...(codigo && { codigo }) };
+  const resposta = await requisitar(`${CONFIG.apiBase}/auth/login`, { metodo: 'POST', corpo });
   token = resposta.token;
   return resposta.usuario;
 }

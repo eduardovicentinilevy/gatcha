@@ -1,7 +1,9 @@
 import express, { Router } from 'express';
 import { z } from 'zod';
+import { config } from '../../config/env.js';
 import { pool } from '../../db/pool.js';
 import { AppError, naoEncontrado } from '../../lib/erros.js';
+import { limiteFotos } from '../../middlewares/rate-limit.js';
 import { validar } from '../../middlewares/validar.js';
 import { inserirImagem, buscarImagem } from './imagens.repository.js';
 import { MAX_BYTES_ENVIO, processarImagem, TIPOS_ACEITOS, urlDaImagem } from './imagens.service.js';
@@ -24,16 +26,23 @@ rotasDeImagens.get('/imagens/:arquivo', validar({ params: arquivo }), async (req
   res.send(dados);
 });
 
-/** Painel (já autenticado): POST /api/admin/imagens com o arquivo cru no corpo. */
+/**
+ * Painel (já autenticado): POST /api/admin/imagens com o arquivo cru no corpo.
+ * O limite por pessoa vem ANTES de ler o corpo: quem passou do limite nem envia os 8 MB.
+ */
 export const rotasDeEnvioDeImagens = Router();
 rotasDeEnvioDeImagens.post(
   '/imagens',
+  limiteFotos,
   express.raw({ type: TIPOS_ACEITOS, limit: MAX_BYTES_ENVIO }),
   async (req, res) => {
     if (!Buffer.isBuffer(req.body)) {
       throw new AppError(415, 'TIPO_DE_CONTEUDO_NAO_SUPORTADO', 'Envie uma foto JPG, PNG ou WebP.');
     }
-    const imagem = await inserirImagem(pool, await processarImagem(req.body));
+    const imagem = await inserirImagem(pool, await processarImagem(req.body), config.imagens);
+    if (!imagem) {
+      throw new AppError(507, 'ESPACO_DE_FOTOS_CHEIO', 'O espaço de fotos está cheio. Fale com quem administra o sistema (fotos sem uso são apagadas todo dia).');
+    }
     res.status(201).json({ imagem: { ...imagem, url: urlDaImagem(imagem.id) } });
   },
 );
