@@ -135,4 +135,19 @@ describe('Fotos do painel (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_
     assert.equal((await res.json()).erro.codigo, 'MUITAS_REQUISICOES');
     assert.equal((await pool.query('SELECT count(*)::int AS n FROM imagens')).rows[0].n, 0);
   });
+
+  test('teto de espaço sob envios SIMULTÂNEOS: só passa o que cabe (sem corrida)', async () => {
+    const primeira = await (await enviar(fixture('pequena.png'), 'image/png')).json();
+    const tamanho = primeira.imagem.bytes;
+    await pool.query('TRUNCATE imagens');
+    // Deixa livre espaço para UMA foto e meia, e manda três ao mesmo tempo.
+    const livre = Math.floor(tamanho * 1.5);
+    const resto = 10 * 1024 * 1024 - 3 * 2_621_440 - livre;
+    await pool.query('INSERT INTO imagens (dados, largura, altura, bytes) SELECT $1, 1, 1, $2 FROM generate_series(1, 3)', [Buffer.alloc(2_621_440), 2_621_440]);
+    await pool.query('INSERT INTO imagens (dados, largura, altura, bytes) VALUES ($1, 1, 1, $2)', [Buffer.alloc(resto), resto]);
+    const respostas = await Promise.all([1, 2, 3].map(() => enviar(fixture('pequena.png'), 'image/png')));
+    assert.deepEqual(respostas.map((r) => r.status).sort(), [201, 507, 507]);
+    const { rows } = await pool.query('SELECT sum(bytes)::bigint AS total FROM imagens');
+    assert.ok(Number(rows[0].total) <= 10 * 1024 * 1024, 'nunca passa do teto');
+  });
 });

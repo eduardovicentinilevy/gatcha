@@ -29,6 +29,18 @@ export async function migrar({ connectionString, ssl, log = () => {} }) {
       nome        text PRIMARY KEY,
       aplicada_em timestamptz NOT NULL DEFAULT now()
     )`);
+    // O controle das migrações é só do dono: tira qualquer acesso dado a outros papéis (ex.: o
+    // privilégio padrão do db/producao/papeis.sql daria escrita ao usuário da API).
+    await client.query(`DO $$
+      DECLARE p record;
+      BEGIN
+        FOR p IN SELECT DISTINCT a.grantee FROM pg_class c, aclexplode(c.relacl) a
+                  WHERE c.oid = 'schema_migrations'::regclass AND a.grantee <> c.relowner
+        LOOP
+          EXECUTE format('REVOKE ALL ON schema_migrations FROM %s',
+                         CASE WHEN p.grantee = 0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(p.grantee)) END);
+        END LOOP;
+      END $$`);
 
     const { rows } = await client.query('SELECT nome FROM schema_migrations');
     const jaAplicadas = new Set(rows.map((r) => r.nome));

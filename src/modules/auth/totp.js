@@ -4,13 +4,13 @@
  *
  * - Aceita o código do passo atual e o de 1 passo antes/depois (relógio do celular
  *   adiantado ou atrasado), e nunca um passo já usado (sem reuso de código).
- * - O segredo fica CRIPTOGRAFADO no banco (AES-256-GCM) com uma chave derivada do
- *   JWT_SECRET e amarrado ao id do usuário: copiar o segredo de uma linha para
- *   outra não funciona, e um vazamento só do banco não revela os segredos.
- *   Consequência: trocar o JWT_SECRET exige reativar o 2FA (npm run admin:2fa).
+ * - O segredo fica CRIPTOGRAFADO no banco (AES-256-GCM) com uma chave derivada da
+ *   CHAVE_DADOS (não do JWT_SECRET) e amarrado ao id do usuário: copiar o segredo de
+ *   uma linha para outra não funciona, e um vazamento só do banco não revela os segredos.
+ *   Trocar a CHAVE_DADOS exige reativar o 2FA de quem tinha.
  */
-import { createCipheriv, createDecipheriv, createHmac, hkdfSync, randomBytes, timingSafeEqual } from 'node:crypto';
-import { config } from '../../config/env.js';
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { derivarChave } from '../../lib/chaves.js';
 
 const PASSO_S = 30;
 const DIGITOS = 6;
@@ -77,7 +77,7 @@ export function conferirCodigo(segredo, codigo, { agora = Date.now(), ultimoPass
 }
 
 // ---------------------------------------------------------------- segredo em repouso
-const chaveDeCifra = () => Buffer.from(hkdfSync('sha256', config.auth.jwtSecret, 'gatcha', 'totp-v1', 32));
+const chaveDeCifra = () => derivarChave('totp-v1');
 const contexto = (usuarioId) => Buffer.from(`usuario:${usuarioId}`);
 
 /** "v1.<iv>.<tag>.<dados>" em base64url. */

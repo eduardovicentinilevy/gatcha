@@ -2,10 +2,11 @@ import express, { Router } from 'express';
 import { z } from 'zod';
 import { config } from '../../config/env.js';
 import { pool } from '../../db/pool.js';
+import { comTransacao } from '../../db/transacao.js';
 import { AppError, naoEncontrado } from '../../lib/erros.js';
 import { limiteFotos } from '../../middlewares/rate-limit.js';
 import { validar } from '../../middlewares/validar.js';
-import { inserirImagem, buscarImagem } from './imagens.repository.js';
+import { buscarImagem, espacoUsado, inserirImagem } from './imagens.repository.js';
 import { MAX_BYTES_ENVIO, processarImagem, TIPOS_ACEITOS, urlDaImagem } from './imagens.service.js';
 
 /** Público: GET /api/imagens/<uuid>.webp */
@@ -26,6 +27,9 @@ rotasDeImagens.get('/imagens/:arquivo', validar({ params: arquivo }), async (req
   res.send(dados);
 });
 
+const espacoCheio = () =>
+  new AppError(507, 'ESPACO_DE_FOTOS_CHEIO', 'O espaço de fotos está cheio. Fale com quem administra o sistema (fotos sem uso são apagadas todo dia).');
+
 /**
  * Painel (já autenticado): POST /api/admin/imagens com o arquivo cru no corpo.
  * O limite por pessoa vem ANTES de ler o corpo: quem passou do limite nem envia os 8 MB.
@@ -39,10 +43,11 @@ rotasDeEnvioDeImagens.post(
     if (!Buffer.isBuffer(req.body)) {
       throw new AppError(415, 'TIPO_DE_CONTEUDO_NAO_SUPORTADO', 'Envie uma foto JPG, PNG ou WebP.');
     }
-    const imagem = await inserirImagem(pool, await processarImagem(req.body), config.imagens);
-    if (!imagem) {
-      throw new AppError(507, 'ESPACO_DE_FOTOS_CHEIO', 'O espaço de fotos está cheio. Fale com quem administra o sistema (fotos sem uso são apagadas todo dia).');
-    }
+    // Checagem barata ANTES de processar: com o espaço cheio, nem gasta CPU reprocessando a foto.
+    if ((await espacoUsado(pool)) >= config.imagens.maxBytesTotal) throw espacoCheio();
+    const processada = await processarImagem(req.body);
+    const imagem = await comTransacao((client) => inserirImagem(client, processada, config.imagens));
+    if (!imagem) throw espacoCheio();
     res.status(201).json({ imagem: { ...imagem, url: urlDaImagem(imagem.id) } });
   },
 );

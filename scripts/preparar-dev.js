@@ -2,8 +2,8 @@
  * Roda antes de `npm run dev`, `migrate:dev`, `admin:criar` etc.
  * - Se não existir .env, cria a partir do .env.example (o .env nunca vai para o Git:
  *   guarda senhas locais).
- * - Se o JWT_SECRET estiver vazio, gera um aleatório no .env LOCAL, para o login do
- *   painel funcionar sem configuração. Em produção o segredo vem do Secret Manager.
+ * - Se o JWT_SECRET ou a CHAVE_DADOS estiverem vazios, gera aleatórios no .env LOCAL, para
+ *   o painel funcionar sem configuração. Em produção os segredos vêm do Secret Manager.
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
@@ -14,15 +14,23 @@ if (!existsSync('.env')) {
   console.log('Confira a DATABASE_URL nele se o seu Postgres não for o do docker-compose.yml.\n');
 }
 
-const conteudo = readFileSync('.env', 'utf8');
-const linha = /^JWT_SECRET=[ \t]*(#.*)?$/m; // presente mas vazia
-const ausente = !/^JWT_SECRET=/m.test(conteudo);
-if (linha.test(conteudo) || ausente) {
+/**
+ * Segredo presente mas vazio (ou ausente) no .env LOCAL: gera um aleatório. Em produção
+ * os segredos vêm do Secret Manager; este script só roda no computador de quem desenvolve.
+ */
+function garantirSegredo(nome, aviso) {
+  const conteudo = readFileSync('.env', 'utf8');
+  const vazio = new RegExp(`^${nome}=[ \\t]*(#.*)?$`, 'm');
+  const ausente = !new RegExp(`^${nome}=`, 'm').test(conteudo);
+  if (!vazio.test(conteudo) && !ausente) return;
   const segredo = randomBytes(48).toString('base64url');
-  const novo = ausente ? `${conteudo.replace(/\n?$/, '\n')}JWT_SECRET=${segredo}\n` : conteudo.replace(linha, `JWT_SECRET=${segredo}`);
+  const novo = ausente ? `${conteudo.replace(/\n?$/, '\n')}${nome}=${segredo}\n` : conteudo.replace(vazio, `${nome}=${segredo}`);
   writeFileSync('.env', novo);
-  console.log('JWT_SECRET gerado no .env (login do painel ativado neste computador).\n');
+  console.log(`${nome} gerado no .env (${aviso}).\n`);
 }
+
+garantirSegredo('JWT_SECRET', 'login do painel ativado neste computador');
+garantirSegredo('CHAVE_DADOS', 'protege o 2FA e os limites neste computador');
 
 // `--migrar` (usado pelo npm run dev): aplica migrações pendentes no banco local.
 // Se o banco estiver fora do ar, só avisa: a API sobe e explica o problema no log.

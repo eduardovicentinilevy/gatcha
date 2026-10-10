@@ -34,15 +34,16 @@ Se a API não responder, o site usa os JSON de `web/public/dados-exemplo/` (mesm
 | Estilos | `web/src/estilo.css` (usa só as variáveis de cor do config) |
 | Seção do gatil (preços, horários, regras, aviso de reserva no balcão) | `web/src/components/Gatil.jsx` + `gatil` em `config.js` |
 | Transição entre páginas | `web/src/navegacao.js` + bloco "Transição entre páginas" em `estilo.css` |
+| Prévia do link e ícone do celular | `web/public/og.png` (1200×630) e `web/public/apple-touch-icon.png` (180×180). [SUBSTITUIR] por uma foto do café quando houver; título e descrição em `web/index.html` |
 
 - **Segurança:** o React escapa todo texto dinâmico; CSP estrita sem `unsafe-inline` em `firebase.json`; fontes servidas pelo próprio site; mapa do Google só carrega quando a pessoa pede (LGPD).
 - **Acessibilidade:** contraste AA conferido nos dois temas, foco visível, navegação por teclado, `prefers-reduced-motion` respeitado.
-- **Deploy:** `npm run build && firebase deploy --only hosting`.
+- **Deploy:** `VITE_SITE_URL=https://<domínio do site> npm run build && firebase deploy --only hosting`. O `VITE_SITE_URL` coloca a imagem de prévia (`web/public/og.png`) e o endereço nas tags de compartilhamento: é o que aparece quando alguém manda o link no WhatsApp ou no Instagram. Sem ele, a prévia mostra só título e descrição.
 
 ## Painel administrativo (`/admin`)
 
 Abra `http://localhost:5173/admin` (ou clique em **Área da equipe** no rodapé do site) e entre com um usuário criado por `npm run admin:criar -- email@...`.
-Em desenvolvimento, `npm run dev` gera o `JWT_SECRET` no seu `.env` se estiver vazio e aplica as migrações pendentes; em produção o segredo vem do Secret Manager.
+Em desenvolvimento, `npm run dev` gera o `JWT_SECRET` e a `CHAVE_DADOS` no seu `.env` se estiverem vazios e aplica as migrações pendentes; em produção o segredo vem do Secret Manager.
 
 | Aba | O que faz |
 |---|---|
@@ -116,8 +117,8 @@ src/
 | Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
 | Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
 | Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado, senha trocada ou 2FA ativado/desativado = sessão encerrada |
-| 2FA (app autenticador) | Opcional por pessoa (`npm run admin:2fa`). Código de 6 dígitos (TOTP), sem reuso; segredo criptografado no banco; código errado conta no bloqueio e tem limite diário próprio (10) |
-| Limite de requisições | Login, "Quero conhecer" e envio de fotos contam **no banco** (valem para todas as instâncias; o IP é guardado só como HMAC). Teto geral das rotas públicas em memória. Além disso, bloqueio por e-mail: 5 falhas/15 min por e-mail+IP e 30 no total (quem erra de propósito de outro IP não tranca a equipe) |
+| 2FA (app autenticador) | Opcional por pessoa, ativado pelo próprio painel (**Minha conta**, com QR code). Código de 6 dígitos (TOTP) no mesmo envio da senha, sem reuso; segredo criptografado com a `CHAVE_DADOS`; a resposta de erro é a mesma para senha ou código errados (não revela que a senha estava certa); 10 códigos errados por 24 h pausam a conta |
+| Limite de requisições | Login, "Quero conhecer" e envio de fotos contam **no banco** (valem para todas as instâncias; o IP é guardado só como HMAC com a `CHAVE_DADOS`). Login: só tentativas que falham contam. Teto geral das rotas públicas em memória. Bloqueio por e-mail: 5 falhas/15 min por e-mail+IP e 30 no total (quem erra de propósito de outro IP não tranca a equipe). "Quero conhecer" também tem tetos que **não dependem do IP**: 3 pedidos por contato em 24 h e 60 no total por hora |
 | Fotos | Reprocessadas (WebP novo, sem EXIF/GPS), até 8 MB por envio, 60 envios/15 min por pessoa e teto total de espaço (`IMAGENS_MAX_MB`, padrão 300) |
 | Banco com menor privilégio | Em produção a API usa um usuário que só lê e escreve dados (`db/producao/papeis.sql`); só as migrações usam o dono das tabelas. A API avisa no boot se estiver com poder demais e recusa a senha de exemplo |
 | Dependências e segredos | CI roda `npm audit` (API e site) e varre o histórico do Git atrás de segredos (gitleaks). Dependabot abre PRs semanais agrupados |
@@ -132,8 +133,10 @@ O limite de tentativas e o log de acessos usam o IP do visitante, lido do `X-For
 `TRUST_PROXY=1` com o Cloud Run direto, `TRUST_PROXY=2` com o Firebase Hosting na frente. Valor menor que o real faz todos os usuários parecerem um só IP (e o login bloqueia todo mundo); valor maior deixa o cliente forjar o próprio IP.
 
 Para não errar sem perceber:
-- Em produção a API **não sobe** sem `TRUST_PROXY` definido.
-- Com tráfego real, ela confere o `X-Forwarded-For`: se o valor estiver **alto** (IP forjável), grava um **ERRO** no log; se parecer **baixo**, um aviso. Só as contagens, nunca IPs. Procure por `TRUST_PROXY` no Cloud Logging depois do primeiro deploy.
+- Em produção a API **não sobe** sem `TRUST_PROXY` definido (vazio ou `0` também não servem). Os jobs (migrações, expurgo) não precisam dele.
+- Com o tráfego das primeiras requisições, cada instância confere o `X-Forwarded-For` e grava uma linha no log: **ERRO** se o valor parecer alto (IP forjável), aviso se parecer baixo, "confere" se estiver certo. Só contagens, nunca IPs. Procure por `TRUST_PROXY` no Cloud Logging depois do primeiro deploy.
+
+**Acesso direto ao `*.run.app`:** com o Firebase na frente (`TRUST_PROXY=2`), o endereço do Cloud Run continua respondendo, e quem o chama direto consegue escolher o IP que a API vê. Por isso as proteções importantes **não dependem do IP**: o bloqueio de login por e-mail (global), o 2FA, os tetos do "Quero conhecer" por contato e por hora, o limite de fotos por pessoa. Os limites por IP são uma camada a mais. O log avisa quando aparece tráfego que pulou o Firebase.
 
 ### Painel: primeiro acesso
 
@@ -146,15 +149,15 @@ winpty npm run admin:criar -- dona@gatcha.com.br     # Git Bash/Windows; no Linu
 
 A senha é digitada sem aparecer na tela. Para trocar uma senha: `... admin:criar -- email --redefinir`.
 
-**2FA (recomendado para cada pessoa da equipe):** com a pessoa do lado e o celular dela na mão,
+**2FA (recomendado para cada pessoa da equipe):** cada pessoa entra no painel, abre **Minha conta** e toca em **Ativar no meu celular**: aparece um QR code para o app autenticador (Google Authenticator, Microsoft Authenticator, Authy...), e ela confirma com o código do app e a senha. Daí em diante, o login pede o código de 6 dígitos junto com a senha.
+
+Celular perdido ou trocado, sem acesso ao app:
 
 ```bash
-npm run admin:2fa -- dona@gatcha.com.br               # mostra a chave para cadastrar no app e pede um código para confirmar
-npm run admin:2fa -- dona@gatcha.com.br --desativar   # celular perdido ou trocado (depois, ative de novo)
+npm run admin:2fa -- dona@gatcha.com.br --desativar   # depois a pessoa ativa de novo pelo painel
 ```
 
-Depois de ativado, o login pede o código de 6 dígitos do app (Google Authenticator, Microsoft Authenticator, Authy...).
-O segredo fica criptografado com uma chave derivada do `JWT_SECRET`: **se trocar o `JWT_SECRET`, reative o 2FA de quem tinha** (o login avisa com erro claro em vez de deixar entrar).
+O segredo do 2FA fica criptografado com a `CHAVE_DADOS` (não com o `JWT_SECRET`): trocar o `JWT_SECRET` não afeta o 2FA; **trocar a `CHAVE_DADOS` exige desativar e reativar o 2FA de quem tinha** (o login avisa com erro claro em vez de deixar entrar).
 Login: `POST /api/auth/login` → `{ token, expira_em, usuario }`; depois `Authorization: Bearer <token>` nas rotas `/api/admin/*`.
 Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativado (503).
 
@@ -195,18 +198,19 @@ TEST_DATABASE_URL=postgres://gatcha:senha@localhost:5432/gatcha_test npm test
 
 ## Deploy (Cloud Run)
 
-**Uma vez, no banco de produção:** crie os dois usuários com `db/producao/papeis.sql` (instruções no próprio arquivo) e guarde as duas URLs no Secret Manager:
-`gatcha-database-url` (usuário `gatcha_app`, só lê e escreve) e `gatcha-database-url-migracao` (usuário `gatcha_migracao`, dono das tabelas).
+**Uma vez, antes do primeiro deploy:**
+1. No banco de produção, crie os dois usuários com `db/producao/papeis.sql` (instruções no próprio arquivo).
+2. No Secret Manager, guarde: `gatcha-database-url` (usuário `gatcha_app`, só lê e escreve), `gatcha-database-url-migracao` (usuário `gatcha_migracao`, dono das tabelas), `gatcha-jwt-secret` e `gatcha-chave-dados` (cada um gerado com `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"`, **diferentes** entre si).
 
 ```bash
 gcloud run deploy gatcha-api --source . --region southamerica-east1 \
-  --set-secrets DATABASE_URL=gatcha-database-url:latest,JWT_SECRET=gatcha-jwt-secret:latest \
+  --set-secrets DATABASE_URL=gatcha-database-url:latest,JWT_SECRET=gatcha-jwt-secret:latest,CHAVE_DADOS=gatcha-chave-dados:latest \
   --set-env-vars NODE_ENV=production,DB_SSL=true,TRUST_PROXY=2 \
   --max-instances 4 --concurrency 40
 ```
 
-- **Migrações**: rodar `node scripts/migrate.js` como Cloud Run Job antes de liberar a nova revisão, nunca no boot, com `DATABASE_URL_MIGRACAO=gatcha-database-url-migracao:latest` além da `DATABASE_URL`.
-- **Validação no boot**: em produção a API recusa subir sem `TRUST_PROXY`, com `CORS_ORIGINS` inválido (ex.: `*`) ou com a senha de exemplo do banco; a mensagem diz o que corrigir.
+- **Migrações**: rodar `node scripts/migrate.js` como Cloud Run Job antes de liberar a nova revisão, nunca no boot, com `DATABASE_URL_MIGRACAO=gatcha-database-url-migracao:latest` além da `DATABASE_URL`. O job não precisa de `TRUST_PROXY` nem de `CHAVE_DADOS`.
+- **Validação no boot**: em produção a API recusa subir sem `TRUST_PROXY` (ou com 0), sem `CHAVE_DADOS`, com `CORS_ORIGINS` inválido (ex.: `*`) ou com a senha de exemplo do banco; a mensagem diz o que corrigir.
 - **LGPD**: agendar `node scripts/expurgar-dados.js` (Cloud Run Job + Cloud Scheduler, diário) para apagar os dados vencidos.
 - **Conexões**: `max-instances × DB_POOL_MAX` deve caber no `max_connections` do Postgres gerenciado.
 

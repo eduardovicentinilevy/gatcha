@@ -26,10 +26,15 @@ export const limitePublico = rateLimit({
   limit: config.http.rateLimitPublicoPorMin,
 });
 
-/** Login do painel: teto por IP (além do bloqueio por e-mail feito no banco). */
+/**
+ * Login do painel: teto por IP (além do bloqueio por e-mail feito no banco). Só as
+ * tentativas que FALHAM contam: a equipe entrando várias vezes do Wi-Fi do café (um IP
+ * só, sessões de 15 min) não esgota o limite.
+ */
 export const limiteLogin = rateLimit({
   ...comum,
   store: new LimitePostgres('login'),
+  skipSuccessfulRequests: true,
   identifier: 'login',
   windowMs: 15 * 60_000,
   limit: config.auth.rateLimitLoginPor15Min,

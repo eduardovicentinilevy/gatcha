@@ -4,18 +4,21 @@
  * instâncias o limite real seria N vezes maior).
  *
  * - A chave gravada é um HMAC do nome do limitador + IP (ou id do usuário): o IP
- *   não fica no banco, e o HMAC com segredo do servidor impede reverter a chave
- *   testando os ~4 bilhões de IPv4.
+ *   não fica no banco, e o HMAC com a CHAVE_DADOS (fora do banco) impede reverter a
+ *   chave testando os ~4 bilhões de IPv4.
  * - Cada janela é uma linha que expira sozinha; o expurgo diário apaga as vencidas.
  * - Banco fora do ar = erro (503), não "passa direto": é a mesma dependência do
  *   login e do formulário que estes limites protegem.
  */
-import { createHash, createHmac } from 'node:crypto';
-import { config } from '../config/env.js';
+import { createHmac } from 'node:crypto';
 import { pool } from '../db/pool.js';
+import { derivarChave } from '../lib/chaves.js';
 
-let segredoDasChaves;
-const segredo = () => (segredoDasChaves ??= createHash('sha256').update(`gatcha:limites-de-taxa:${config.auth.jwtSecret}`).digest());
+const segredo = () => derivarChave('limites-de-taxa-v1');
+
+// Uma a cada N contagens também apaga janelas vencidas: com muitos IPs diferentes (ou
+// forjados), a tabela não cresce sem freio entre um expurgo diário e o próximo.
+const LIMPEZA_A_CADA = 200;
 
 export class LimitePostgres {
   localKeys = false; // a contagem é compartilhada entre instâncias
@@ -51,6 +54,7 @@ export class LimitePostgres {
        RETURNING contagem, expira_em`,
       [this.chave(cliente), this.janelaMs],
     );
+    if (Math.random() < 1 / LIMPEZA_A_CADA) apagarLimitesVencidos(this.executor).catch(() => {}); // melhor esforço
     return { totalHits: rows[0].contagem, resetTime: rows[0].expira_em };
   }
 

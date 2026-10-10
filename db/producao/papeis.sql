@@ -43,3 +43,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gatcha_ap
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO gatcha_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE gatcha_migracao IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO gatcha_app;
 ALTER DEFAULT PRIVILEGES FOR ROLE gatcha_migracao IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO gatcha_app;
+
+-- ...menos o controle das migrações, que é só do dono (o npm run migrate também garante isso).
+DO $$
+BEGIN
+  IF to_regclass('public.schema_migrations') IS NOT NULL THEN REVOKE ALL ON public.schema_migrations FROM gatcha_app; END IF;
+END $$;

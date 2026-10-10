@@ -46,9 +46,10 @@ const schema = z
     // HTTP
     // Saltos de proxy confiáveis para ler o IP real do X-Forwarded-For
     // (Cloud Run = 1; Firebase Hosting -> Cloud Run = 2). Nunca use "true".
-    // Obrigatório em produção: errar para mais deixa o visitante forjar o IP; para menos,
-    // todo mundo parece um IP só e o bloqueio de login trava a equipe inteira.
-    TRUST_PROXY: z.coerce.number().int().min(0).max(5).optional(),
+    // Obrigatório para a API em produção (conferido no boot, src/config/servidor.js): errar
+    // para mais deixa o visitante forjar o IP; para menos, todo mundo parece um IP só e o
+    // bloqueio de login trava a equipe inteira. Vazio conta como "não definido" (não como 0).
+    TRUST_PROXY: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.coerce.number().int().min(0).max(5).optional()),
     // Origens exatas (https://site.com.br), separadas por vírgula. Vazio = sem CORS, que é o
     // certo quando o Firebase serve o site e a /api na mesma origem.
     CORS_ORIGINS: lista,
@@ -68,6 +69,10 @@ const schema = z
     // ex.: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))".
     // Vazio = login desativado (a API responde 503 em /api/auth/login).
     JWT_SECRET: z.string().default('').refine((v) => v === '' || v.length >= 32, 'JWT_SECRET deve ter ao menos 32 caracteres'),
+    // Protege dados GUARDADOS no banco: o segredo do 2FA (criptografado) e o IP nos limites de
+    // taxa (HMAC). SEGREDO, >= 32 caracteres, DIFERENTE do JWT_SECRET: assim trocar o JWT_SECRET
+    // (ex.: depois de um vazamento) não quebra o 2FA de ninguém. Obrigatória para a API em produção.
+    CHAVE_DADOS: z.string().trim().default('').refine((v) => v === '' || v.length >= 32, 'CHAVE_DADOS deve ter ao menos 32 caracteres'),
     ADMIN_TOKEN_MINUTOS: inteiro(15, 5, 120),
     RATE_LIMIT_LOGIN_POR_15MIN: inteiro(10, 1, 1_000),
     LOGIN_MAX_FALHAS_POR_EMAIL: inteiro(5, 3, 20), // por e-mail + IP
@@ -90,8 +95,8 @@ const schema = z
       const erro = problemaDeOrigem(origem, { producao });
       if (erro) problema('CORS_ORIGINS', erro);
     }
-    if (producao && env.TRUST_PROXY === undefined) {
-      problema('TRUST_PROXY', 'obrigatório em produção: 1 com o Cloud Run direto, 2 com o Firebase Hosting na frente (README, "Atenção em produção")');
+    if (env.CHAVE_DADOS && env.CHAVE_DADOS === env.JWT_SECRET) {
+      problema('CHAVE_DADOS', 'precisa ser diferente do JWT_SECRET');
     }
     if (producao) {
       for (const campo of ['DATABASE_URL', 'DATABASE_URL_MIGRACAO']) {
@@ -140,6 +145,7 @@ function carregar() {
     }),
     http: Object.freeze({
       trustProxy: e.TRUST_PROXY ?? 1,
+      trustProxyDefinido: e.TRUST_PROXY !== undefined,
       corsOrigins: e.CORS_ORIGINS,
       rateLimitPublicoPorMin: e.RATE_LIMIT_PUBLICO_POR_MIN,
       rateLimitInteressesPor15Min: e.RATE_LIMIT_INTERESSES_POR_15MIN,
@@ -154,6 +160,7 @@ function carregar() {
       maxFalhasGlobalPorEmail: e.LOGIN_MAX_FALHAS_GLOBAL_POR_EMAIL,
       rateLimitLoginPor15Min: e.RATE_LIMIT_LOGIN_POR_15MIN,
     }),
+    dados: Object.freeze({ chave: e.CHAVE_DADOS }),
     imagens: Object.freeze({ maxBytesTotal: e.IMAGENS_MAX_MB * 1024 * 1024 }),
     retencao: Object.freeze({
       interessesDias: e.RETENCAO_INTERESSES_DIAS,

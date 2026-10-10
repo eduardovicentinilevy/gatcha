@@ -137,6 +137,23 @@ describe('Painel administrativo (integração)', { skip: !URL_BANCO && 'TEST_DAT
     assert.equal((await enviar({ gato_id: 99999 })).status, 409);
   });
 
+  test('interesse público: tetos que NÃO dependem do IP (por contato e por hora), sem revelar qual', async () => {
+    const { gato } = await (await chamar('POST', '/gatos', { nome: 'Nori', sexo: 'macho' })).json();
+    const enviar = (contato, ip) =>
+      fetch(`${base}/api/interesses`, { method: 'POST', headers: { 'content-type': 'application/json', 'x-forwarded-for': ip }, body: JSON.stringify({ gato_id: gato.id, nome: 'Bia Souza', contato }) });
+    // O mesmo contato, trocando de IP a cada envio (como faria quem acessa a API direto):
+    for (let i = 1; i <= 3; i++) assert.equal((await enviar('bia@exemplo.com', `203.0.113.${i}`)).status, 201);
+    const repetido = await enviar('BIA@exemplo.com', '203.0.113.50');
+    assert.equal(repetido.status, 429, 'o contato é normalizado: maiúsculas não furam o teto');
+    const corpo = await repetido.json();
+    assert.equal(corpo.erro.codigo, 'MUITOS_PEDIDOS');
+    // Teto geral por hora (60): completa com contatos diferentes.
+    await pool.query("INSERT INTO interesses_adocao (gato_id, nome, contato) SELECT $1, 'Spam', 'spam' || n || '@exemplo.com' FROM generate_series(1, 57) n", [gato.id]);
+    const geral = await enviar('nova@exemplo.com', '198.51.100.9');
+    assert.equal(geral.status, 429);
+    assert.deepEqual((await geral.json()).erro.mensagem, corpo.erro.mensagem, 'mesma mensagem nos dois tetos');
+  });
+
   test('o log de acessos registra as ações do painel (sem corpo nem token)', async () => {
     await chamar('POST', '/gatos', { nome: 'Wasabi', sexo: 'macho' });
     await new Promise((r) => setTimeout(r, 100));

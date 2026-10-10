@@ -1,7 +1,8 @@
 /**
  * Cliente do painel. O token (JWT de curta duração) fica SÓ na memória desta aba:
  * nada em localStorage/cookie. Recarregar a página ou fechar a aba = entrar de novo.
- * Se a API responder 401 (token expirou ou a senha foi trocada), avisa o painel.
+ * Se a API disser que a sessão não vale mais (401 NAO_AUTENTICADO: token expirou ou a
+ * senha foi trocada), avisa o painel. Outros 401 (ex.: senha errada ao ativar o 2FA) não deslogam.
  */
 import { CONFIG } from '../config.js';
 import { ErroApi, requisitar } from '../api.js';
@@ -12,7 +13,9 @@ export const definirAoExpirar = (fn) => {
   aoExpirar = fn;
 };
 
-/** `codigo`: só para quem tem 2FA (a API responde CODIGO_2FA_NECESSARIO quando falta). */
+const sessaoExpirou = (erro) => erro instanceof ErroApi && erro.status === 401 && erro.codigo === 'NAO_AUTENTICADO';
+
+/** `codigo`: só para quem ativou o 2FA. */
 export async function entrar(email, senha, codigo) {
   const corpo = { email, senha, ...(codigo && { codigo }) };
   const resposta = await requisitar(`${CONFIG.apiBase}/auth/login`, { metodo: 'POST', corpo });
@@ -24,11 +27,16 @@ export function sair() {
   token = null;
 }
 
+/** Depois de ativar/desativar o 2FA a API encerra as outras sessões e devolve um token novo. */
+export function definirToken(novo) {
+  token = novo;
+}
+
 export async function admin(metodo, rota, corpo) {
   try {
     return await requisitar(`${CONFIG.apiBase}/admin${rota}`, { metodo, corpo, cabecalhos: { Authorization: `Bearer ${token}` } });
   } catch (erro) {
-    if (erro instanceof ErroApi && erro.status === 401) {
+    if (sessaoExpirou(erro)) {
       token = null;
       aoExpirar();
     }
@@ -51,7 +59,7 @@ export async function enviarImagem(arquivo) {
   }
   const dados = await resposta.json().catch(() => null);
   if (!resposta.ok) {
-    if (resposta.status === 401) {
+    if (resposta.status === 401 && dados?.erro?.codigo === 'NAO_AUTENTICADO') {
       token = null;
       aoExpirar();
     }

@@ -4,9 +4,17 @@
  * atende qualquer requisição, e o Cloud Run pode criar/destruir instâncias à vontade.
  */
 import { config } from './config/env.js';
+import { problemasDoServidor } from './config/servidor.js';
 import { criarApp } from './app.js';
 import { pool } from './db/pool.js';
 import { logger, serializarErro } from './lib/logger.js';
+
+const problemas = problemasDoServidor(config);
+if (problemas.length > 0) {
+  // Sem valores na mensagem (podem ser segredos), só o que falta corrigir.
+  console.error(`Configuração inválida para a API:\n${problemas.map((p) => `  - ${p}`).join('\n')}`);
+  process.exit(1);
+}
 
 const servidor = criarApp().listen(config.port, () => {
   logger.info('API Gatchá no ar', { porta: config.port, ambiente: config.env });
@@ -32,14 +40,19 @@ async function verificarBanco() {
  * no banco inteiro. Em produção ela deve usar um usuário que só lê e escreve dados.
  */
 async function verificarPrivilegios() {
+  // pg_has_role cobre também quem é MEMBRO do papel dono (ex.: o administrador do provedor
+  // depois do papeis.sql), não só o dono direto; CREATE no schema permite criar objetos.
   const { rows } = await pool.query(
     `SELECT r.rolsuper AS superusuario,
-            EXISTS (SELECT 1 FROM pg_tables WHERE schemaname = current_schema() AND tableowner = current_user) AS dono
+            EXISTS (SELECT 1 FROM pg_tables t
+                     WHERE t.schemaname = current_schema() AND pg_has_role(current_user, t.tableowner, 'USAGE')) AS dono,
+            has_schema_privilege(current_user, current_schema(), 'CREATE') AS cria
        FROM pg_roles r WHERE r.rolname = current_user`,
   );
-  const { superusuario, dono } = rows[0] ?? {};
-  if (superusuario || dono) {
-    logger.warn(`O usuário do banco da API é ${superusuario ? 'superusuário' : 'dono das tabelas'}: em produção, use um usuário que só lê e escreve dados (db/producao/papeis.sql).`);
+  const { superusuario, dono, cria } = rows[0] ?? {};
+  const motivo = superusuario ? 'superusuário' : dono ? 'dono (ou membro do dono) das tabelas' : cria ? 'capaz de criar tabelas' : null;
+  if (motivo) {
+    logger.warn(`O usuário do banco da API é ${motivo}: em produção, use um usuário que só lê e escreve dados (db/producao/papeis.sql).`);
   }
 }
 

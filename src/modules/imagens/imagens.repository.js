@@ -1,18 +1,28 @@
 /** SQL das fotos. O id é um UUID aleatório: não dá para adivinhar nem enumerar. */
 
+const LOCK_ESPACO_FOTOS = 7304;
+
+/** Espaço já ocupado pelas fotos (soma de uma coluna inteira: rápido até dezenas de milhares de fotos). */
+export async function espacoUsado(executor) {
+  const { rows } = await executor.query('SELECT coalesce(sum(bytes), 0)::bigint AS usado FROM imagens');
+  return Number(rows[0].usado);
+}
+
 /**
- * Grava a foto só se o espaço total das fotos continuar dentro do teto (IMAGENS_MAX_MB).
+ * Grava a foto só se o espaço total continuar dentro do teto (IMAGENS_MAX_MB).
+ * Conferir e gravar acontecem sob uma trava: dois envios ao mesmo tempo não passam
+ * juntos do teto (cada um veria a soma sem o outro).
+ * @param {import('pg').PoolClient} client dentro de uma transação (comTransacao)
  * @returns {Promise<object | null>} a imagem, ou null se o espaço acabou
  */
-export async function inserirImagem(executor, { dados, largura, altura }, { maxBytesTotal }) {
-  const { rows } = await executor.query(
-    `INSERT INTO imagens (dados, largura, altura, bytes)
-     SELECT $1, $2, $3, $4::int
-      WHERE (SELECT coalesce(sum(bytes), 0) FROM imagens) + $4::int <= $5::bigint
-     RETURNING id, largura, altura, bytes`,
-    [dados, largura, altura, dados.length, maxBytesTotal],
+export async function inserirImagem(client, { dados, largura, altura }, { maxBytesTotal }) {
+  await client.query('SELECT pg_advisory_xact_lock($1)', [LOCK_ESPACO_FOTOS]);
+  if ((await espacoUsado(client)) + dados.length > maxBytesTotal) return null;
+  const { rows } = await client.query(
+    'INSERT INTO imagens (dados, largura, altura, bytes) VALUES ($1, $2, $3, $4) RETURNING id, largura, altura, bytes',
+    [dados, largura, altura, dados.length],
   );
-  return rows[0] ?? null;
+  return rows[0];
 }
 
 export async function buscarImagem(executor, id) {

@@ -152,8 +152,11 @@ function FormItem({ item, categorias, onFechar, onSalvo }) {
           {Object.entries(SELOS).map(([v, [t]]) => (
             <label key={v} className="aceite"><input type="checkbox" name="selos" value={v} checked={form.selos.includes(v)} onChange={alterar} /> {t}</label>
           ))}
-          <label className="aceite"><input type="checkbox" name="ativo" checked={form.ativo} onChange={alterar} /> Aparece no site</label>
         </fieldset>
+        <div className="admin-form__largo">
+          <label className="aceite"><input type="checkbox" name="ativo" checked={form.ativo} onChange={alterar} /> Aparece no site</label>
+          <p className="campo__dica">Desmarque para esconder do site sem apagar (ex.: acabou o ingrediente).</p>
+        </div>
       </div>
       <div className="admin-form__acoes">
         <button type="button" className="botao botao--secundario" onClick={onFechar}>Cancelar</button>

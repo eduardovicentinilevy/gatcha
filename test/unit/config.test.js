@@ -12,12 +12,23 @@ function carregar(env) {
   return r.status === 0 ? { ok: true, http: JSON.parse(r.stdout) } : { ok: false, erro: r.stderr };
 }
 
-test('produção exige TRUST_PROXY explícito (o valor errado trava o login ou deixa forjar IP)', () => {
-  const sem = carregar({ NODE_ENV: 'production' });
-  assert.equal(sem.ok, false);
-  assert.match(sem.erro, /TRUST_PROXY: obrigatório em produção/);
+test('config compartilhada: os JOBS de produção (migrações, expurgo) carregam sem TRUST_PROXY nem CHAVE_DADOS', () => {
+  const job = carregar({ NODE_ENV: 'production' });
+  assert.equal(job.ok, true, job.erro);
+  assert.equal(job.http.trustProxyDefinido, false);
+});
+
+test('TRUST_PROXY vazio conta como "não definido" (antes virava 0)', () => {
+  const vazio = carregar({ NODE_ENV: 'production', TRUST_PROXY: '' });
+  assert.equal(vazio.http.trustProxyDefinido, false);
   assert.equal(carregar({ NODE_ENV: 'production', TRUST_PROXY: '2' }).http.trustProxy, 2);
   assert.equal(carregar({ NODE_ENV: 'development' }).http.trustProxy, 1, 'fora de produção continua com o padrão');
+});
+
+test('CHAVE_DADOS: ao menos 32 caracteres e diferente do JWT_SECRET', () => {
+  const segredo = 'z'.repeat(40);
+  assert.match(carregar({ CHAVE_DADOS: 'curta' }).erro, /CHAVE_DADOS deve ter ao menos 32/);
+  assert.match(carregar({ CHAVE_DADOS: segredo, JWT_SECRET: segredo }).erro, /CHAVE_DADOS: precisa ser diferente do JWT_SECRET/);
 });
 
 test('CORS: só origens exatas com https; nunca "*"', () => {
@@ -46,4 +57,17 @@ test('produção recusa a senha de exemplo do banco, sem mostrar a URL no erro',
     assert.ok(!r.erro.includes('gatcha_dev'), 'a mensagem não vaza a URL');
   }
   assert.equal(carregar({ NODE_ENV: 'development', DATABASE_URL: 'postgres://gatcha:gatcha_dev@localhost:5433/gatcha' }).ok, true, 'em desenvolvimento pode');
+});
+
+test('o SERVIDOR de produção recusa subir sem TRUST_PROXY ou CHAVE_DADOS (sem mostrar valores)', () => {
+  const r = spawnSync(process.execPath, ['src/server.js'], {
+    env: { PATH: process.env.PATH, NODE_ENV: 'production', DATABASE_URL: 'postgres://app:Senha-Forte-123@127.0.0.1:1/gatcha', TRUST_PROXY: '' },
+    encoding: 'utf8',
+    cwd: process.cwd(),
+    timeout: 10_000,
+  });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /TRUST_PROXY: obrigatório/);
+  assert.match(r.stderr, /CHAVE_DADOS: obrigatória/);
+  assert.ok(!r.stderr.includes('Senha-Forte-123'));
 });

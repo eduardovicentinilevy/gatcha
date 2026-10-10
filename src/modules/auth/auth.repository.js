@@ -6,7 +6,10 @@ export async function buscarUsuarioPorEmail(executor, email) {
 }
 
 export async function buscarUsuarioPorId(executor, id) {
-  const { rows } = await executor.query('SELECT id, email, senha_alterada_em FROM usuarios_admin WHERE id = $1', [id]);
+  const { rows } = await executor.query(
+    'SELECT id, email, senha_alterada_em, totp_segredo IS NOT NULL AS dois_fatores FROM usuarios_admin WHERE id = $1',
+    [id],
+  );
   return rows[0] ?? null;
 }
 
@@ -56,11 +59,11 @@ export async function contarFalhasRecentes(executor, email, ip, janelaMinutos) {
  * conferência (bcrypt, lenta) acontece fora da transação e sem segurar conexão do
  * pool, e tentativas simultâneas continuam sendo contadas uma a uma.
  */
-export async function reservarTentativa(client, { usuarioId, email, ip }) {
+export async function reservarTentativa(client, { usuarioId, email, ip, rota = '/api/auth/login' }) {
   const { rows } = await client.query(
     `INSERT INTO acessos_admin (usuario_id, email, evento, rota, status, ip)
-     VALUES ($1, left($2, 254), 'login_falha', '/api/auth/login', 401, left($3, 45)) RETURNING id`,
-    [usuarioId, email, ip],
+     VALUES ($1, left($2, 254), 'login_falha', left($4, 200), 401, left($3, 45)) RETURNING id`,
+    [usuarioId, email, ip, rota],
   );
   return rows[0].id;
 }
@@ -83,12 +86,40 @@ export async function registrarAcesso(executor, { usuarioId = null, email, event
 
 // ---------------------------------------------------------------- 2FA (TOTP)
 
-/** Ativa (segredo cifrado) ou desativa (null) o 2FA. Encerra as sessões abertas do usuário. */
+/** Estado do 2FA lido na hora (sob a trava do login). */
+export async function buscarEstado2fa(executor, { id }) {
+  const { rows } = await executor.query('SELECT totp_segredo, totp_ultimo_passo FROM usuarios_admin WHERE id = $1', [id]);
+  return rows[0] ?? null;
+}
+
+/**
+ * Ativa (segredo cifrado) ou desativa (null) o 2FA. Encerra as sessões abertas do usuário
+ * (senha_alterada_em) e zera o limite diário de códigos errados.
+ * @returns {Promise<Date>} o novo senha_alterada_em (para emitir um token novo depois dele)
+ */
 export async function definirSegredo2fa(executor, { id, segredoCifrado, ultimoPasso = null }) {
-  await executor.query(
-    'UPDATE usuarios_admin SET totp_segredo = $2, totp_ultimo_passo = $3, senha_alterada_em = now() WHERE id = $1',
+  const { rows } = await executor.query(
+    `UPDATE usuarios_admin
+        SET totp_segredo = $2, totp_ultimo_passo = $3, totp_pendente = NULL, totp_pendente_em = NULL, senha_alterada_em = now()
+      WHERE id = $1 RETURNING senha_alterada_em`,
     [id, segredoCifrado, ultimoPasso],
   );
+  return rows[0]?.senha_alterada_em ?? null;
+}
+
+/** Primeiro passo da ativação pelo painel: guarda o segredo novo, ainda sem valer no login. */
+export async function definirPendente2fa(executor, { id, pendenteCifrado }) {
+  await executor.query('UPDATE usuarios_admin SET totp_pendente = $2, totp_pendente_em = now() WHERE id = $1', [id, pendenteCifrado]);
+}
+
+/** Segredo pendente criado há menos de `minutos` (ou null). */
+export async function buscarPendente2fa(executor, { id, minutos }) {
+  const { rows } = await executor.query(
+    `SELECT totp_pendente FROM usuarios_admin
+      WHERE id = $1 AND totp_pendente IS NOT NULL AND totp_pendente_em > now() - make_interval(mins => $2::int)`,
+    [id, minutos],
+  );
+  return rows[0]?.totp_pendente ?? null;
 }
 
 /** Grava o passo do código aceito; false se ele (ou um mais novo) já foi usado (corrida ou reuso). */
@@ -105,19 +136,28 @@ export async function marcarFalha2fa(executor, { id }) {
   await executor.query("UPDATE acessos_admin SET evento = 'falha_2fa' WHERE id = $1", [id]);
 }
 
-/** Códigos errados nas últimas 24 h, desde o último login bem-sucedido ou a última troca de senha. */
-export async function contarFalhas2fa(executor, { usuarioId }) {
+/** Tentativa barrada (429) ou com erro do servidor (503): fica no log, mas não conta como falha. */
+export async function marcarTentativa(executor, { id, status }) {
+  await executor.query('UPDATE acessos_admin SET status = $2 WHERE id = $1', [id, status]);
+}
+
+/**
+ * Códigos errados nas últimas 24 h. Só zera trocando a senha ou (re)ativando o 2FA
+ * (senha_alterada_em), NUNCA com um login bem-sucedido: senão quem tem a senha ganharia
+ * novos chutes a cada vez que a equipe entra. Por e-mail: usa o índice acessos_admin_email_idx.
+ */
+export async function contarFalhas2fa(executor, { email }) {
   const { rows } = await executor.query(
     `SELECT count(*)::int AS falhas
-       FROM acessos_admin a
-      WHERE a.usuario_id = $1
-        AND a.evento = 'falha_2fa'
-        AND a.criado_em > greatest(
+       FROM acessos_admin
+      WHERE email = $1
+        AND evento = 'falha_2fa'
+        AND status = 401
+        AND criado_em > greatest(
               now() - interval '24 hours',
-              (SELECT senha_alterada_em FROM usuarios_admin WHERE id = $1),
-              coalesce((SELECT max(criado_em) FROM acessos_admin WHERE usuario_id = $1 AND evento = 'login_ok'), '-infinity'::timestamptz)
+              coalesce((SELECT senha_alterada_em FROM usuarios_admin WHERE email = $1), '-infinity'::timestamptz)
             )`,
-    [usuarioId],
+    [email],
   );
   return rows[0].falhas;
 }
