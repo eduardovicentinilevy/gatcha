@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Campo from '../components/Campo.jsx';
 import CampoFoto from './CampoFoto.jsx';
 import { Miniatura } from './Gatos.jsx';
 import { reais } from '../util.js';
 import { compararCategorias, ilustracaoDaCategoria, SELOS } from '../categorias.js';
 import { admin } from './api.js';
-import { Aviso, Carregando, deCentavos, paraCentavos, tratarErroDeFormulario, useCarregar } from './comum.jsx';
+import { Aviso, Carregando, deCentavos, paraCentavos, tratarErroDeFormulario, useCarregar, useMostrarAoAbrir } from './comum.jsx';
 
 const VAZIO = { categoria: '', nome: '', descricao: '', preco: '', selos: [], ativo: true, foto_url: '' };
 
@@ -17,6 +17,12 @@ export default function Cardapio() {
   // Mesma ordem do site (Matchás, Cafés, Doces...), não a alfabética da API.
   const categorias = useMemo(() => [...new Set(itens.map((i) => i.categoria))].sort(compararCategorias), [itens]);
   const foraDoSite = itens.filter((i) => !i.ativo).length;
+
+  /** Abre o formulário (novo ou de um item) e tira o aviso da ação anterior. */
+  function abrir(alvo) {
+    setAviso(null);
+    setEditando(alvo);
+  }
 
   async function acao(texto, fn) {
     setAviso(null);
@@ -33,7 +39,7 @@ export default function Cardapio() {
     <section aria-labelledby="titulo-cardapio">
       <div className="admin__cabecalho">
         <h1 id="titulo-cardapio">Cardápio</h1>
-        <button type="button" className="botao botao--pequeno" onClick={() => setEditando('novo')}>Novo item</button>
+        <button type="button" className="botao botao--pequeno" onClick={() => abrir('novo')}>Novo item</button>
       </div>
       <p className="nota">Itens desativados somem do site, sem perder o cadastro.</p>
       {itens.length > 0 && (
@@ -44,6 +50,7 @@ export default function Cardapio() {
       )}
       {editando && (
         <FormItem
+          key={editando === 'novo' ? 'novo' : editando.id}
           item={editando === 'novo' ? null : editando}
           categorias={categorias}
           onFechar={() => setEditando(null)}
@@ -78,7 +85,7 @@ export default function Cardapio() {
                       <p className="admin-item__preco">{reais(i.preco_centavos)}</p>
                     </div>
                     <div className="admin-item__acoes">
-                      <button type="button" className="botao botao--pequeno" onClick={() => setEditando(i)}>Editar</button>
+                      <button type="button" className="botao botao--pequeno" onClick={() => abrir(i)}>Editar</button>
                       <button type="button" className="botao botao--pequeno botao--secundario" onClick={() => acao(i.ativo ? `${i.nome} saiu do site.` : `${i.nome} voltou pro site.`, () => admin('PATCH', `/cardapio/${i.id}`, { ativo: !i.ativo }))}>
                         {i.ativo ? 'Tirar do site' : 'Pôr no site'}
                       </button>
@@ -104,6 +111,8 @@ function FormItem({ item, categorias, onFechar, onSalvo }) {
   const [erros, setErros] = useState({});
   const [aviso, setAviso] = useState(null);
   const [enviando, setEnviando] = useState(false);
+  const titulo = useRef(null);
+  useMostrarAoAbrir(titulo);
 
   const alterar = (e) => {
     const { name, value, checked, type } = e.target;
@@ -115,9 +124,15 @@ function FormItem({ item, categorias, onFechar, onSalvo }) {
     e.preventDefault();
     setErros({});
     setAviso(null);
+    // Confere tudo de uma vez: a pessoa vê todos os campos que faltam, não um por vez.
     const preco = paraCentavos(form.preco);
-    if (preco === null) {
-      setErros({ preco_centavos: 'Use um valor como 22 ou 22,50' });
+    const faltando = {};
+    if (form.categoria.trim().length < 2) faltando.categoria = 'Informe a categoria (ex.: Doces)';
+    if (form.nome.trim().length < 2) faltando.nome = 'Informe o nome do item';
+    if (preco === null) faltando.preco_centavos = 'Use um valor como 22 ou 22,50';
+    if (Object.keys(faltando).length > 0) {
+      setErros(faltando);
+      setAviso({ tipo: 'erro', texto: 'Confere os campos destacados.' });
       return;
     }
     const corpo = {
@@ -138,7 +153,7 @@ function FormItem({ item, categorias, onFechar, onSalvo }) {
 
   return (
     <form className="cartao admin-form" onSubmit={salvar} noValidate aria-labelledby="titulo-form-item">
-      <h2 id="titulo-form-item">{item ? `Editar ${item.nome}` : 'Novo item'}</h2>
+      <h2 id="titulo-form-item" ref={titulo} tabIndex={-1}>{item ? `Editar ${item.nome}` : 'Novo item'}</h2>
       <Aviso aviso={aviso} />
       <div className="campos">
         <Campo id="item-categoria" rotulo="Categoria" name="categoria" list="categorias-cardapio" value={form.categoria} onChange={alterar} erro={erros.categoria} maxLength={40} dica="Ex.: Bebidas, Doces, Salgados" />

@@ -5,7 +5,7 @@ import { ICONES } from '../components/Foto.jsx';
 import CampoFoto from './CampoFoto.jsx';
 import { idade } from '../util.js';
 import { admin } from './api.js';
-import { Aviso, Carregando, tratarErroDeFormulario, useCarregar } from './comum.jsx';
+import { Aviso, Carregando, tratarErroDeFormulario, useCarregar, useMostrarAoAbrir } from './comum.jsx';
 
 const STATUS = { disponivel: 'Disponível', em_processo: 'Em processo', adotado: 'Adotado' };
 /** Resumo do topo: [singular, plural]. */
@@ -19,6 +19,12 @@ export default function Gatos() {
   const [editando, setEditando] = useState(null); // null = fechado | 'novo' | gato
   const [aviso, setAviso] = useState(null);
   const lista = estado.dados?.gatos ?? [];
+
+  /** Abre o formulário (novo ou de um gato) e tira o aviso da ação anterior. */
+  function abrir(alvo) {
+    setAviso(null);
+    setEditando(alvo);
+  }
 
   async function apagar(g) {
     if (!window.confirm(`Apagar ${g.nome}? Isso não pode ser desfeito.`)) return;
@@ -35,7 +41,7 @@ export default function Gatos() {
     <section aria-labelledby="titulo-gatos">
       <div className="admin__cabecalho">
         <h1 id="titulo-gatos">Gatos</h1>
-        <button type="button" className="botao botao--pequeno" onClick={() => setEditando('novo')}>Novo gato</button>
+        <button type="button" className="botao botao--pequeno" onClick={() => abrir('novo')}>Novo gato</button>
       </div>
       <p className="nota">Gatos adotados saem do site, mas continuam aqui.</p>
       {lista.length > 0 && (
@@ -48,6 +54,7 @@ export default function Gatos() {
       )}
       {editando && (
         <FormGato
+          key={editando === 'novo' ? 'novo' : editando.id}
           gato={editando === 'novo' ? null : editando}
           onFechar={() => setEditando(null)}
           onSalvo={(texto) => { setEditando(null); setAviso({ tipo: 'ok', texto }); estado.recarregar(); }}
@@ -69,7 +76,7 @@ export default function Gatos() {
                 </div>
               </div>
               <div className="admin-item__acoes">
-                <button type="button" className="botao botao--pequeno" onClick={() => setEditando(g)}>Editar</button>
+                <button type="button" className="botao botao--pequeno" onClick={() => abrir(g)}>Editar</button>
                 <button type="button" className="botao botao--pequeno botao--secundario" onClick={() => apagar(g)}>Apagar</button>
               </div>
             </li>
@@ -93,6 +100,7 @@ function FormGato({ gato, onFechar, onSalvo }) {
   const [aviso, setAviso] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const titulo = useRef(null);
+  useMostrarAoAbrir(titulo);
 
   const alterar = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -123,7 +131,7 @@ function FormGato({ gato, onFechar, onSalvo }) {
 
   return (
     <form className="cartao admin-form" onSubmit={salvar} noValidate aria-labelledby="titulo-form-gato">
-      <h2 id="titulo-form-gato" ref={titulo}>{gato ? `Editar ${gato.nome}` : 'Novo gato'}</h2>
+      <h2 id="titulo-form-gato" ref={titulo} tabIndex={-1}>{gato ? `Editar ${gato.nome}` : 'Novo gato'}</h2>
       <Aviso aviso={aviso} />
       <div className="campos">
         <Campo id="gato-nome" rotulo="Nome" name="nome" value={form.nome} onChange={alterar} erro={erros.nome} maxLength={60} required />

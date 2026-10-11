@@ -1,5 +1,20 @@
 import { useCallback, useEffect, useState } from 'react';
-import { reais } from '../util.js';
+import { reais, reduzirMovimento } from '../util.js';
+
+/**
+ * Formulário recém-aberto: rola até ele (descontando a barra fixa do painel) e põe o foco
+ * no título. Sem isso, "Editar" num item lá embaixo abria o formulário fora da tela.
+ */
+export function useMostrarAoAbrir(titulo) {
+  useEffect(() => {
+    const el = titulo.current;
+    if (!el) return;
+    const barra = document.querySelector('.admin__topo')?.offsetHeight ?? 0;
+    const y = el.closest('form').getBoundingClientRect().top + window.scrollY - barra - 12;
+    window.scrollTo({ top: Math.max(0, y), behavior: reduzirMovimento() ? 'auto' : 'smooth' });
+    el.focus({ preventScroll: true });
+  }, [titulo]);
+}
 
 /** Carrega dados do painel e expõe recarregar(). */
 export function useCarregar(buscar, deps) {
