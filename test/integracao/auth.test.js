@@ -250,8 +250,13 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
 
   test('limite por IP do login: só as tentativas que FALHAM contam', async () => {
     const contagem = async () => (await pool.query('SELECT coalesce(sum(contagem), 0)::int AS n FROM limites_taxa')).rows[0].n;
+    // O express-rate-limit só desconta o login certo DEPOIS de responder: espera o desconto chegar ao banco.
+    const contagemAssentada = async (esperada) => {
+      for (let i = 0; i < 40 && (await contagem()) !== esperada; i++) await new Promise((r) => setTimeout(r, 50));
+      return contagem();
+    };
     assert.equal((await login()).status, 200);
-    assert.equal(await contagem(), 0, 'login certo não gasta o limite (equipe no Wi-Fi do café)');
+    assert.equal(await contagemAssentada(0), 0, 'login certo não gasta o limite (equipe no Wi-Fi do café)');
     assert.equal((await login(undefined, 'Senha-Errada-123!')).status, 401);
     assert.equal(await contagem(), 1);
   });
