@@ -6,6 +6,7 @@ import { ilustracaoDaCategoria } from '../categorias.js';
 import Carrossel from './Carrossel.jsx';
 import Foto from './Foto.jsx';
 import LogoGato from './LogoGato.jsx';
+import Flutuantes from './Flutuantes.jsx';
 import StatusFuncionamento from './Status.jsx';
 import { IconePatinha } from './Icones.jsx';
 
@@ -134,6 +135,7 @@ export default function Hero() {
 
   return (
     <section id="inicio" className="hero">
+      <Flutuantes />
       <div className="container hero__grade">
         <div className="hero__texto" data-revelar>
           <p className="selo selo--escuro">{t.selo}</p>
