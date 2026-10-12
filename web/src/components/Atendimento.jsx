@@ -43,7 +43,7 @@ export default function Atendimento() {
           {whatsapp ? (
             <a className="botao botao--grande botao--largo" href={whatsapp} target="_blank" rel="noopener noreferrer"><IconeWhatsapp /> Chamar no WhatsApp</a>
           ) : (
-            <p className="nota">WhatsApp em breve. Enquanto isso, chama a gente no Instagram!</p>
+            <p className="nota">Tira a dúvida aqui embaixo ou chama a gente no Instagram.</p>
           )}
           <h3 className="atendimento__subtitulo">Perguntas frequentes</h3>
           <div className="faq">

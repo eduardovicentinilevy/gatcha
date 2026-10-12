@@ -39,11 +39,7 @@ export default function Visite() {
           <h3>Fala com a gente</h3>
           <div className="contatos">
             <a className="botao botao--claro" href={linkInstagram()} target="_blank" rel="noopener noreferrer"><IconeInstagram /> @{contato.instagram}</a>
-            {whatsapp ? (
-              <a className="botao botao--claro" href={whatsapp} target="_blank" rel="noopener noreferrer"><IconeWhatsapp /> WhatsApp</a>
-            ) : (
-              <span className="botao botao--claro botao--inativo" aria-disabled="true"><IconeWhatsapp /> WhatsApp em breve</span>
-            )}
+            {whatsapp && <a className="botao botao--claro" href={whatsapp} target="_blank" rel="noopener noreferrer"><IconeWhatsapp /> WhatsApp</a>}
             {contato.email && <a className="botao botao--claro" href={`mailto:${contato.email}`}>{contato.email}</a>}
           </div>
         </div>

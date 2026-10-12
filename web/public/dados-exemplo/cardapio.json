@@ -185,8 +185,8 @@
   {
    "id": 15,
    "categoria": "Doces",
-   "nome": "Brownie (fora de linha)",
-   "descricao": "Item inativo: não deve aparecer no site.",
+   "nome": "Brownie de chocolate",
+   "descricao": "Chocolate meio amargo com nozes. Volta quando chegar a próxima fornada.",
    "preco_centavos": 1500,
    "ativo": false,
    "selos": [],

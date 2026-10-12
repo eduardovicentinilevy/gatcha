@@ -3,6 +3,7 @@
  * (web/public/dados-exemplo), para o site e o painel terem o que mostrar.
  *   npm run dev:popular
  * Só preenche tabelas vazias (não duplica nem apaga nada) e recusa produção ou banco remoto.
+ * Rodar de novo também troca os textos de teste das versões antigas dos dados de exemplo.
  */
 import { readFile } from 'node:fs/promises';
 import { config } from '../src/config/env.js';
@@ -37,6 +38,17 @@ try {
       }
       console.log(`Gatos: ${gatos.length} cadastrados.`);
     } else console.log('Gatos já cadastrados: nada feito.');
+
+    // Bancos populados por versões antigas deste script: troca os textos de teste pelos de agora.
+    const textos = await pool.query(
+      `WITH g AS (UPDATE gatos SET personalidade = 'preguiçoso, rei da caixa de papelão'
+                  WHERE personalidade = 'já adotado: não deve aparecer no site' RETURNING 1),
+            i AS (UPDATE itens_cardapio SET nome = 'Brownie de chocolate',
+                         descricao = 'Chocolate meio amargo com nozes. Volta quando chegar a próxima fornada.'
+                  WHERE nome = 'Brownie (fora de linha)' RETURNING 1)
+       SELECT (SELECT count(*) FROM g) + (SELECT count(*) FROM i) AS total`,
+    );
+    if (Number(textos.rows[0].total) > 0) console.log(`Textos de teste antigos atualizados: ${textos.rows[0].total}.`);
   }
 } catch (err) {
   console.error('Falha:', err.message);

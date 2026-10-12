@@ -88,7 +88,7 @@ abbr[title] { text-decoration: none; }
 .botao svg { width: 20px; height: 20px; flex: none; }
 .botao:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--cor-sombra); }
 .botao:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--cor-sombra); }
-.botao[disabled], .botao--inativo { opacity: .55; cursor: not-allowed; transform: none; box-shadow: 2px 2px 0 var(--cor-sombra); }
+.botao[disabled] { opacity: .55; cursor: not-allowed; transform: none; box-shadow: 2px 2px 0 var(--cor-sombra); }
 .botao--grande { min-height: 54px; font-size: 1.08rem; padding-inline: 1.6em; }
 .botao--pequeno { min-height: 40px; padding: .35em 1em; font-size: .95rem; box-shadow: 3px 3px 0 var(--cor-sombra); }
 .botao--secundario { background: var(--cor-superficie); color: var(--cor-texto); }
@@ -510,7 +510,7 @@ abbr[title] { text-decoration: none; }
   .rodape__nav ul { justify-content: center; }
 }
 .rodape__base {
-  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 16px;
   margin-top: 22px; padding-top: 16px; border-top: 1.5px dashed var(--cor-tracejado); font-size: .84rem; color: var(--cor-texto-suave);
 }
 .rodape__base p { margin: 0; }
@@ -622,6 +622,7 @@ label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
 /* As abas quebram linha no celular em vez de rolar de lado (rolando, a primeira ficava cortada). */
 .admin__abas { display: flex; flex-wrap: wrap; gap: 6px 6px; padding-bottom: 10px; }
 .admin__abas::-webkit-scrollbar { display: none; }
+@media (max-width: 520px) { .admin__abas { display: grid; grid-template-columns: 1fr 1fr; } } /* 2x2 em vez de 3+1 */
 .admin__aba {
   flex: none; min-height: 40px; padding: .3em 1em; border-radius: 999px; border: 2px solid var(--cor-borda);
   background: transparent; color: var(--cor-texto); font: inherit; font-weight: 800; cursor: pointer;

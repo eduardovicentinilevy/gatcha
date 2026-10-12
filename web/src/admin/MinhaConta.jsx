@@ -154,7 +154,7 @@ export default function MinhaConta({ usuario, onAtualizarUsuario }) {
           </form>
         )}
 
-        <p className="nota">Perdeu ou trocou de celular? Peça a quem administra o sistema para desativar (<code>npm run admin:2fa -- {usuario.email} --desativar</code>) e ative de novo aqui.</p>
+        <p className="nota">Perdeu ou trocou de celular? Peça a quem administra o sistema para desativar a verificação da sua conta e ative de novo aqui.</p>
       </div>
     </section>
   );

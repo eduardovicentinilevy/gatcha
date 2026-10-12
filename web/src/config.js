@@ -103,7 +103,7 @@ export const CONFIG = Object.freeze({
   },
   contato: {
     instagram: 'gatchasp',
-    whatsapp: null, // [SUBSTITUIR] só dígitos com DDI, ex.: '5511912345678'. null = botão "em breve".
+    whatsapp: null, // [SUBSTITUIR] só dígitos com DDI, ex.: '5511912345678'. null = sem botão de WhatsApp.
     mensagemWhatsapp: 'Oi, Gatchá! Vim pelo site e queria tirar uma dúvida 🐾',
     email: null, // [SUBSTITUIR] e-mail de contato, ex.: 'oi@gatcha.com.br'
   },

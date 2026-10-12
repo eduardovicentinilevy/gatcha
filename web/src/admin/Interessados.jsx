@@ -4,6 +4,9 @@ import { Aviso, Carregando, useCarregar } from './comum.jsx';
 
 const fmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
 
+/** A API guarda o celular só com dígitos (DDD + número): "11987654321" -> "(11) 98765-4321". */
+const telefone = (d) => `(${d.slice(0, 2)}) ${d.slice(2, -4)}-${d.slice(-4)}`;
+
 export default function Interessados() {
   const [status, setStatus] = useState('novo');
   const [aviso, setAviso] = useState(null);
@@ -42,7 +45,7 @@ export default function Interessados() {
                 <div>
                   <p className="admin-item__titulo">{i.nome} <span className="admin-item__meta">quer conhecer {i.gato}</span></p>
                   <p className="admin-item__meta">
-                    {i.contato.includes('@') ? <a href={`mailto:${i.contato}`}>{i.contato}</a> : <a href={`tel:+55${i.contato}`}>{i.contato}</a>} · {fmt.format(new Date(i.criado_em))}
+                    {i.contato.includes('@') ? <a href={`mailto:${i.contato}`}>{i.contato}</a> : <a href={`tel:+55${i.contato}`}>{telefone(i.contato)}</a>} · {fmt.format(new Date(i.criado_em))}
                   </p>
                   {i.mensagem && <p className="admin-item__mensagem">“{i.mensagem}”</p>}
                 </div>
