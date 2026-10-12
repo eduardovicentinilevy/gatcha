@@ -18,7 +18,7 @@ Node.js 22 + Express 5 + PostgreSQL (API, no Google Cloud Run) e React 19 + Vite
 ## Painel
 
 - Segurança: token de 15 min **só na memória da aba** (recarregar = entrar de novo), todas as rotas `/api/admin/*` exigem login e ficam no log de acessos, página com `noindex`.
-- **Fotos (Gatos e Cardápio):** botão "Enviar foto" direto do celular ou computador (JPG, PNG ou WebP). O navegador reduz fotos grandes antes de enviar, e a API **reprocessa toda imagem**: WebP de no máximo 1600 px, orientação corrigida, **sem metadados** (o GPS da foto do celular não vai pro site) e recusa de arquivos disfarçados. As fotos ficam no Postgres (tabela `imagens`) e são servidas em `/api/imagens/<id>.webp` com cache longo. Fotos trocadas ou sem uso são apagadas pelo `npm run lgpd:expurgar` depois de 1 dia. Ainda dá pra colar um link `https://...`.
+- **Fotos (Gatos e Cardápio):** botão "Enviar foto" direto do celular ou computador (JPG, PNG ou WebP). O navegador reduz fotos grandes antes de enviar, e a API **reprocessa toda imagem**: WebP de no máximo 1600 px, orientação corrigida, **sem metadados** (o GPS da foto do celular não vai pro site) e recusa de arquivos disfarçados. As fotos ficam no Postgres (tabela `imagens`) e são servidas em `/api/imagens/<id>.webp` com cache longo. Fotos trocadas ou sem uso são apagadas pelo `npm run limpeza` depois de 1 dia. Ainda dá pra colar um link `https://...`.
 
 ## Arquitetura
 
