@@ -594,6 +594,63 @@ abbr[title] { text-decoration: none; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
+/* ---------- Logo vivo: o gato respira, pisca e mexe orelhas e bigodes ----------
+   Cada parte gira em torno do próprio ponto de apoio (coordenadas do viewBox 0 0 200 200).
+   As durações são "quebradas" (4,2 s, 5,7 s, 6,1 s, 7,3 s, 9,1 s) para os movimentos quase
+   nunca coincidirem: parece um gato, não um relógio. Só transform: barato de animar.
+   Quem pede menos movimento no sistema não vê nada disso (regra prefers-reduced-motion acima). */
+.logo-gato__gato, .logo-gato__orelha, .logo-gato__olhos, .logo-gato__bigode { transform-box: view-box; }
+.logo-gato__gato { transform-origin: 100px 140px; }
+.logo-gato__orelha--esq { transform-origin: 73.5px 71.7px; }
+.logo-gato__orelha--dir { transform-origin: 124px 75px; }
+.logo-gato__olhos { transform-origin: 98px 102.4px; }
+.logo-gato__bigode--esq { transform-origin: 72.7px 114.7px; }
+.logo-gato__bigode--dir { transform-origin: 134px 115.5px; }
+
+.logo-gato--vivo .logo-gato__gato { animation: gato-respira 4.2s ease-in-out infinite; }
+.logo-gato--vivo .logo-gato__olhos { animation: gato-pisca 5.7s linear infinite; }
+.logo-gato--vivo .logo-gato__orelha--esq { animation: gato-orelha-esq 7.3s ease-in-out infinite; }
+.logo-gato--vivo .logo-gato__orelha--dir { animation: gato-orelha-dir 9.1s ease-in-out 1.7s infinite; }
+.logo-gato--vivo .logo-gato__bigode--esq { animation: gato-bigode-esq 6.1s ease-in-out infinite; }
+.logo-gato--vivo .logo-gato__bigode--dir { animation: gato-bigode-dir 6.1s ease-in-out infinite; }
+.logo-gato--pausado * { animation-play-state: paused !important; }
+
+/* Cursor no logo (topo, painel, selo do início): o gato fica atento e pisca uma vez. */
+:is(.marca, .admin__marca, .hero__arte):is(:hover, :focus-visible) .logo-gato__orelha--esq { animation: gato-atento-esq .6s ease-out; }
+:is(.marca, .admin__marca, .hero__arte):is(:hover, :focus-visible) .logo-gato__orelha--dir { animation: gato-atento-dir .6s ease-out .05s; }
+:is(.marca, .admin__marca, .hero__arte):is(:hover, :focus-visible) .logo-gato__olhos { animation: gato-pisca-uma .3s ease-in-out .25s; }
+
+@keyframes gato-respira { 50% { transform: translateY(-1.5px) scale(1.015); } }
+/* Uma piscada (~110 ms) e, mais adiante, uma piscada dupla. */
+@keyframes gato-pisca {
+  0%, 45%, 49%, 80%, 83.5%, 87%, 100% { transform: scaleY(1); }
+  47%, 81.75%, 85.25% { transform: scaleY(.1); }
+}
+@keyframes gato-pisca-uma { 50% { transform: scaleY(.1); } }
+@keyframes gato-orelha-esq {
+  0%, 70%, 78%, 100% { transform: rotate(0); }
+  72% { transform: rotate(-10deg); }
+  74% { transform: rotate(3deg); }
+  76% { transform: rotate(-4deg); }
+}
+@keyframes gato-orelha-dir {
+  0%, 55%, 62%, 100% { transform: rotate(0); }
+  57% { transform: rotate(9deg); }
+  59.5% { transform: rotate(-3deg); }
+}
+@keyframes gato-bigode-esq {
+  0%, 30%, 39%, 100% { transform: rotate(0); }
+  33% { transform: rotate(-3deg); }
+  36% { transform: rotate(1.5deg); }
+}
+@keyframes gato-bigode-dir {
+  0%, 60%, 69%, 100% { transform: rotate(0); }
+  63% { transform: rotate(3deg); }
+  66% { transform: rotate(-1.5deg); }
+}
+@keyframes gato-atento-esq { 35% { transform: rotate(-12deg); } 70% { transform: rotate(4deg); } }
+@keyframes gato-atento-dir { 35% { transform: rotate(12deg); } 70% { transform: rotate(-4deg); } }
+
 /* ---------- Painel administrativo ---------- */
 .campo select, .admin-filtros select, .admin-filtros input {
   width: 100%; min-height: 50px; padding: .6em .9em; border-radius: var(--raio-p); border: var(--borda);

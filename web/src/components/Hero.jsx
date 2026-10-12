@@ -154,7 +154,7 @@ export default function Hero() {
               <path id="hero-anel" d="M100 100m-86 0a86 86 0 1 1 172 0a86 86 0 1 1-172 0" fill="none" />
               <text><textPath href="#hero-anel" textLength="538" lengthAdjust="spacing">{TEXTO_DO_ANEL.toUpperCase()}</textPath></text>
             </svg>
-            <div className="hero__logo"><LogoGato tamanho={260} /></div>
+            <div className="hero__logo"><LogoGato tamanho={260} vivo /></div>
           </div>
           <IconePatinha className="hero__patinha hero__patinha--1" />
           <IconePatinha className="hero__patinha hero__patinha--2" />

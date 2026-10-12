@@ -94,7 +94,7 @@ function Login({ aviso, onEntrar }) {
   return (
     <>
       <form className="cartao admin-login" onSubmit={enviar} noValidate aria-labelledby="titulo-login">
-        <div className="admin-login__logo"><LogoGato tamanho={72} /></div>
+        <div className="admin-login__logo"><LogoGato tamanho={72} vivo /></div>
         <div className="admin-login__topo">
           <h1 id="titulo-login">Área da equipe</h1>
           <p>Gatos, cardápio e pedidos de adoção do site, num lugar só.</p>
