@@ -34,14 +34,10 @@ r.patch('/gatos/:id', validar({ params: s.idParams, body: s.alterarGatoBody }), 
   if (!gato) throw naoEncontrado('Gato não encontrado.');
   res.json({ gato });
 });
-r.delete(
-  '/gatos/:id',
-  validar({ params: s.idParams }),
-  tratar({ 23503: ['GATO_COM_INTERESSADOS', 'Esse gato tem interessados registrados. Marque como adotado em vez de apagar.'] }, async (req, res) => {
-    if (!(await repo.apagarGato(pool, req.validado.params.id))) throw naoEncontrado('Gato não encontrado.');
-    res.status(204).end();
-  }),
-);
+r.delete('/gatos/:id', validar({ params: s.idParams }), async (req, res) => {
+  if (!(await repo.apagarGato(pool, req.validado.params.id))) throw naoEncontrado('Gato não encontrado.');
+  res.status(204).end();
+});
 
 // ---------------------------------------------------------------- cardápio
 const ITEM_DUPLICADO = { 23505: ['ITEM_DUPLICADO', 'Já existe um item com esse nome nessa categoria.'] };
@@ -57,14 +53,4 @@ r.patch('/cardapio/:id', validar({ params: s.idParams, body: s.alterarItemBody }
 r.delete('/cardapio/:id', validar({ params: s.idParams }), async (req, res) => {
   if (!(await repo.apagarItem(pool, req.validado.params.id))) throw naoEncontrado('Item não encontrado.');
   res.status(204).end();
-});
-
-// ---------------------------------------------------------------- interesses
-r.get('/interesses', validar({ query: s.listarInteressesQuery }), async (req, res) => {
-  res.json({ interesses: await repo.listarInteresses(pool, req.validado.query.status) });
-});
-r.patch('/interesses/:id', validar({ params: s.idParams, body: s.alterarInteresseBody }), async (req, res) => {
-  const interesse = await repo.mudarStatusInteresse(pool, req.validado.params.id, req.validado.body.status);
-  if (!interesse) throw naoEncontrado('Interesse não encontrado.');
-  res.json({ interesse });
 });

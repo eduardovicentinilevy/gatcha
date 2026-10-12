@@ -6,7 +6,7 @@ const URL_BANCO = process.env.TEST_DATABASE_URL;
 const SENHA = 'Matcha-e-gatos-2026!';
 
 describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_URL não definida' }, () => {
-  let servidor, base, pool, gerarHash, criarUsuario, expurgar;
+  let servidor, base, pool, gerarHash, criarUsuario, apagarAcessosAntigos;
 
   const post = (corpo, rota = '/api/auth/login') =>
     fetch(`${base}${rota}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) });
@@ -24,7 +24,7 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     ({ pool } = await import('../../src/db/pool.js'));
     ({ gerarHash } = await import('../../src/modules/auth/senha.js'));
     ({ criarUsuario } = await import('../../src/modules/auth/auth.repository.js'));
-    ({ expurgar } = await import('../../src/modules/lgpd/expurgo.js'));
+    ({ apagarAcessosAntigos } = await import('../../src/modules/auth/auth.repository.js'));
     const { criarApp } = await import('../../src/app.js');
     servidor = criarApp().listen(0);
     await new Promise((r) => servidor.once('listening', r));
@@ -172,15 +172,11 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     assert.equal(await contagem(), 1);
   });
 
-  test('LGPD: o expurgo apaga o vencido (interesses, acessos) e preserva o resto', async () => {
-    await pool.query('TRUNCATE interesses_adocao, gatos RESTART IDENTITY CASCADE');
-    await pool.query("INSERT INTO gatos (nome, sexo) VALUES ('Mochi', 'macho')");
-    await pool.query("INSERT INTO interesses_adocao (gato_id, nome, contato, criado_em) VALUES (1, 'Velho', 'v@v.com', now() - interval '200 days'), (1, 'Novo', 'n@n.com', now() - interval '10 days')");
-    await pool.query("INSERT INTO acessos_admin (email, evento, criado_em) VALUES ('x@y.com', 'acesso', now() - interval '100 days'), ('x@y.com', 'acesso', now())");
-    const apagados = await expurgar(pool, { retencao: { interessesDias: 180, acessosDias: 90 }, fuso: 'America/Sao_Paulo' });
-    assert.deepEqual(apagados, { interesses: 1, acessos: 1 });
-    const { rows } = await pool.query('SELECT nome FROM interesses_adocao');
-    assert.deepEqual(rows.map((r) => r.nome), ['Novo']);
+  test('limpeza: apaga o log de acessos antigo e preserva o recente', async () => {
+    await pool.query("INSERT INTO acessos_admin (email, evento, rota, criado_em) VALUES ('x@y.com', 'acesso', '/velho', now() - interval '100 days'), ('x@y.com', 'acesso', '/novo', now())");
+    assert.equal(await apagarAcessosAntigos(pool, { dias: 90, fuso: 'America/Sao_Paulo' }), 1);
+    const { rows } = await pool.query("SELECT rota FROM acessos_admin WHERE email = 'x@y.com'");
+    assert.deepEqual(rows.map((r) => r.rota), ['/novo']);
   });
 });
 

@@ -5,12 +5,10 @@ import Campo from '../components/Campo.jsx';
 import { definirAoExpirar, entrar, sair } from './api.js';
 import Gatos from './Gatos.jsx';
 import Cardapio from './Cardapio.jsx';
-import Interessados from './Interessados.jsx';
 
 const ABAS = [
   ['gatos', 'Gatos', Gatos],
   ['cardapio', 'Cardápio', Cardapio],
-  ['interessados', 'Interessados', Interessados],
 ];
 
 /** Painel da equipe: login + abas. O site público não tem link para cá e a página não é indexada. */

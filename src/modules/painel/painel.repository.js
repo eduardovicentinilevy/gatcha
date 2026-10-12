@@ -52,23 +52,6 @@ export async function apagarItem(executor, id) {
   return rowCount > 0;
 }
 
-// ---------------------------------------------------------------- interesses
-export async function listarInteresses(executor, status) {
-  const { rows } = await executor.query(
-    `SELECT i.id::int, i.gato_id::int, g.nome AS gato, i.nome, i.contato, i.mensagem, i.status, i.criado_em
-       FROM interesses_adocao i JOIN gatos g ON g.id = i.gato_id
-      WHERE ($1::text IS NULL OR i.status = $1)
-      ORDER BY i.criado_em DESC LIMIT 500`,
-    [status ?? null],
-  );
-  return rows;
-}
-
-export async function mudarStatusInteresse(executor, id, status) {
-  const { rows } = await executor.query('UPDATE interesses_adocao SET status = $2 WHERE id = $1 RETURNING id::int, status', [id, status]);
-  return rows[0] ?? null;
-}
-
 // ---------------------------------------------------------------- util
 /** UPDATE parcial. Colunas só da allowlist; valores sempre por parâmetro. */
 async function atualizar(executor, tabela, colunas, permitidas, id, campos) {

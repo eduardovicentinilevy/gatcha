@@ -8,7 +8,7 @@ const MAPA_LINK = `https://www.google.com/maps/search/?api=1&query=${consulta}`;
 
 export default function Visite() {
   // O mapa do Google só carrega quando a pessoa pede: mais rápido em 4G e sem
-  // cookies de terceiros antes do consentimento (LGPD).
+  // cookies de terceiros antes de a pessoa pedir.
   const [mapa, setMapa] = useState(false);
   const whatsapp = linkWhatsapp();
   const { endereco, funcionamento, contato } = CONFIG;

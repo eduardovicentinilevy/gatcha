@@ -93,7 +93,3 @@ function carregadorComCache(rota, arquivo, chave) {
 
 export const carregarCardapio = carregadorComCache('/cardapio', 'cardapio.json', 'itens');
 export const carregarGatos = carregadorComCache('/gatos', 'gatos.json', 'gatos');
-
-export const api = {
-  registrarInteresse: (dados) => requisitar(`${CONFIG.apiBase}/interesses`, { metodo: 'POST', corpo: dados }),
-};

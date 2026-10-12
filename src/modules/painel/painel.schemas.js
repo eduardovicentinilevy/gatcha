@@ -75,7 +75,3 @@ export const criarItemBody = z.strictObject({
   foto_url: itemCampos.foto_url.optional().transform((v) => v ?? null),
 });
 export const alterarItemBody = algumCampo(z.strictObject(Object.fromEntries(Object.entries(itemCampos).map(([k, v]) => [k, v.optional()]))));
-
-// ---------------------------------------------------------------- interesses
-export const listarInteressesQuery = z.strictObject({ status: z.enum(['novo', 'repassado']).optional() });
-export const alterarInteresseBody = z.strictObject({ status: z.enum(['novo', 'repassado']) });

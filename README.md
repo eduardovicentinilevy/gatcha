@@ -1,6 +1,8 @@
 # Gatchá 🍵🐾
 
-Este é o site do Gatchá, o cat café de matchá da Galeria Metrópole, junto com o painel onde a equipe cuida dos gatos, do cardápio e dos pedidos de adoção.
+Este é o site do Gatchá, o cat café de matchá da Galeria Metrópole, junto com o painel onde a equipe cuida dos gatos e do cardápio.
+
+O site é só uma **vitrine**: mostra o cardápio, o gatil e os gatos do Abrigo São Gabriel, mas não recebe reservas, pedidos de adoção nem dados de ninguém.
 
 Aqui está tudo o que você precisa para rodar o projeto no seu computador. Vai publicar na internet ou quer entender como ele funciona por dentro? Isso fica em [docs/producao.md](docs/producao.md).
 
@@ -79,7 +81,6 @@ Mexeu em algum arquivo? O site se atualiza sozinho no navegador e a API reinicia
 |---|---|
 | **Gatos** | Cadastrar, editar e apagar gatos, com foto tirada direto do celular. Gato adotado sai do site, mas continua no painel. |
 | **Cardápio** | Itens, preços, selos (vegano, novo, mais pedido) e fotos. "Tirar do site" esconde o item sem apagar. |
-| **Interessados** | Quem clicou em "Quero conhecer" em algum gato. Depois de passar o contato para o Abrigo São Gabriel, marque como repassado. |
 
 O login dura 15 minutos e não fica salvo no navegador. Se você recarregar a página, é só entrar de novo. Isso é de propósito, por segurança.
 

@@ -181,7 +181,7 @@ export const CONFIG = Object.freeze({
   /** Carrossel do topo. O "gato do dia" e a "bebida destaque" vêm dos dados (gatos/cardápio). */
   destaqueAdocao: {
     titulo: 'Adotar muda duas vidas',
-    texto: 'Se apaixonou por algum gato? A gente te conecta com o Abrigo São Gabriel.',
+    texto: 'Se apaixonou por algum gato? Venha conhecer no gatil e fale com a equipe.',
   },
 
   /** Perguntas frequentes do painel de atendimento. [CONFIRMAR respostas com o cliente] */
@@ -197,7 +197,7 @@ export const CONFIG = Object.freeze({
     {
       pergunta: 'Como funciona a adoção?',
       resposta:
-        'Clique em "Quero conhecer" no gato que te conquistou. A gente repassa seu contato pro Abrigo São Gabriel, que conduz a entrevista e a adoção responsável.',
+        'Venha conhecer os gatos no gatil e fale com a equipe no balcão. A gente te apresenta ao Abrigo São Gabriel, que conduz a entrevista e a adoção responsável.',
     },
     {
       pergunta: 'Como reservo a área dos gatos?',
@@ -223,19 +223,6 @@ export const CONFIG = Object.freeze({
     'Preparo do matchá com batedor de bambu',
     'Dois gatos brincando com uma varinha de penas',
   ],
-
-
-  /**
-   * LGPD — dados que aparecem no aviso de privacidade (/privacidade).
-   * [CONFIRMAR] com o Gatchá: razão social, CNPJ, contato do encarregado e prazo dos interesses.
-   * Os prazos de retenção devem ser iguais aos da API (RETENCAO_*_DIAS).
-   */
-  lgpd: {
-    controlador: { razaoSocial: null, cnpj: null }, // [SUBSTITUIR] ex.: 'Gatchá Cat Café Ltda.', '00.000.000/0001-00'
-    contatoTitular: null, // [SUBSTITUIR] e-mail para pedidos dos titulares, ex.: 'privacidade@gatcha.com.br'
-    retencaoInteressesDias: 180,
-    atualizadoEm: '2026-10-09',
-  },
 });
 
 /** Link do WhatsApp com mensagem pronta, ou null enquanto o número não for definido. */

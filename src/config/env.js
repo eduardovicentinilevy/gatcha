@@ -54,14 +54,13 @@ const schema = z
     // certo quando o Firebase serve o site e a /api na mesma origem.
     CORS_ORIGINS: lista,
     RATE_LIMIT_PUBLICO_POR_MIN: inteiro(120, 1, 10_000),
-    RATE_LIMIT_INTERESSES_POR_15MIN: inteiro(10, 1, 1_000), // "Quero conhecer" (adoção)
     RATE_LIMIT_FOTOS_POR_15MIN: inteiro(60, 1, 1_000), // envios de foto por pessoa da equipe
     // Teto do espaço das fotos no banco (soma de todas). Protege o plano do banco de encher.
     IMAGENS_MAX_MB: inteiro(300, 10, 100_000),
     // Só para desenvolvimento: em produção o site vem do Firebase Hosting.
     SERVIR_FRONTEND: booleano(false),
 
-    // Fuso do café: datas e prazos de retenção (LGPD) contam no horário de São Paulo.
+    // Fuso do café: datas contam no horário de São Paulo.
     TZ_NEGOCIO: z.string().default('America/Sao_Paulo'),
 
     // Painel administrativo: login (bcrypt) + token JWT de curta duração.
@@ -78,9 +77,7 @@ const schema = z
     LOGIN_MAX_FALHAS_POR_EMAIL: inteiro(5, 3, 20), // por e-mail + IP
     LOGIN_MAX_FALHAS_GLOBAL_POR_EMAIL: inteiro(30, 5, 1_000), // por e-mail, somando todos os IPs (ataque distribuído)
 
-    // Retenção de dados pessoais (LGPD). Interesses de adoção e log de acessos:
-    // prazos propostos, [CONFIRMAR] com o Gatchá. (As reservas são feitas no balcão: o site não guarda nenhuma.)
-    RETENCAO_INTERESSES_DIAS: inteiro(180, 30, 3650),
+    // Por quantos dias o log de acessos ao painel é guardado (a limpeza apaga o mais antigo).
     RETENCAO_ACESSOS_DIAS: inteiro(90, 30, 3650),
   })
   .superRefine((env, ctx) => {
@@ -148,7 +145,6 @@ function carregar() {
       trustProxyDefinido: e.TRUST_PROXY !== undefined,
       corsOrigins: e.CORS_ORIGINS,
       rateLimitPublicoPorMin: e.RATE_LIMIT_PUBLICO_POR_MIN,
-      rateLimitInteressesPor15Min: e.RATE_LIMIT_INTERESSES_POR_15MIN,
       rateLimitFotosPor15Min: e.RATE_LIMIT_FOTOS_POR_15MIN,
       servirFrontend: e.SERVIR_FRONTEND,
     }),
@@ -162,10 +158,7 @@ function carregar() {
     }),
     dados: Object.freeze({ chave: e.CHAVE_DADOS }),
     imagens: Object.freeze({ maxBytesTotal: e.IMAGENS_MAX_MB * 1024 * 1024 }),
-    retencao: Object.freeze({
-      interessesDias: e.RETENCAO_INTERESSES_DIAS,
-      acessosDias: e.RETENCAO_ACESSOS_DIAS,
-    }),
+    retencao: Object.freeze({ acessosDias: e.RETENCAO_ACESSOS_DIAS }),
   });
 }
 

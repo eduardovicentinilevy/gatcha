@@ -40,15 +40,6 @@ export const limiteLogin = rateLimit({
   limit: config.auth.rateLimitLoginPor15Min,
 });
 
-/** "Quero conhecer" (interesse em adoção): teto baixo contra spam de formulário. */
-export const limiteInteresse = rateLimit({
-  ...comum,
-  store: new LimitePostgres('interesse'),
-  identifier: 'interesse-adocao',
-  windowMs: 15 * 60_000,
-  limit: config.http.rateLimitInteressesPor15Min,
-});
-
 /** Envio de fotos pelo painel: teto por PESSOA da equipe (já autenticada), não por IP. */
 export const limiteFotos = rateLimit({
   ...comum,

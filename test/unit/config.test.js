@@ -12,7 +12,7 @@ function carregar(env) {
   return r.status === 0 ? { ok: true, http: JSON.parse(r.stdout) } : { ok: false, erro: r.stderr };
 }
 
-test('config compartilhada: os JOBS de produção (migrações, expurgo) carregam sem TRUST_PROXY nem CHAVE_DADOS', () => {
+test('config compartilhada: os JOBS de produção (migrações, limpeza) carregam sem TRUST_PROXY nem CHAVE_DADOS', () => {
   const job = carregar({ NODE_ENV: 'production' });
   assert.equal(job.ok, true, job.erro);
   assert.equal(job.http.trustProxyDefinido, false);

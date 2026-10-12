@@ -52,7 +52,7 @@ describe('Limites de taxa no Postgres (integração)', { skip: !URL_BANCO && 'TE
   test('limitadores e clientes diferentes não se misturam', async () => {
     await instancia('login').increment('203.0.113.7');
     await instancia('login').increment('203.0.113.7');
-    assert.equal((await instancia('interesse').increment('203.0.113.7')).totalHits, 1);
+    assert.equal((await instancia('fotos').increment('203.0.113.7')).totalHits, 1);
     assert.equal((await instancia('login').increment('203.0.113.8')).totalHits, 1);
   });
 
@@ -74,7 +74,7 @@ describe('Limites de taxa no Postgres (integração)', { skip: !URL_BANCO && 'TE
     assert.equal(await a.get('x'), undefined);
   });
 
-  test('expurgo apaga só as janelas vencidas', async () => {
+  test('limpeza apaga só as janelas vencidas', async () => {
     await instancia().increment('vencido');
     await pool.query("UPDATE limites_taxa SET expira_em = now() - interval '1 minute'");
     await instancia().increment('ativo');

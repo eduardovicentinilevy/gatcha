@@ -76,7 +76,7 @@ export function criarApp() {
 
   if (config.http.servirFrontend) {
     // Serve o build do React (cd web && npm run build). SPA: rotas que não são
-    // arquivo nem /api caem no index.html (ex.: /privacidade).
+    // arquivo nem /api caem no index.html (ex.: /admin).
     const pasta = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../web/dist');
     app.use(express.static(pasta));
     app.use((req, res, next) => {

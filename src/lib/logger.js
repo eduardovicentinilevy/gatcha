@@ -2,7 +2,7 @@
  * Logger estruturado em JSON, uma linha por evento, no stdout/stderr.
  * O Cloud Logging interpreta automaticamente os campos "severity" e "message".
  *
- * LGPD: nunca registre corpo de requisição, nome, e-mail, telefone ou IP aqui.
+ * Privacidade: nunca registre corpo de requisição, nome, e-mail, telefone ou IP aqui.
  * O Cloud Run já mantém o request log da plataforma com retenção própria.
  */
 import { config } from '../config/env.js';

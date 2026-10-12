@@ -37,7 +37,7 @@ describe('Fotos do painel (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_
   });
 
   beforeEach(async () => {
-    await pool.query('TRUNCATE imagens, interesses_adocao, gatos, itens_cardapio, limites_taxa RESTART IDENTITY CASCADE');
+    await pool.query('TRUNCATE imagens, gatos, itens_cardapio, limites_taxa RESTART IDENTITY CASCADE');
   });
 
   after(async () => {

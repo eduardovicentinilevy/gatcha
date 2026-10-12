@@ -422,14 +422,6 @@ abbr[title] { text-decoration: none; }
 .ong p { margin: 0; }
 .ong__titulo { font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.15rem; margin-bottom: 6px !important; }
 
-.dialogo { width: min(520px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); padding: 22px 18px; color: var(--cor-texto); }
-.dialogo::backdrop { background: rgb(10 13 8 / .65); }
-.dialogo h3 { padding-right: 52px; font-size: 1.5rem; }
-.dialogo__fechar { position: absolute; top: 14px; right: 14px; margin: 0; }
-.dialogo__sucesso { display: grid; gap: 12px; }
-.dialogo__sucesso p { margin: 0; color: var(--cor-texto-suave); }
-.dialogo__sucesso p:first-child { padding: 14px 16px; border: 2px solid var(--cor-matcha-forte); border-radius: var(--raio-p); background: var(--cor-matcha-suave); color: var(--cor-texto); }
-.dialogo__sucesso .botao { margin-top: 6px; }
 
 /* ---------- Siga a gente ---------- */
 .siga { display: grid; gap: 24px; }

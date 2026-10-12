@@ -1,6 +1,6 @@
 /**
  * O que a API precisa a mais em produção, conferido no boot do SERVIDOR (src/server.js).
- * Fica fora do schema compartilhado de propósito: os jobs (migrações, expurgo LGPD) usam a
+ * Fica fora do schema compartilhado de propósito: os jobs (migrações, limpeza) usam a
  * mesma config e não precisam de proxy nem de chave, então não podem quebrar por causa disso.
  *
  * @param {typeof import('./env.js').config} config

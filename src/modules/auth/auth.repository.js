@@ -80,3 +80,12 @@ export async function registrarAcesso(executor, { usuarioId = null, email, event
     [usuarioId, email, evento, metodo, rota, status, ip],
   );
 }
+
+/** Limpeza: apaga o log de acessos com mais de `dias` dias (dias de calendário, no fuso do café). */
+export async function apagarAcessosAntigos(executor, { dias, fuso }) {
+  const { rowCount } = await executor.query(
+    'DELETE FROM acessos_admin WHERE (criado_em AT TIME ZONE $1)::date < (now() AT TIME ZONE $1)::date - $2::int',
+    [fuso, dias],
+  );
+  return rowCount;
+}

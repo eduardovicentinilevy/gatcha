@@ -11,7 +11,6 @@ export function configurarAmbienteDeTeste(sobrescritas = {}) {
     DB_SSL: 'false',
     TZ_NEGOCIO: 'America/Sao_Paulo',
     RATE_LIMIT_PUBLICO_POR_MIN: '10000',
-    RATE_LIMIT_INTERESSES_POR_15MIN: '1000',
     ...sobrescritas,
   });
 }

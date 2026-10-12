@@ -1,5 +1,5 @@
 /**
- * Navegação entre as páginas do site (início ↔ privacidade) sem recarregar,
+ * Navegação entre as páginas do site (início ↔ painel) sem recarregar,
  * com transição animada.
  *
  * - Usa a View Transitions API (Chrome/Edge/Safari): a página nova se revela num
@@ -16,11 +16,10 @@ import { reduzirMovimento } from './util.js';
 
 const TITULOS = {
   inicio: 'Gatchá · Cat café de matchá na República',
-  privacidade: 'Aviso de privacidade · Gatchá',
   admin: 'Painel · Gatchá',
 };
 
-const CAMINHOS = { '/privacidade': 'privacidade', '/admin': 'admin' };
+const CAMINHOS = { '/admin': 'admin' };
 export const paginaDoCaminho = (caminho) => CAMINHOS[caminho.replace(/\/+$/, '')] ?? 'inicio';
 
 const suportaTransicao = () => typeof document.startViewTransition === 'function';

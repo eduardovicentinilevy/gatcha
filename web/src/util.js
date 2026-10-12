@@ -31,12 +31,6 @@ export function idade(meses) {
 /** Busca sem acento e sem diferenciar maiúsculas. */
 export const normalizarBusca = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
 
-/** Foca o primeiro campo com erro, na ordem do formulário. */
-export function focarPrimeiroErro(form, erros) {
-  const campo = [...form.elements].find((c) => c.name && erros[c.name]);
-  campo?.focus();
-}
-
 export const reduzirMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** "Aberto agora" ou "Fechado agora", pelo horário do café (fuso de São Paulo). */

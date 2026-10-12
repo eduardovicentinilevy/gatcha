@@ -6,7 +6,7 @@
  * - A chave gravada é um HMAC do nome do limitador + IP (ou id do usuário): o IP
  *   não fica no banco, e o HMAC com a CHAVE_DADOS (fora do banco) impede reverter a
  *   chave testando os ~4 bilhões de IPv4.
- * - Cada janela é uma linha que expira sozinha; o expurgo diário apaga as vencidas.
+ * - Cada janela é uma linha que expira sozinha; a limpeza diária apaga as vencidas.
  * - Banco fora do ar = erro (503), não "passa direto": é a mesma dependência do
  *   login e do formulário que estes limites protegem.
  */
@@ -17,7 +17,7 @@ import { derivarChave } from '../lib/chaves.js';
 const segredo = () => derivarChave('limites-de-taxa-v1');
 
 // Uma a cada N contagens também apaga janelas vencidas: com muitos IPs diferentes (ou
-// forjados), a tabela não cresce sem freio entre um expurgo diário e o próximo.
+// forjados), a tabela não cresce sem freio entre uma limpeza diária e a próxima.
 const LIMPEZA_A_CADA = 200;
 
 export class LimitePostgres {
@@ -67,7 +67,7 @@ export class LimitePostgres {
   }
 }
 
-/** Expurgo: apaga as janelas vencidas. */
+/** Limpeza: apaga as janelas vencidas. */
 export async function apagarLimitesVencidos(executor) {
   const { rowCount } = await executor.query('DELETE FROM limites_taxa WHERE expira_em < now()');
   return rowCount;

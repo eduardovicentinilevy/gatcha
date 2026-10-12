@@ -2,7 +2,7 @@
 -- PRODUÇÃO: usuários do banco com o MENOR privilégio necessário.
 --
 --   gatcha_migracao  dono das tabelas. Só o `npm run migrate` usa (DATABASE_URL_MIGRACAO).
---   gatcha_app       a API e o expurgo diário. Só lê e escreve dados (DATABASE_URL):
+--   gatcha_app       a API e a limpeza diária. Só lê e escreve dados (DATABASE_URL):
 --                    não cria, altera nem apaga tabelas.
 --
 -- Rode UMA vez, conectado ao banco do Gatchá com o usuário administrador do provedor

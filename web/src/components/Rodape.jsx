@@ -7,7 +7,6 @@ const LINKS = [
   ['/#gatil', 'O gatil'],
   ['/#adocao', 'Adoção'],
   ['/#visite', 'Como chegar'],
-  ['/privacidade', 'Privacidade'],
   ['/admin', 'Área da equipe'],
 ];
 

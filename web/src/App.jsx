@@ -11,7 +11,6 @@ import Adocao from './components/Adocao.jsx';
 import SigaAGente from './components/SigaAGente.jsx';
 import Visite from './components/Visite.jsx';
 import Rodape from './components/Rodape.jsx';
-import Privacidade from './components/Privacidade.jsx';
 import Atendimento from './components/Atendimento.jsx';
 import Gatinho from './components/Gatinho.jsx';
 
@@ -70,19 +69,15 @@ export default function App() {
     <>
       <a className="pular" href="#conteudo">Pular para o conteúdo</a>
       <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
-      {pagina === 'privacidade' ? (
-        <Privacidade key="privacidade" className={classePagina} />
-      ) : (
-        <main id="conteudo" key="inicio" className={classePagina}>
-          <Hero />
-          <Faixa />
-          <Cardapio />
-          <Gatil />
-          <Adocao />
-          <SigaAGente />
-          <Visite />
-        </main>
-      )}
+      <main id="conteudo" key="inicio" className={classePagina}>
+        <Hero />
+        <Faixa />
+        <Cardapio />
+        <Gatil />
+        <Adocao />
+        <SigaAGente />
+        <Visite />
+      </main>
       <Rodape />
       <Atendimento />
       <Gatinho visivel={gatinho} onSumir={esconderGatinho} />

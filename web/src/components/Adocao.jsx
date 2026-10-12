@@ -1,11 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CONFIG } from '../config.js';
-import { api, carregarGatos, ErroApi } from '../api.js';
-import { focarPrimeiroErro, idade } from '../util.js';
-import Campo, { Aceite } from './Campo.jsx';
+import { carregarGatos } from '../api.js';
+import { idade } from '../util.js';
 import Carrossel from './Carrossel.jsx';
 import Foto from './Foto.jsx';
-import { IconeFechar } from './Icones.jsx';
 
 const STATUS = {
   disponivel: ['Disponível', 'selo--matcha'],
@@ -17,7 +15,6 @@ const tags = (texto) => (texto ?? '').split(',').map((t) => t.trim()).filter(Boo
 export default function Adocao() {
   const [gatos, setGatos] = useState(null);
   const [exemplo, setExemplo] = useState(false);
-  const [escolhido, setEscolhido] = useState(null);
 
   const [falhou, setFalhou] = useState(false);
   const [tentativa, setTentativa] = useState(0);
@@ -72,7 +69,6 @@ export default function Adocao() {
                   <ul className="tags" aria-label="Personalidade">
                     {tags(g.personalidade).map((t) => <li key={t} className="tag">{t}</li>)}
                   </ul>
-                  <button type="button" className="botao" onClick={() => setEscolhido(g)}>Quero conhecer</button>
                 </div>
               </article>
             )}
@@ -84,108 +80,11 @@ export default function Adocao() {
           <p className="ong__titulo">🤝 Parceria com o Abrigo São Gabriel</p>
           <p>
             A gente cuida do dia a dia no gatil; a ONG cuida da adoção responsável: entrevista, termo e acompanhamento.
-            Mandou o “Quero conhecer”? Seu contato vai direto pra equipe deles.
+            Se apaixonou por algum gato? Venha conhecer no gatil e fale com a equipe no balcão.
           </p>
         </div>
       </div>
-      <DialogoInteresse gato={escolhido} onFechar={() => setEscolhido(null)} />
     </section>
   );
 }
 
-const VAZIO = { nome: '', contato: '', mensagem: '', aceite: false };
-
-function DialogoInteresse({ gato, onFechar }) {
-  const dialogo = useRef(null);
-  const [dados, setDados] = useState(VAZIO);
-  const [erros, setErros] = useState({});
-  const [aviso, setAviso] = useState(null); // { tipo: 'erro', texto }
-  const [enviado, setEnviado] = useState(false);
-  const [enviando, setEnviando] = useState(false);
-  const botaoFechar = useRef(null);
-
-  // <dialog> nativo: foco preso no modal, Esc fecha, fundo inerte.
-  useEffect(() => {
-    if (gato) {
-      setDados(VAZIO);
-      setErros({});
-      setAviso(null);
-      setEnviado(false);
-      dialogo.current?.showModal();
-    } else {
-      dialogo.current?.close();
-    }
-  }, [gato]);
-
-  useEffect(() => {
-    if (enviado) botaoFechar.current?.focus(); // quem usa leitor de tela ouve a confirmação e já está no botão
-  }, [enviado]);
-
-  const alterar = (e) => {
-    const { name, type, checked, value } = e.target;
-    setDados((d) => ({ ...d, [name]: type === 'checkbox' ? checked : value }));
-  };
-
-  async function enviar(e) {
-    e.preventDefault();
-    if (enviando) return;
-    setAviso(null);
-    const limpos = {
-      gato_id: gato.id,
-      nome: dados.nome.trim().replace(/\s+/g, ' '),
-      contato: dados.contato.trim(),
-      mensagem: dados.mensagem.trim() || undefined,
-    };
-    const novos = {};
-    if (limpos.nome.length < 2) novos.nome = 'Como a gente te chama?';
-    if (limpos.contato.length < 8) novos.contato = 'Deixa um e-mail ou celular pra ONG falar com você.';
-    if (!dados.aceite) novos.aceite = 'Precisamos do seu ok pra enviar seus dados à ONG.';
-    setErros(novos);
-    if (Object.keys(novos).length > 0) {
-      focarPrimeiroErro(e.currentTarget, novos);
-      return;
-    }
-
-    setEnviando(true);
-    try {
-      await api.registrarInteresse(limpos);
-      setEnviado(true); // troca o formulário pela confirmação (sem botão de enviar de novo)
-      setDados(VAZIO);
-    } catch (erro) {
-      if (erro instanceof ErroApi && erro.codigo === 'DADOS_INVALIDOS') setErros(erro.errosDeCampo);
-      setAviso({
-        tipo: 'erro',
-        texto: erro.message,
-      });
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  return (
-    <dialog ref={dialogo} className="dialogo cartao" aria-labelledby="titulo-interesse" onClose={onFechar}>
-      <form method="dialog" className="dialogo__fechar">
-        <button className="botao-icone" aria-label="Fechar"><IconeFechar /></button>
-      </form>
-      <h3 id="titulo-interesse">{enviado ? `Recebido! ${gato?.nome} agradece 🐾` : `Quero conhecer ${gato?.nome} 💚`}</h3>
-      {enviado ? (
-        <div className="dialogo__sucesso" role="status">
-          <p>A equipe vai passar seu contato para o <strong>Abrigo São Gabriel</strong>, que cuida da adoção. Eles falam com você pelo contato que você deixou.</p>
-          <p>Enquanto isso, que tal visitar {gato?.nome} no gatil? A reserva é no balcão do café.</p>
-          <button ref={botaoFechar} type="button" className="botao botao--grande botao--largo" onClick={() => dialogo.current?.close()}>Fechar</button>
-        </div>
-      ) : (
-      <form className="campos" noValidate onSubmit={enviar}>
-        <Campo id="i-nome" rotulo="Seu nome" name="nome" autoComplete="name" maxLength={100} value={dados.nome} onChange={alterar} erro={erros.nome} largo />
-        <Campo id="i-contato" rotulo="E-mail ou celular" name="contato" autoComplete="email" maxLength={254} value={dados.contato} onChange={alterar} erro={erros.contato} largo />
-        <Campo id="i-mensagem" rotulo="Conta um pouco de você" opcional name="mensagem" multilinha rows={3} maxLength={1000} value={dados.mensagem} onChange={alterar} largo placeholder="Já tem outros pets? Mora em casa ou apê?" />
-        <Aceite name="aceite" checked={dados.aceite} onChange={alterar} erro={erros.aceite}>
-          Autorizo o envio dos meus dados ao Abrigo São Gabriel para o processo de adoção (<a href="/privacidade" target="_blank" rel="noopener">aviso de privacidade</a>).
-        </Aceite>
-        {aviso && <p className="alerta campo--largo" role="alert">{aviso.texto}</p>}
-        <button className="botao botao--grande campo--largo" type="submit" disabled={enviando}>{enviando ? 'Enviando…' : 'Enviar interesse'}</button>
-      </form>
-      )}
-    </dialog>
-  );
-}

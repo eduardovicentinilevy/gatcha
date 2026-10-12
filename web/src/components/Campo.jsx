@@ -23,15 +23,3 @@ export default function Campo({ id, rotulo, opcional, erro, valido, largo, multi
     </div>
   );
 }
-
-export function Aceite({ name, checked, onChange, onBlur, erro, children }) {
-  return (
-    <div className="campo--largo">
-      <label className="aceite">
-        <input type="checkbox" name={name} checked={checked} onChange={onChange} onBlur={onBlur} aria-invalid={erro ? true : undefined} required />
-        <span>{children}</span>
-      </label>
-      {erro && <p className="campo__erro">{erro}</p>}
-    </div>
-  );
-}
