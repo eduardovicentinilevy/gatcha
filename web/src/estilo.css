@@ -56,8 +56,9 @@ abbr[title] { text-decoration: none; }
 .pular { position: absolute; left: 8px; top: -80px; z-index: 200; background: var(--cor-superficie); border: var(--borda); padding: 8px 14px; border-radius: var(--raio-p); }
 .pular:focus { top: 8px; }
 
-/* Blocos sempre escuros (hero, visite, rodapé) redefinem as variáveis localmente. */
-.hero, .secao--escura, .rodape {
+/* Blocos sempre escuros (hero, visite, rodapé) e o topo quando passa por cima de um deles
+   redefinem as variáveis localmente. */
+.hero, .secao--escura, .rodape, .topo[data-fundo="escuro"] {
   --cor-texto: var(--cor-claro-fixo);
   --cor-texto-suave: #CBD3C0;
   --cor-borda: var(--cor-claro-fixo);
@@ -70,9 +71,10 @@ abbr[title] { text-decoration: none; }
   --borda: 2.5px solid var(--cor-borda);
   --sombra: 4px 4px 0 var(--cor-sombra);
   --sombra-g: 6px 6px 0 var(--cor-sombra);
-  background: var(--cor-escuro-fixo);
   color: var(--cor-texto);
 }
+.hero, .secao--escura, .rodape { background: var(--cor-escuro-fixo); }
+.topo[data-fundo="escuro"] { --cor-fundo: var(--cor-escuro-fixo); } /* menu aberto no celular */
 
 /* ---------- Botões ---------- */
 .botao {
@@ -162,11 +164,18 @@ abbr[title] { text-decoration: none; }
 .selo--adesivo { position: absolute; top: 12px; left: 12px; transform: rotate(-3deg); box-shadow: 2px 2px 0 var(--cor-sombra); }
 
 /* ---------- Topo ---------- */
+/* Vidro que se adapta à seção de baixo (Topo.jsx põe --topo-tinta e data-fundo). Fica por cima do
+   início (margem negativa), então no alto da página ele some e o início aparece inteiro. */
 .topo {
+  --topo-tinta: var(--cor-fundo);
   view-transition-name: topo; /* fica parado na transição entre páginas */ position: sticky; top: 0; z-index: 50;
-  background: color-mix(in srgb, var(--cor-fundo) 88%, transparent); border-bottom: var(--borda);
-  -webkit-backdrop-filter: blur(12px) saturate(1.4); backdrop-filter: blur(12px) saturate(1.4);
+  margin-bottom: calc(-1 * var(--topo-altura) - 2.5px); /* altura + borda */
+  background-color: color-mix(in srgb, var(--topo-tinta) 72%, transparent); border-bottom: var(--borda);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5); backdrop-filter: blur(14px) saturate(1.5);
+  transition: background-color .45s ease, border-color .45s ease, color .45s ease;
 }
+.topo[data-no-topo] { background-color: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.topo .marca, .topo .menu a { transition: color .45s ease; }
 .topo__barra { height: var(--topo-altura); display: flex; align-items: center; gap: 10px; }
 .marca { display: inline-flex; align-items: center; gap: 10px; color: var(--cor-texto); text-decoration: none; font-family: var(--fonte-titulo); font-weight: 800; font-size: 1.4rem; letter-spacing: -.02em; user-select: none; }
 .marca svg { border-radius: 50%; border: 2.5px solid var(--cor-borda); }
@@ -195,7 +204,7 @@ abbr[title] { text-decoration: none; }
     flex-direction: row; gap: 4px; padding: 0; margin-left: 20px; border: 0; background: none; box-shadow: none;
   }
   .menu a { font-size: 1.02rem; padding: 8px 14px; border: 2px solid transparent; border-radius: 999px; }
-  .menu a:hover { border-color: var(--cor-borda); background: var(--cor-matcha-suave); }
+  .menu a:hover { border-color: var(--cor-borda); background: var(--cor-matcha-suave); color: var(--cor-botao-texto); }
 }
 
 /* ---------- Seções ---------- */
@@ -223,7 +232,7 @@ abbr[title] { text-decoration: none; }
 
 /* ---------- Hero ---------- */
 .hero {
-  padding: 24px 0 76px; overflow: hidden; border-bottom: var(--borda);
+  padding: calc(24px + var(--topo-altura)) 0 76px; /* o topo fica por cima */ overflow: hidden; border-bottom: var(--borda);
   /* brilho verde atrás do logo + textura de bolinhas bem discreta */
   background-image:
     radial-gradient(70% 34% at 50% 10%, color-mix(in srgb, var(--cor-matcha) 30%, transparent), transparent 75%),
@@ -258,7 +267,7 @@ abbr[title] { text-decoration: none; }
 .hero__destaques { margin-top: 40px; }
 
 @media (min-width: 900px) {
-  .hero { padding: 64px 0 88px; background-image:
+  .hero { padding: calc(64px + var(--topo-altura)) 0 88px; background-image:
     radial-gradient(42% 60% at 80% 34%, color-mix(in srgb, var(--cor-matcha) 26%, transparent), transparent 75%),
     radial-gradient(color-mix(in srgb, var(--cor-claro-fixo) 8%, transparent) 1.2px, transparent 1.6px); }
   .hero__grade { grid-template-columns: 1.3fr 1fr; }
@@ -593,6 +602,40 @@ abbr[title] { text-decoration: none; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ---------- Transições entre seções ----------
+   Presas à rolagem (scroll-driven animations, sem JavaScript): cada seção "abre" como um cartão
+   que cresce até ocupar a tela, os títulos sobem em cascata e os cards entram um a um.
+   Navegadores sem suporte mostram tudo normalmente (o [data-revelar] acima continua valendo). */
+.com-animacao .secao__topo[data-revelar]:not(.visivel) { opacity: 1; transform: none; }
+.com-animacao .secao__topo[data-revelar] > * { transition: opacity .6s ease, transform .6s cubic-bezier(.2, .8, .2, 1); }
+.com-animacao .secao__topo[data-revelar]:not(.visivel) > * { opacity: 0; transform: translateY(26px); }
+.com-animacao .secao__topo[data-revelar] > :nth-child(2) { transition-delay: .08s; }
+.com-animacao .secao__topo[data-revelar] > :nth-child(3) { transition-delay: .16s; }
+.com-animacao .secao__topo[data-revelar] > :nth-child(4) { transition-delay: .24s; }
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .secao {
+      animation: secao-abre linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+    .item, .feed > li, .gatil__grade > * {
+      animation: cartao-entra linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 90%;
+    }
+    .hero__arte {
+      animation: hero-parallax linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 100vh;
+    }
+  }
+}
+@keyframes secao-abre { from { clip-path: inset(7% 4% 0 4% round 56px); } to { clip-path: inset(0 0 0 0 round 0); } }
+@keyframes cartao-entra { from { opacity: 0; transform: translateY(48px) scale(.95) rotate(-1.5deg); } }
+@keyframes hero-parallax { to { transform: translateY(90px) scale(.94); opacity: .6; } }
 
 /* ---------- Logo vivo: o gato respira, pisca e mexe orelhas e bigodes ----------
    Cada parte gira em torno do próprio ponto de apoio (coordenadas do viewBox 0 0 200 200).
