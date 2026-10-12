@@ -30,7 +30,7 @@ function garantirSegredo(nome, aviso) {
 }
 
 garantirSegredo('JWT_SECRET', 'login do painel ativado neste computador');
-garantirSegredo('CHAVE_DADOS', 'protege o 2FA e os limites neste computador');
+garantirSegredo('CHAVE_DADOS', 'protege os limites de tentativas neste computador');
 
 // `--migrar` (usado pelo npm run dev): aplica migrações pendentes no banco local.
 // Se o banco estiver fora do ar, só avisa: a API sobe e explica o problema no log.

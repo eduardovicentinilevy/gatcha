@@ -6,24 +6,12 @@ const URL_BANCO = process.env.TEST_DATABASE_URL;
 const SENHA = 'Matcha-e-gatos-2026!';
 
 describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BANCO && 'TEST_DATABASE_URL não definida' }, () => {
-  let servidor, base, pool, gerarHash, criarUsuario, expurgar, totp, definirSegredo2fa;
+  let servidor, base, pool, gerarHash, criarUsuario, expurgar;
 
   const post = (corpo, rota = '/api/auth/login') =>
     fetch(`${base}${rota}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(corpo) });
-  const login = (email = 'equipe@gatcha.com.br', senha = SENHA, ip, codigo) =>
-    fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(ip && { 'x-forwarded-for': ip }) }, body: JSON.stringify({ email, senha, ...(codigo && { codigo }) }) });
-  const corpo = async (res) => ({ status: res.status, ...(await res.json()) });
-  /** Ativa o 2FA do usuário 1 e devolve o segredo (o "celular" do teste). */
-  async function ativar2fa() {
-    const segredo = totp.gerarSegredo();
-    await definirSegredo2fa(pool, { id: 1, segredoCifrado: totp.cifrarSegredo(segredo, 1) });
-    return segredo;
-  }
-  /** Um código de 6 dígitos que certamente NÃO é o certo agora (nem 30 s antes/depois). */
-  const codigoErrado = (segredo) => {
-    const validos = [-30_000, 0, 30_000].map((d) => totp.gerarCodigo(segredo, { agora: Date.now() + d }));
-    return ['111111', '222222', '333333', '444444'].find((c) => !validos.includes(c));
-  };
+  const login = (email = 'equipe@gatcha.com.br', senha = SENHA, ip) =>
+    fetch(`${base}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json', ...(ip && { 'x-forwarded-for': ip }) }, body: JSON.stringify({ email, senha }) });
   const eu = (token) => fetch(`${base}/api/admin/eu`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
 
   before(async () => {
@@ -37,8 +25,6 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     ({ gerarHash } = await import('../../src/modules/auth/senha.js'));
     ({ criarUsuario } = await import('../../src/modules/auth/auth.repository.js'));
     ({ expurgar } = await import('../../src/modules/lgpd/expurgo.js'));
-    totp = await import('../../src/modules/auth/totp.js');
-    ({ definirSegredo2fa } = await import('../../src/modules/auth/auth.repository.js'));
     const { criarApp } = await import('../../src/app.js');
     servidor = criarApp().listen(0);
     await new Promise((r) => servidor.once('listening', r));
@@ -59,12 +45,12 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     const res = await login();
     assert.equal(res.status, 200);
     const corpo = await res.json();
-    assert.deepEqual(corpo.usuario, { email: 'equipe@gatcha.com.br', dois_fatores: false });
+    assert.deepEqual(corpo.usuario, { email: 'equipe@gatcha.com.br' });
     assert.ok(corpo.token.split('.').length === 3);
     assert.ok(!JSON.stringify(corpo).includes(SENHA));
     const painel = await eu(corpo.token);
     assert.equal(painel.status, 200);
-    assert.deepEqual(await painel.json(), { usuario: { email: 'equipe@gatcha.com.br', dois_fatores: false } });
+    assert.deepEqual(await painel.json(), { usuario: { email: 'equipe@gatcha.com.br' } });
   });
 
   test('e-mail é normalizado (maiúsculas e espaços)', async () => {
@@ -173,81 +159,6 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     await assert.rejects(pool.query("INSERT INTO usuarios_admin (email, senha_hash) VALUES ('x@y.com', 'texto-puro')"), /usuarios_admin_hash_bcrypt/);
   });
 
-  // ------------------------------------------------------------------ 2FA no login
-  const CREDENCIAIS = { codigo: 'CREDENCIAIS_INVALIDAS', mensagem: 'E-mail, senha ou código incorretos.' };
-  const erroDe = (r) => ({ codigo: r.erro.codigo, mensagem: r.erro.mensagem });
-  const falhasContadas = async () => (await pool.query("SELECT count(*)::int AS n FROM acessos_admin WHERE status = 401")).rows[0].n;
-
-  test('2FA: sem código, com código errado ou com senha errada, a MESMA resposta (nunca revela que a senha estava certa)', async () => {
-    const segredo = await ativar2fa();
-    const semCodigo = await corpo(await login());
-    const codigoRuim = await corpo(await login(undefined, undefined, undefined, codigoErrado(segredo)));
-    const senhaRuim = await corpo(await login(undefined, 'Senha-Errada-123!', undefined, totp.gerarCodigo(segredo)));
-    const naoExiste = await corpo(await login('ninguem@gatcha.com.br', 'Qualquer-Senha-1!'));
-    for (const r of [semCodigo, codigoRuim, senhaRuim, naoExiste]) {
-      assert.equal(r.status, 401);
-      assert.deepEqual(erroDe(r), CREDENCIAIS);
-      assert.equal(r.token, undefined);
-    }
-  });
-
-  test('2FA: senha + código no mesmo envio entra; o mesmo código não vale de novo', async () => {
-    const segredo = await ativar2fa();
-    const codigo = totp.gerarCodigo(segredo);
-    const certo = await corpo(await login(undefined, undefined, undefined, codigo.replace(/(\d{3})/, '$1 ')));
-    assert.equal(certo.status, 200, 'aceita "123 456", como alguns apps mostram');
-    assert.equal(certo.usuario.dois_fatores, true);
-    assert.equal((await eu(certo.token)).status, 200);
-    const reuso = await corpo(await login(undefined, undefined, undefined, codigo));
-    assert.equal(reuso.status, 401);
-    assert.deepEqual(erroDe(reuso), CREDENCIAIS);
-    const eventos = (await pool.query('SELECT evento FROM acessos_admin ORDER BY id')).rows.map((r) => r.evento);
-    assert.deepEqual(eventos, ['login_ok', 'acesso', 'falha_2fa']);
-  });
-
-  test('2FA: código errado conta no bloqueio de 15 min', async () => {
-    const segredo = await ativar2fa();
-    for (let i = 0; i < 5; i++) assert.equal((await login(undefined, undefined, '203.0.113.9', codigoErrado(segredo))).status, 401);
-    assert.equal((await login(undefined, undefined, '203.0.113.9', totp.gerarCodigo(segredo))).status, 429, 'nem o código certo passa durante o bloqueio');
-  });
-
-  test('2FA: 10 códigos errados pausam a conta; um login certo NÃO zera a conta (só trocar a senha)', async () => {
-    const segredo = await ativar2fa();
-    await pool.query("UPDATE usuarios_admin SET senha_alterada_em = now() - interval '2 hours' WHERE id = 1");
-    // 9 códigos errados há 20 min (fora do bloqueio de 15 min) e, DEPOIS deles, um login certo.
-    await pool.query("INSERT INTO acessos_admin (usuario_id, email, evento, status, criado_em) SELECT 1, 'equipe@gatcha.com.br', 'falha_2fa', 401, now() - interval '20 minutes' FROM generate_series(1, 9)");
-    await pool.query("INSERT INTO acessos_admin (usuario_id, email, evento, status, criado_em) VALUES (1, 'equipe@gatcha.com.br', 'login_ok', 200, now() - interval '10 minutes')");
-    assert.equal((await login(undefined, undefined, '198.51.100.21', codigoErrado(segredo))).status, 401); // o 10º
-    const pausado = await corpo(await login(undefined, undefined, '198.51.100.22', totp.gerarCodigo(segredo)));
-    assert.equal(pausado.status, 429);
-    assert.equal(pausado.erro.codigo, 'MUITAS_TENTATIVAS');
-    const { rows } = await pool.query("SELECT status FROM acessos_admin WHERE ip = '198.51.100.22'");
-    assert.deepEqual(rows.map((r) => r.status), [429], 'a tentativa barrada fica no log, mas não conta como falha');
-    await pool.query('UPDATE usuarios_admin SET senha_alterada_em = now() WHERE id = 1'); // trocou a senha
-    assert.equal((await login(undefined, undefined, '198.51.100.22', totp.gerarCodigo(segredo))).status, 200);
-  });
-
-  test('2FA: chutes SIMULTÂNEOS não passam do limite diário (sem corrida)', async () => {
-    const segredo = await ativar2fa();
-    await pool.query("UPDATE usuarios_admin SET senha_alterada_em = now() - interval '2 hours' WHERE id = 1");
-    await pool.query("INSERT INTO acessos_admin (usuario_id, email, evento, status, criado_em) SELECT 1, 'equipe@gatcha.com.br', 'falha_2fa', 401, now() - interval '20 minutes' FROM generate_series(1, 8)");
-    const errado = codigoErrado(segredo);
-    await Promise.all(Array.from({ length: 12 }, (_, i) => login(undefined, undefined, `203.0.113.${100 + i}`, errado)));
-    const { rows } = await pool.query("SELECT count(*)::int AS n FROM acessos_admin WHERE evento = 'falha_2fa' AND status = 401");
-    assert.equal(rows[0].n, 10, 'chegou ao teto de 10 e parou, mesmo com os pedidos chegando juntos');
-  });
-
-  test('2FA: segredo ilegível (ex.: CHAVE_DADOS trocada) dá erro claro, NÃO deixa entrar e não conta como falha', async () => {
-    const segredo = totp.gerarSegredo();
-    await definirSegredo2fa(pool, { id: 1, segredoCifrado: totp.cifrarSegredo(segredo, 99) }); // cifrado para outro usuário
-    const antes = await falhasContadas();
-    const r = await corpo(await login(undefined, undefined, undefined, totp.gerarCodigo(segredo)));
-    assert.equal(r.status, 503);
-    assert.equal(r.erro.codigo, 'DOIS_FATORES_INDISPONIVEL');
-    assert.equal(r.token, undefined);
-    assert.equal(await falhasContadas(), antes, 'problema do servidor não conta no bloqueio');
-  });
-
   test('limite por IP do login: só as tentativas que FALHAM contam', async () => {
     const contagem = async () => (await pool.query('SELECT coalesce(sum(contagem), 0)::int AS n FROM limites_taxa')).rows[0].n;
     // O express-rate-limit só desconta o login certo DEPOIS de responder: espera o desconto chegar ao banco.
@@ -259,76 +170,6 @@ describe('Painel: login, token e log de acessos (integração)', { skip: !URL_BA
     assert.equal(await contagemAssentada(0), 0, 'login certo não gasta o limite (equipe no Wi-Fi do café)');
     assert.equal((await login(undefined, 'Senha-Errada-123!')).status, 401);
     assert.equal(await contagem(), 1);
-  });
-
-  // ------------------------------------------------------------------ 2FA pelo painel (Minha conta)
-  const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const deBase32 = (texto) => {
-    let bits = 0, valor = 0;
-    const bytes = [];
-    for (const c of texto) {
-      valor = (valor << 5) | ALFABETO.indexOf(c);
-      bits += 5;
-      if (bits >= 8) { bytes.push((valor >>> (bits - 8)) & 255); bits -= 8; valor &= (1 << bits) - 1; }
-    }
-    return Buffer.from(bytes);
-  };
-  const painel = (token, metodo, rota, corpoReq) =>
-    fetch(`${base}/api/admin${rota}`, { method: metodo, headers: { authorization: `Bearer ${token}`, ...(corpoReq && { 'content-type': 'application/json' }) }, body: corpoReq && JSON.stringify(corpoReq) });
-  const liberarCodigo = () => pool.query('UPDATE usuarios_admin SET totp_ultimo_passo = NULL WHERE id = 1'); // o teste usa o mesmo código em passos seguidos
-
-  test('2FA pelo painel: ativa com QR + código + senha, troca a sessão e passa a valer no login; desativa com senha + código', async () => {
-    const { token } = await (await login()).json();
-    assert.equal((await (await eu(token)).json()).usuario.dois_fatores, false);
-
-    const inicio = await (await painel(token, 'POST', '/2fa/iniciar')).json();
-    assert.match(inicio.chave, /^[A-Z2-7]{32}$/);
-    assert.match(inicio.link, /^otpauth:\/\/totp\/Gatch%C3%A1%3Aequipe%40gatcha\.com\.br\?secret=/);
-    const segredo = deBase32(inicio.chave);
-    assert.equal((await login()).status, 200, 'enquanto não confirma, o login segue sem código');
-
-    const codigoRuim = await painel(token, 'POST', '/2fa/ativar', { senha: SENHA, codigo: codigoErrado(segredo) });
-    assert.equal(codigoRuim.status, 422);
-    const senhaRuim = await corpo(await painel(token, 'POST', '/2fa/ativar', { senha: 'Senha-Errada-123!', codigo: totp.gerarCodigo(segredo) }));
-    assert.equal(senhaRuim.status, 401);
-    assert.equal(senhaRuim.erro.codigo, 'CREDENCIAIS_INVALIDAS', 'senha errada não é "sessão expirada": o painel não desloga');
-    assert.equal((await eu(token)).status, 200);
-
-    await new Promise((r) => setTimeout(r, 1100)); // o token guarda o instante em segundos
-    const ativado = await corpo(await painel(token, 'POST', '/2fa/ativar', { senha: SENHA, codigo: totp.gerarCodigo(segredo) }));
-    assert.equal(ativado.status, 200);
-    assert.equal(ativado.usuario.dois_fatores, true);
-    assert.equal((await eu(token)).status, 401, 'as outras sessões foram encerradas');
-    assert.equal((await eu(ativado.token)).status, 200, 'esta recebeu um token novo');
-
-    assert.equal((await login()).status, 401, 'agora o login pede o código');
-    await liberarCodigo();
-    assert.equal((await login(undefined, undefined, undefined, totp.gerarCodigo(segredo))).status, 200);
-    assert.equal((await painel(ativado.token, 'POST', '/2fa/iniciar')).status, 409, 'já está ativo');
-
-    await liberarCodigo();
-    assert.equal((await painel(ativado.token, 'POST', '/2fa/desativar', { senha: SENHA })).status, 400, 'desativar exige o código');
-    const desativado = await corpo(await painel(ativado.token, 'POST', '/2fa/desativar', { senha: SENHA, codigo: totp.gerarCodigo(segredo) }));
-    assert.equal(desativado.status, 200);
-    assert.equal(desativado.usuario.dois_fatores, false);
-    assert.equal((await login()).status, 200, 'sem 2FA de novo');
-  });
-
-  test('2FA pelo painel: a ativação começada vale 15 minutos', async () => {
-    const { token } = await (await login()).json();
-    const { chave } = await (await painel(token, 'POST', '/2fa/iniciar')).json();
-    await pool.query("UPDATE usuarios_admin SET totp_pendente_em = now() - interval '16 minutes' WHERE id = 1");
-    const r = await corpo(await painel(token, 'POST', '/2fa/ativar', { senha: SENHA, codigo: totp.gerarCodigo(deBase32(chave)) }));
-    assert.equal(r.status, 409);
-    assert.equal(r.erro.codigo, 'ATIVACAO_EXPIRADA');
-  });
-
-  test('2FA: ativar ou desativar encerra as sessões abertas', async () => {
-    const { token } = await (await login()).json();
-    assert.equal((await eu(token)).status, 200);
-    await new Promise((r) => setTimeout(r, 1100)); // o token guarda o instante em segundos
-    await ativar2fa();
-    assert.equal((await eu(token)).status, 401);
   });
 
   test('LGPD: o expurgo apaga o vencido (interesses, acessos) e preserva o resto', async () => {

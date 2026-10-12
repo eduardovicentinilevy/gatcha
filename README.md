@@ -80,7 +80,6 @@ Mexeu em algum arquivo? O site se atualiza sozinho no navegador e a API reinicia
 | **Gatos** | Cadastrar, editar e apagar gatos, com foto tirada direto do celular. Gato adotado sai do site, mas continua no painel. |
 | **Cardápio** | Itens, preços, selos (vegano, novo, mais pedido) e fotos. "Tirar do site" esconde o item sem apagar. |
 | **Interessados** | Quem clicou em "Quero conhecer" em algum gato. Depois de passar o contato para o Abrigo São Gabriel, marque como repassado. |
-| **Minha conta** | Ativar a verificação em duas etapas com um app autenticador no celular. |
 
 O login dura 15 minutos e não fica salvo no navegador. Se você recarregar a página, é só entrar de novo. Isso é de propósito, por segurança.
 
@@ -117,7 +116,6 @@ Só `npm test`, sem o banco de testes, roda apenas a parte que não precisa de b
 - **Apareceu `EADDRINUSE` ao subir a API.** Já tem uma API rodando em outro terminal. Feche o terminal antigo com `Ctrl+C` e tente de novo.
 - **Esqueceu a senha do painel?** Crie uma nova com `winpty npm run admin:criar -- seu-email@gatcha.com.br --redefinir`.
 - **Errou a senha muitas vezes e o login travou?** Espere 15 minutos e tente de novo.
-- **Perdeu o celular com o app autenticador?** Rode `npm run admin:2fa -- seu-email@gatcha.com.br --desativar`, entre só com a senha e ative de novo em "Minha conta".
 
 ### Usando outro Postgres
 

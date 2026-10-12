@@ -622,7 +622,6 @@ label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
 /* As abas quebram linha no celular em vez de rolar de lado (rolando, a primeira ficava cortada). */
 .admin__abas { display: flex; flex-wrap: wrap; gap: 6px 6px; padding-bottom: 10px; }
 .admin__abas::-webkit-scrollbar { display: none; }
-@media (max-width: 520px) { .admin__abas { display: grid; grid-template-columns: 1fr 1fr; } } /* 2x2 em vez de 3+1 */
 .admin__aba {
   flex: none; min-height: 40px; padding: .3em 1em; border-radius: 999px; border: 2px solid var(--cor-borda);
   background: transparent; color: var(--cor-texto); font: inherit; font-weight: 800; cursor: pointer;
@@ -693,31 +692,3 @@ label.campo input, label.campo select { font-weight: 400; margin-top: 6px; }
 .admin-miniatura img { width: 100%; height: 100%; object-fit: cover; }
 .admin-miniatura svg { width: 28px; height: 28px; }
 .admin-miniatura svg[viewBox="36 50 132 98"] { width: 40px; fill: none; stroke: currentColor; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
-
-/* Minha conta: verificação em duas etapas */
-.dois-fatores { max-width: 760px; margin-top: 16px; padding: 20px 18px 22px; display: grid; gap: 16px; }
-.dois-fatores__topo { display: flex; align-items: center; gap: 14px; }
-.dois-fatores__topo h2 { margin: 0 0 6px; font-size: 1.35rem; }
-.dois-fatores__icone {
-  display: grid; place-items: center; width: 52px; height: 52px; flex: none; font-size: 1.5rem;
-  border: var(--borda); border-radius: 50%; background: var(--cor-matcha-suave); box-shadow: 2px 2px 0 var(--cor-sombra);
-}
-.dois-fatores__texto { margin: 0; max-width: 62ch; color: var(--cor-texto-suave); }
-.dois-fatores > .botao { justify-self: start; }
-.dois-fatores__passos { margin: 0; padding-left: 1.4em; display: grid; gap: 14px; }
-.dois-fatores__passos li::marker { font-family: var(--fonte-titulo); font-weight: 800; color: var(--cor-matcha-forte); }
-.dois-fatores__cadastro { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 22px; margin-top: 12px; }
-.dois-fatores__cadastro p { flex: 1 1 220px; margin: 0; }
-/* Fundo branco SEMPRE (também no tema escuro): é o que as câmeras leem melhor. */
-.dois-fatores__qr {
-  width: 184px; height: 184px; flex: none; padding: 6px; image-rendering: pixelated;
-  background: #FFFFFF; border: var(--borda); border-radius: var(--raio-p); box-shadow: var(--sombra);
-}
-.dois-fatores__chave {
-  display: block; margin: 8px 0 6px; padding: 10px 12px; border: 2px dashed var(--cor-borda); border-radius: var(--raio-p);
-  background: var(--cor-superficie2); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.05rem;
-  letter-spacing: .06em; overflow-wrap: anywhere; user-select: all;
-}
-.dois-fatores__form { display: grid; gap: 14px; padding-top: 16px; border-top: 2px dashed color-mix(in srgb, var(--cor-texto) 22%, transparent); }
-.dois-fatores .nota code { font-size: .86em; overflow-wrap: anywhere; }
-@media (min-width: 640px) { .dois-fatores { padding: 24px 26px 26px; } }

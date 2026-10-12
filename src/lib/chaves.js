@@ -12,7 +12,7 @@ const CHAVE_DE_DESENVOLVIMENTO = 'gatcha-desenvolvimento-nao-usar-em-producao';
 
 const cache = new Map();
 
-/** @param {string} proposito ex.: 'totp-v1', 'limites-de-taxa-v1' @returns {Buffer} 32 bytes */
+/** @param {string} proposito ex.: 'limites-de-taxa-v1' @returns {Buffer} 32 bytes */
 export function derivarChave(proposito) {
   if (!cache.has(proposito)) {
     const mestre = config.dados.chave || (config.isProducao ? '' : CHAVE_DE_DESENVOLVIMENTO);

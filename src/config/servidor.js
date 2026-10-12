@@ -15,7 +15,7 @@ export function problemasDoServidor(config) {
     problemas.push('TRUST_PROXY: 0 não serve no Cloud Run (sempre há ao menos um proxy na frente): use 1, ou 2 com o Firebase Hosting');
   }
   if (!config.dados.chave) {
-    problemas.push('CHAVE_DADOS: obrigatória em produção (protege o 2FA e os IPs dos limites; docs/producao.md, "Deploy")');
+    problemas.push('CHAVE_DADOS: obrigatória em produção (protege os IPs guardados nos limites de tentativas; docs/producao.md, "Deploy")');
   }
   return problemas;
 }

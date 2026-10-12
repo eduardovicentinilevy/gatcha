@@ -69,9 +69,9 @@ const schema = z
     // ex.: node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))".
     // Vazio = login desativado (a API responde 503 em /api/auth/login).
     JWT_SECRET: z.string().default('').refine((v) => v === '' || v.length >= 32, 'JWT_SECRET deve ter ao menos 32 caracteres'),
-    // Protege dados GUARDADOS no banco: o segredo do 2FA (criptografado) e o IP nos limites de
-    // taxa (HMAC). SEGREDO, >= 32 caracteres, DIFERENTE do JWT_SECRET: assim trocar o JWT_SECRET
-    // (ex.: depois de um vazamento) não quebra o 2FA de ninguém. Obrigatória para a API em produção.
+    // Protege dados GUARDADOS no banco: o IP nos limites de taxa vira um HMAC com ela.
+    // SEGREDO, >= 32 caracteres, DIFERENTE do JWT_SECRET (cada chave com um papel só).
+    // Obrigatória para a API em produção.
     CHAVE_DADOS: z.string().trim().default('').refine((v) => v === '' || v.length >= 32, 'CHAVE_DADOS deve ter ao menos 32 caracteres'),
     ADMIN_TOKEN_MINUTOS: inteiro(15, 5, 120),
     RATE_LIMIT_LOGIN_POR_15MIN: inteiro(10, 1, 1_000),

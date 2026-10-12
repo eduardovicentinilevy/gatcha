@@ -80,8 +80,8 @@ src/
 |---|---|
 | Validação de todos os campos no backend | Zod com objetos `strict` em todas as rotas (campos extras são recusados) |
 | Senha com bcrypt | `usuarios_admin.senha_hash` só aceita hash bcrypt (custo 12); política de senha: 12+ caracteres, sem senhas comuns |
-| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado, senha trocada ou 2FA ativado/desativado = sessão encerrada |
-| 2FA (app autenticador) | Opcional por pessoa, ativado pelo próprio painel (**Minha conta**, com QR code). Código de 6 dígitos (TOTP) no mesmo envio da senha, sem reuso; segredo criptografado com a `CHAVE_DADOS`; a resposta de erro é a mesma para senha ou código errados (não revela que a senha estava certa); 10 códigos errados por 24 h pausam a conta |
+| Sessão com token de validade curta | JWT HS256, 15 min (`ADMIN_TOKEN_MINUTOS`); issuer/audience/algoritmo conferidos; usuário apagado ou senha trocada = sessão encerrada |
+| 2FA (app autenticador) | Fora por enquanto (decisão do Gatchá). A versão anterior, com ativação pelo painel e QR code, está no histórico do Git (migração 009 apagou as colunas) |
 | Limite de requisições | Login, "Quero conhecer" e envio de fotos contam **no banco** (valem para todas as instâncias; o IP é guardado só como HMAC com a `CHAVE_DADOS`). Login: só tentativas que falham contam. Teto geral das rotas públicas em memória. Bloqueio por e-mail: 5 falhas/15 min por e-mail+IP e 30 no total (quem erra de propósito de outro IP não tranca a equipe). "Quero conhecer" também tem tetos que **não dependem do IP**: 3 pedidos por contato em 24 h e 60 no total por hora |
 | Fotos | Reprocessadas (WebP novo, sem EXIF/GPS), até 8 MB por envio, 60 envios/15 min por pessoa e teto total de espaço (`IMAGENS_MAX_MB`, padrão 300) |
 | Banco com menor privilégio | Em produção a API usa um usuário que só lê e escreve dados (`db/producao/papeis.sql`); só as migrações usam o dono das tabelas. A API avisa no boot se estiver com poder demais e recusa a senha de exemplo |
@@ -100,7 +100,7 @@ Para não errar sem perceber:
 - Em produção a API **não sobe** sem `TRUST_PROXY` definido (vazio ou `0` também não servem). Os jobs (migrações, expurgo) não precisam dele.
 - Com o tráfego das primeiras requisições, cada instância confere o `X-Forwarded-For` e grava uma linha no log: **ERRO** se o valor parecer alto (IP forjável), aviso se parecer baixo, "confere" se estiver certo. Só contagens, nunca IPs. Procure por `TRUST_PROXY` no Cloud Logging depois do primeiro deploy.
 
-**Acesso direto ao `*.run.app`:** com o Firebase na frente (`TRUST_PROXY=2`), o endereço do Cloud Run continua respondendo, e quem o chama direto consegue escolher o IP que a API vê. Por isso as proteções importantes **não dependem do IP**: o bloqueio de login por e-mail (global), o 2FA, os tetos do "Quero conhecer" por contato e por hora, o limite de fotos por pessoa. Os limites por IP são uma camada a mais. O log avisa quando aparece tráfego que pulou o Firebase.
+**Acesso direto ao `*.run.app`:** com o Firebase na frente (`TRUST_PROXY=2`), o endereço do Cloud Run continua respondendo, e quem o chama direto consegue escolher o IP que a API vê. Por isso as proteções importantes **não dependem do IP**: o bloqueio de login por e-mail (global), os tetos do "Quero conhecer" por contato e por hora, o limite de fotos por pessoa. Os limites por IP são uma camada a mais. O log avisa quando aparece tráfego que pulou o Firebase.
 
 ### Painel: primeiro acesso
 
@@ -113,15 +113,6 @@ winpty npm run admin:criar -- dona@gatcha.com.br     # Git Bash/Windows; no Linu
 
 A senha é digitada sem aparecer na tela. Para trocar uma senha: `... admin:criar -- email --redefinir`.
 
-**2FA (recomendado para cada pessoa da equipe):** cada pessoa entra no painel, abre **Minha conta** e toca em **Ativar no meu celular**: aparece um QR code para o app autenticador (Google Authenticator, Microsoft Authenticator, Authy...), e ela confirma com o código do app e a senha. Daí em diante, o login pede o código de 6 dígitos junto com a senha.
-
-Celular perdido ou trocado, sem acesso ao app:
-
-```bash
-npm run admin:2fa -- dona@gatcha.com.br --desativar   # depois a pessoa ativa de novo pelo painel
-```
-
-O segredo do 2FA fica criptografado com a `CHAVE_DADOS` (não com o `JWT_SECRET`): trocar o `JWT_SECRET` não afeta o 2FA; **trocar a `CHAVE_DADOS` exige desativar e reativar o 2FA de quem tinha** (o login avisa com erro claro em vez de deixar entrar).
 Login: `POST /api/auth/login` → `{ token, expira_em, usuario }`; depois `Authorization: Bearer <token>` nas rotas `/api/admin/*`.
 Em produção, `JWT_SECRET` vem do Secret Manager; sem ele o login fica desativado (503).
 
