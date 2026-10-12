@@ -10,12 +10,12 @@ export function problemasDoServidor(config) {
   if (!config.isProducao) return [];
   const problemas = [];
   if (!config.http.trustProxyDefinido) {
-    problemas.push('TRUST_PROXY: obrigatório em produção: 1 com o Cloud Run direto, 2 com o Firebase Hosting na frente (README, "Atenção em produção")');
+    problemas.push('TRUST_PROXY: obrigatório em produção: 1 com o Cloud Run direto, 2 com o Firebase Hosting na frente (docs/producao.md, "Atenção em produção")');
   } else if (config.http.trustProxy === 0) {
     problemas.push('TRUST_PROXY: 0 não serve no Cloud Run (sempre há ao menos um proxy na frente): use 1, ou 2 com o Firebase Hosting');
   }
   if (!config.dados.chave) {
-    problemas.push('CHAVE_DADOS: obrigatória em produção (protege o 2FA e os IPs dos limites; README, "Deploy")');
+    problemas.push('CHAVE_DADOS: obrigatória em produção (protege o 2FA e os IPs dos limites; docs/producao.md, "Deploy")');
   }
   return problemas;
 }

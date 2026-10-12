@@ -10,7 +10,7 @@
  *  - maioria com MAIS endereços = TRUST_PROXY baixo: todos parecem o mesmo IP e o
  *    bloqueio de login trava a equipe. AVISO.
  *  - algumas com menos = alguém acessou a API direto (endereço *.run.app), sem passar
- *    pelo Firebase. AVISO (as proteções importantes não dependem do IP; README).
+ *    pelo Firebase. AVISO (as proteções importantes não dependem do IP; docs/producao.md).
  * Requisições SEM o cabeçalho (sondas de saúde do Cloud Run, chamadas internas) não
  * passaram por proxy nenhum e ficam fora da conta. No log vão só contagens, nunca IPs.
  */
@@ -22,9 +22,9 @@ export function criarVerificadorDeProxy({ saltos, logger, amostra = 20 }) {
   function relatar() {
     const campos = { trust_proxy: saltos, amostra: vistas, ...contagem };
     if (contagem.menos > vistas / 2) {
-      logger.error('TRUST_PROXY parece ALTO para os proxies na frente da API: o IP do visitante pode ser forjado. Corrija TRUST_PROXY (README, "Atenção em produção").', campos);
+      logger.error('TRUST_PROXY parece ALTO para os proxies na frente da API: o IP do visitante pode ser forjado. Corrija TRUST_PROXY (docs/producao.md, "Atenção em produção").', campos);
     } else if (contagem.mais > vistas / 2) {
-      logger.warn('TRUST_PROXY parece BAIXO: todos os visitantes podem aparecer com o mesmo IP (e o bloqueio de login travar a equipe). Corrija TRUST_PROXY (README, "Atenção em produção").', campos);
+      logger.warn('TRUST_PROXY parece BAIXO: todos os visitantes podem aparecer com o mesmo IP (e o bloqueio de login travar a equipe). Corrija TRUST_PROXY (docs/producao.md, "Atenção em produção").', campos);
     } else if (contagem.menos > 0) {
       logger.warn('Algumas requisições chegaram sem passar por todos os proxies (acesso direto ao endereço *.run.app?). TRUST_PROXY parece certo.', campos);
     } else {

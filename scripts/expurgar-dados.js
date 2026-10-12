@@ -1,7 +1,7 @@
 /**
  * Retenção LGPD: apaga interesses de adoção e log de acessos vencidos
  * (prazos em src/config/env.js: RETENCAO_*_DIAS). Rodar DIARIAMENTE, como Cloud
- * Run Job disparado pelo Cloud Scheduler (ver README, seção LGPD).
+ * Run Job disparado pelo Cloud Scheduler (ver docs/producao.md, seção LGPD).
  * Aproveita para apagar fotos que nenhum gato ou item usa mais e as janelas
  * vencidas dos limites de taxa.
  * Registra só QUANTIDADES — nunca dados pessoais.
