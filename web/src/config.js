@@ -24,14 +24,6 @@ const JANELAS_GATOS = [intervalo('10:30', '11:50'), intervalo('13:10', '17:30')]
 
 export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
-  // Dados / API
-  // ---------------------------------------------------------------------------
-  apiBase: import.meta.env.VITE_API_BASE || '/api',
-  // JSON de exemplo (mesmo formato da API): usados no cardápio e nos gatos enquanto /api/cardapio e /api/gatos não existem.
-  dadosExemploBase: `${import.meta.env.BASE_URL}dados-exemplo`,
-  timeoutMs: 10_000,
-
-  // ---------------------------------------------------------------------------
   // Marca
   // ---------------------------------------------------------------------------
   marca: {
@@ -154,14 +146,10 @@ export const CONFIG = Object.freeze({
       titulo: 'Bora tomar um matchá com companhia peluda?',
       /** Palavra do título que ganha destaque (cor + traço). Precisa existir no título; senão, nada é destacado. */
       tituloDestaque: 'matchá',
-      subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Conheça os gatos antes de chegar.',
+      subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Vem conhecer a turma peluda!',
     },
-    /** Faixa decorativa entre o topo e o cardápio (repete as frases para preencher a largura). */
+    /** Faixa decorativa entre o topo e o gatil (repete as frases para preencher a largura). */
     faixa: ['Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
-    cardapio: {
-      titulo: 'Verde por dentro, fofo por fora',
-      subtitulo: 'Matchá de verdade, café passado com carinho e umas comidinhas pra acompanhar.',
-    },
     gatil: {
       titulo: 'Um tempinho com os gatos',
       subtitulo: 'O gatil é a casa deles: as vagas são limitadas pra todo mundo ficar de boa. Pagamento no local.',
@@ -169,19 +157,8 @@ export const CONFIG = Object.freeze({
       reservaTexto:
         'Chegou no café? Fale com a equipe no balcão e reserve seu horário na área dos gatos, na hora. Assim ninguém perde a vez por atraso.',
     },
-    adocao: {
-      titulo: 'Eles tão procurando um lar',
-      subtitulo:
-        'Os gatos do gatil são do Abrigo São Gabriel, ONG parceira desde o primeiro dia. Todos castrados, vacinados e prontos pra te escolher.',
-    },
     instagram: { titulo: 'Siga a gente', subtitulo: 'Bastidores, gato novo no pedaço e matchá do dia.' },
     visite: { titulo: 'Vem pro 2º andar da Galeria Metrópole' },
-  },
-
-  /** Carrossel do topo. O "gato do dia" e a "bebida destaque" vêm dos dados (gatos/cardápio). */
-  destaqueAdocao: {
-    titulo: 'Adotar muda duas vidas',
-    texto: 'Se apaixonou por algum gato? Venha conhecer no gatil e fale com a equipe.',
   },
 
   /** Perguntas frequentes do painel de atendimento. [CONFIRMAR respostas com o cliente] */

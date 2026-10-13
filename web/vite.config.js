@@ -25,16 +25,11 @@ function previaDeLink(siteUrl) {
   };
 }
 
-// Em dev, /api é repassado para a API Express (npm run dev na raiz, porta 8080):
-// mesma origem, igual à produção com o rewrite do Firebase Hosting.
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   return {
     plugins: [react(), previaDeLink(env.VITE_SITE_URL)],
-    server: {
-      port: 5173,
-      proxy: { '/api': 'http://localhost:8080' },
-    },
+    server: { port: 5173 },
     build: {
       outDir: 'dist',
       sourcemap: false,

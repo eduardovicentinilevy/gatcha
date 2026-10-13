@@ -3,15 +3,13 @@ import { IconeInstagram, IconeMapa, IconePatinha, IconeRelogio, IconeWhatsapp } 
 import StatusFuncionamento from './Status.jsx';
 
 const LINKS = [
-  ['/#cardapio', 'Cardápio'],
-  ['/#gatil', 'O gatil'],
-  ['/#adocao', 'Adoção'],
-  ['/#visite', 'Como chegar'],
-  ['/admin', 'Área da equipe'],
+  ['#gatil', 'O gatil'],
+  ['#instagram', 'Instagram'],
+  ['#visite', 'Como chegar'],
 ];
 
 export default function Rodape() {
-  const { endereco, funcionamento, contato, marca } = CONFIG;
+  const { endereco, funcionamento, contato, marca, gatil } = CONFIG;
   const whatsapp = linkWhatsapp();
   const ano = new Date().getFullYear();
 
@@ -21,7 +19,7 @@ export default function Rodape() {
         <div className="rodape__chamada">
           <p className="rodape__chamada-texto">Te vemos no gatil? 🐾</p>
           <div className="rodape__chamada-acoes">
-            <a className="botao" href="/#gatil">Conhecer o gatil</a>
+            <a className="botao" href="#gatil">Conhecer o gatil</a>
             <a className="botao botao--claro" href={linkInstagram()} target="_blank" rel="noopener noreferrer">
               <IconeInstagram /> @{contato.instagram}
             </a>
@@ -37,7 +35,7 @@ export default function Rodape() {
             <div>
               <p className="rodape__destaque">{endereco.linha1}</p>
               <p>{endereco.linha2}</p>
-              <a className="rodape__link-seta" href="/#visite">Como chegar →</a>
+              <a className="rodape__link-seta" href="#visite">Como chegar →</a>
             </div>
           </li>
           <li className="rodape__info">
@@ -51,9 +49,9 @@ export default function Rodape() {
           <li className="rodape__info">
             <IconePatinha className="rodape__icone" />
             <div>
-              <p className="rodape__destaque">Adoção responsável</p>
-              <p>{marca.slogan}, desde {marca.fundacao}, com gatos do Abrigo São Gabriel.</p>
-              <a className="rodape__link-seta" href="/#adocao">Conhecer os gatos →</a>
+              <p className="rodape__destaque">Área dos gatos</p>
+              <p>Sessões de {Object.keys(gatil.precosCentavos).join(' ou ')} minutos, com reserva no balcão. {marca.slogan}, desde {marca.fundacao}.</p>
+              <a className="rodape__link-seta" href="#gatil">Ver regras e preços →</a>
             </div>
           </li>
         </ul>

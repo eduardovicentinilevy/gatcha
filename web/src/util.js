@@ -21,16 +21,6 @@ export function agoraNoCafe() {
   return { data: `${p.year}-${p.month}-${p.day}`, minutos: Number(p.hour) * 60 + Number(p.minute) };
 }
 
-export function idade(meses) {
-  if (meses == null) return null;
-  if (meses < 12) return meses === 1 ? '1 mês' : `${meses} meses`;
-  const anos = Math.floor(meses / 12);
-  return anos === 1 ? '1 ano' : `${anos} anos`;
-}
-
-/** Busca sem acento e sem diferenciar maiúsculas. */
-export const normalizarBusca = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().trim();
-
 export const reduzirMovimento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** "Aberto agora" ou "Fechado agora", pelo horário do café (fuso de São Paulo). */

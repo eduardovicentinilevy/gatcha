@@ -7,8 +7,8 @@ export const ICONES = {
 
 /**
  * Foto com proporção fixa (sem "pulo" de layout) e lazy loading.
- * Aceita URL HTTPS (produção: fotos vindas da API) ou caminho do próprio site
- * (ex.: "/img/gatos/mochi.jpg", arquivo em web/public/img/gatos/).
+ * Aceita URL HTTPS ou caminho do próprio site
+ * (ex.: "/img/instagram/1.jpg", arquivo em web/public/img/instagram/).
  * Sem foto, mostra um placeholder ilustrado com o texto alternativo como rótulo acessível.
  */
 export default function Foto({ src, alt, proporcao = '4/3', icone = 'patinha', tom = 'matcha', className = '' }) {

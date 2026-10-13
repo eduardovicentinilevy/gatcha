@@ -3,9 +3,8 @@ import LogoGato from './LogoGato.jsx';
 import { IconeFechar, IconeLua, IconeMenu, IconeSol } from './Icones.jsx';
 
 const LINKS = [
-  ['#cardapio', 'Cardápio'],
   ['#gatil', 'Gatil'],
-  ['#adocao', 'Adoção'],
+  ['#instagram', 'Instagram'],
   ['#visite', 'Visite'],
 ];
 const CLIQUES_PARA_O_GATINHO = 5;
@@ -60,7 +59,7 @@ function useTopoAdaptavel(ref, tema) {
   }, [ref, tema]);
 }
 
-export default function Topo({ comMenu, tema, onAlternarTema, onEasterEgg }) {
+export default function Topo({ tema, onAlternarTema, onEasterEgg }) {
   const [aberto, setAberto] = useState(false);
   const botao = useRef(null);
   const cliques = useRef({ n: 0, ultimo: 0 });
@@ -95,18 +94,16 @@ export default function Topo({ comMenu, tema, onAlternarTema, onEasterEgg }) {
   return (
     <header ref={topo} className="topo" data-fundo="escuro" data-no-topo="">
       <div className="topo__barra container">
-        <a className="marca" href={comMenu ? '#' : '/'} aria-label="Gatchá, início" onClick={cliqueNoLogo}>
+        <a className="marca" href="#" aria-label="Gatchá, início" onClick={cliqueNoLogo}>
           <LogoGato tamanho={40} />
           <span>Gatchá</span>
         </a>
 
-        {comMenu && (
-          <nav id="menu-principal" className={`menu${aberto ? ' aberto' : ''}`} aria-label="Principal">
-            {LINKS.map(([href, texto]) => (
-              <a key={href} href={href} onClick={() => setAberto(false)}>{texto}</a>
-            ))}
-          </nav>
-        )}
+        <nav id="menu-principal" className={`menu${aberto ? ' aberto' : ''}`} aria-label="Principal">
+          {LINKS.map(([href, texto]) => (
+            <a key={href} href={href} onClick={() => setAberto(false)}>{texto}</a>
+          ))}
+        </nav>
 
         <div className="topo__acoes">
           <button
@@ -118,20 +115,18 @@ export default function Topo({ comMenu, tema, onAlternarTema, onEasterEgg }) {
           >
             {escuro ? <IconeSol /> : <IconeLua />}
           </button>
-          <a className="botao botao--pequeno topo__cta" href={comMenu ? '#gatil' : '/#gatil'}>Conhecer o gatil</a>
-          {comMenu && (
-            <button
-              ref={botao}
-              className="botao-icone menu-botao"
-              type="button"
-              aria-expanded={aberto}
-              aria-controls="menu-principal"
-              aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
-              onClick={() => setAberto((v) => !v)}
-            >
-              {aberto ? <IconeFechar /> : <IconeMenu />}
-            </button>
-          )}
+          <a className="botao botao--pequeno topo__cta" href="#gatil">Conhecer o gatil</a>
+          <button
+            ref={botao}
+            className="botao-icone menu-botao"
+            type="button"
+            aria-expanded={aberto}
+            aria-controls="menu-principal"
+            aria-label={aberto ? 'Fechar menu' : 'Abrir menu'}
+            onClick={() => setAberto((v) => !v)}
+          >
+            {aberto ? <IconeFechar /> : <IconeMenu />}
+          </button>
         </div>
       </div>
     </header>

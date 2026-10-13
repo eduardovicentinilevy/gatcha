@@ -1,21 +1,15 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTema } from './tema.js';
-import { usePagina } from './navegacao.js';
 import { reduzirMovimento } from './util.js';
 import Topo from './components/Topo.jsx';
 import Hero from './components/Hero.jsx';
 import Faixa from './components/Faixa.jsx';
-import Cardapio from './components/Cardapio.jsx';
 import Gatil from './components/Gatil.jsx';
-import Adocao from './components/Adocao.jsx';
 import SigaAGente from './components/SigaAGente.jsx';
 import Visite from './components/Visite.jsx';
 import Rodape from './components/Rodape.jsx';
 import Atendimento from './components/Atendimento.jsx';
 import Gatinho from './components/Gatinho.jsx';
-
-// O painel só é baixado por quem abre /admin: o site público não carrega esse código.
-const Admin = lazy(() => import('./admin/Admin.jsx'));
 
 /**
  * Microanimações ao rolar: elementos com [data-revelar] surgem suavemente ao
@@ -47,34 +41,21 @@ function useRevelarAoRolar() {
   }, []);
 }
 
-/** Poucas páginas: não justifica um roteador. O Firebase reescreve tudo para o index.html
- *  e a troca entre elas é animada (src/navegacao.js). O painel (/admin) tem layout próprio. */
+/** Uma página só: a vitrine do Gatchá (o Firebase reescreve qualquer caminho para o index.html). */
 export default function App() {
   const [tema, alternarTema] = useTema();
   const [gatinho, setGatinho] = useState(false);
   const esconderGatinho = useCallback(() => setGatinho(false), []);
-  const { pagina, animarSemApi } = usePagina();
   useRevelarAoRolar();
-  const classePagina = animarSemApi ? 'pagina pagina--entrando' : 'pagina';
-
-  if (pagina === 'admin') {
-    return (
-      <Suspense fallback={<p className="vazio">Carregando o painel…</p>}>
-        <Admin tema={tema} onAlternarTema={alternarTema} />
-      </Suspense>
-    );
-  }
 
   return (
     <>
       <a className="pular" href="#conteudo">Pular para o conteúdo</a>
-      <Topo comMenu={pagina === 'inicio'} tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
-      <main id="conteudo" key="inicio" className={classePagina}>
+      <Topo tema={tema} onAlternarTema={alternarTema} onEasterEgg={() => setGatinho(true)} />
+      <main id="conteudo">
         <Hero />
         <Faixa />
-        <Cardapio />
         <Gatil />
-        <Adocao />
         <SigaAGente />
         <Visite />
       </main>
