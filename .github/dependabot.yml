@@ -1,19 +1,7 @@
-# Atualizações de dependências: um PR por semana por pasta, agrupado, para não
+# Atualizações de dependências do site: um PR por semana, agrupado, para não
 # virar ruído. Correções de segurança chegam assim que publicadas (fora da agenda).
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-      timezone: America/Sao_Paulo
-    open-pull-requests-limit: 5
-    groups:
-      api:
-        patterns: ['*']
-        update-types: [minor, patch]
-
   - package-ecosystem: npm
     directory: /web
     schedule:

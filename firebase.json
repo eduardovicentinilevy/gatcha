@@ -8,13 +8,6 @@
     ],
     "rewrites": [
       {
-        "source": "/api/**",
-        "run": {
-          "serviceId": "gatcha-api",
-          "region": "southamerica-east1"
-        }
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
@@ -73,15 +66,6 @@
           {
             "key": "Cache-Control",
             "value": "public, max-age=86400"
-          }
-        ]
-      },
-      {
-        "source": "/admin{,/**}",
-        "headers": [
-          {
-            "key": "X-Robots-Tag",
-            "value": "noindex, nofollow"
           }
         ]
       }

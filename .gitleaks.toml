@@ -1,5 +1,6 @@
 # Varredura de segredos (gitleaks) no CI, com as regras padrão.
-# Falsos positivos conhecidos:
+# A varredura lê o histórico inteiro, então os falsos positivos da antiga API
+# (removida do projeto, mas ainda nos commits antigos) continuam liberados:
 #  - o segredo FALSO e fixo dos testes (liberado abaixo pelo valor exato);
 #  - a lista de senhas PROIBIDAS em src/modules/auth/senha.js (comentário
 #    "gitleaks:allow" na linha, e o commit antigo em .gitleaksignore).
