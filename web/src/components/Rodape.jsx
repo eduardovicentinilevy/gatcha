@@ -50,7 +50,7 @@ export default function Rodape() {
             <IconePatinha className="rodape__icone" />
             <div>
               <p className="rodape__destaque">Área dos gatos</p>
-              <p>Sessões de {Object.keys(gatil.precosCentavos).join(' ou ')} minutos, com reserva no balcão. {marca.slogan}, desde {marca.fundacao}.</p>
+              <p>Sessões de {Object.keys(gatil.precosCentavos).join(' ou ')} minutos, com reserva no balcão. {marca.pioneiro}, desde {marca.fundacao}.</p>
               <a className="rodape__link-seta" href="#gatil">Ver regras e preços →</a>
             </div>
           </li>

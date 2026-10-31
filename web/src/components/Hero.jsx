@@ -26,7 +26,7 @@ export default function Hero() {
     <section id="inicio" className="hero">
       <div className="container hero__grade">
         <div className="hero__texto" data-revelar>
-          <p className="selo selo--escuro">{t.selo}</p>
+          <p className="selo selo--pioneiro">{t.selo}</p>
           <h1><Titulo texto={t.titulo} destaque={t.tituloDestaque} /></h1>
           <p className="hero__sub">{t.subtitulo}</p>
           <div className="hero__acoes">

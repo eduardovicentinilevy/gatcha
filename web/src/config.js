@@ -21,6 +21,8 @@ const DIAS_ABERTOS = [1, 2, 3, 4, 5, 6]; // 0 = domingo ... 6 = sábado
 const DIAS_TEXTO = 'Segunda a sábado';
 const CAFE = intervalo('10:00', '18:30');
 const JANELAS_GATOS = [intervalo('10:30', '11:50'), intervalo('13:10', '17:30')];
+/** [CONFIRMAR com o Gatchá] Aparece no início, na faixa, no rodapé e na descrição do site. */
+const PRIMEIRO = 'O primeiro cat café de São Paulo';
 
 export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
@@ -28,7 +30,7 @@ export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
   marca: {
     nome: 'Gatchá',
-    slogan: 'Cat café de matchá na República',
+    pioneiro: PRIMEIRO,
     fundacao: 'junho de 2022',
   },
 
@@ -142,14 +144,14 @@ export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
   textos: {
     hero: {
-      selo: 'Galeria Metrópole · República · SP',
+      selo: PRIMEIRO,
       titulo: 'Bora tomar um matchá com companhia peluda?',
       /** Palavra do título que ganha destaque (cor + traço). Precisa existir no título; senão, nada é destacado. */
       tituloDestaque: 'matchá',
       subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Vem conhecer a turma peluda!',
     },
     /** Faixa decorativa entre o topo e o gatil (repete as frases para preencher a largura). */
-    faixa: ['Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
+    faixa: ['Primeiro cat café de SP', 'Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
     gatil: {
       titulo: 'Um tempinho com os gatos',
       subtitulo: 'O gatil é a casa deles: as vagas são limitadas pra todo mundo ficar de boa. Pagamento no local.',

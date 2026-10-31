@@ -133,7 +133,8 @@ abbr[title] { text-decoration: none; }
   padding: .2em .75em; border: 2px solid var(--cor-borda); border-radius: 999px;
   background: var(--cor-superficie2); color: var(--cor-texto);
 }
-.selo--escuro { background: transparent; color: var(--cor-matcha-forte); border-color: var(--cor-matcha); }
+/* Selo do início ("O primeiro cat café de São Paulo"): amarelo para chamar atenção logo de cara. */
+.selo--pioneiro { font-size: .88rem; padding: .3em .9em; background: var(--cor-destaque); color: var(--cor-botao-texto); box-shadow: 2px 2px 0 var(--cor-sombra); }
 
 /* ---------- Foto / placeholder ---------- */
 .foto { width: 100%; object-fit: cover; background: var(--cor-superficie2); border-bottom: var(--borda); }
