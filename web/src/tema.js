@@ -34,7 +34,7 @@ export function aplicarTema(tema) {
   for (const [nome, valor] of Object.entries(CONFIG.cores[tema])) raiz.style.setProperty(`--cor-${kebab(nome)}`, valor);
   raiz.dataset.tema = tema;
   raiz.style.colorScheme = tema === 'escuro' ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CONFIG.cores[tema].escuroFixo);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', CONFIG.cores[tema].superficie);
 }
 
 export const temaInicial = () => lerPreferencia() ?? (consultaEscuro.matches ? 'escuro' : 'claro');

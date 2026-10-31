@@ -30,14 +30,9 @@ function useRevelarAoRolar() {
       },
       { rootMargin: '0px 0px -8% 0px' },
     );
-    const observar = () => document.querySelectorAll('[data-revelar]:not(.visivel)').forEach((el) => io.observe(el));
-    observar();
-    const mo = new MutationObserver(observar); // cards que chegam depois (dados assíncronos)
-    mo.observe(document.body, { childList: true, subtree: true });
-    return () => {
-      io.disconnect();
-      mo.disconnect();
-    };
+    // A página é estática: tudo o que revela já está no DOM na primeira vez.
+    document.querySelectorAll('[data-revelar]').forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
 }
 

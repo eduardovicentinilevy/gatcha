@@ -3,13 +3,13 @@ import { CONFIG } from './config.js';
 const formatadorReais = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 export const reais = (centavos) => formatadorReais.format(centavos / 100);
 
-export const dataUTC = (iso) => new Date(`${iso}T12:00:00Z`);
+const dataUTC = (iso) => new Date(`${iso}T12:00:00Z`);
 
-export const diaDaSemana = (iso) => dataUTC(iso).getUTCDay();
+const diaDaSemana = (iso) => dataUTC(iso).getUTCDay();
 
 /** "Agora" no fuso do café, independente do fuso do aparelho do cliente. */
 let fmtAgora; // criar Intl.DateTimeFormat é caro: um só, reaproveitado
-export function agoraNoCafe() {
+function agoraNoCafe() {
   fmtAgora ??= new Intl.DateTimeFormat('en-CA', {
     timeZone: CONFIG.gatil.fuso, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
   });

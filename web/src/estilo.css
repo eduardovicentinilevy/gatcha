@@ -56,9 +56,9 @@ abbr[title] { text-decoration: none; }
 .pular { position: absolute; left: 8px; top: -80px; z-index: 200; background: var(--cor-superficie); border: var(--borda); padding: 8px 14px; border-radius: var(--raio-p); }
 .pular:focus { top: 8px; }
 
-/* Blocos sempre escuros (hero, visite, rodapé) e o topo quando passa por cima de um deles
+/* Blocos sempre escuros (visite, rodapé) e o topo quando passa por cima de um deles
    redefinem as variáveis localmente. */
-.hero, .secao--escura, .rodape, .topo[data-fundo="escuro"] {
+.secao--escura, .rodape, .topo[data-fundo="escuro"] {
   --cor-texto: var(--cor-claro-fixo);
   --cor-texto-suave: #CBD3C0;
   --cor-borda: var(--cor-claro-fixo);
@@ -73,7 +73,7 @@ abbr[title] { text-decoration: none; }
   --sombra-g: 6px 6px 0 var(--cor-sombra);
   color: var(--cor-texto);
 }
-.hero, .secao--escura, .rodape { background: var(--cor-escuro-fixo); }
+.secao--escura, .rodape { background: var(--cor-escuro-fixo); }
 .topo[data-fundo="escuro"] { --cor-fundo: var(--cor-escuro-fixo); } /* menu aberto no celular */
 
 /* ---------- Botões ---------- */
@@ -220,13 +220,8 @@ abbr[title] { text-decoration: none; }
 /* ---------- Hero ---------- */
 .hero {
   padding: calc(24px + var(--topo-altura)) 0 76px; /* o topo fica por cima */ border-bottom: var(--borda);
-  /* só corta dos lados: as figurinhas podem descer por cima da seção seguinte */
-  position: relative; z-index: 3; overflow-x: clip;
-  /* brilho verde atrás do logo + textura de bolinhas bem discreta */
-  background-image:
-    radial-gradient(70% 34% at 50% 10%, color-mix(in srgb, var(--cor-matcha) 30%, transparent), transparent 75%),
-    radial-gradient(color-mix(in srgb, var(--cor-claro-fixo) 8%, transparent) 1.2px, transparent 1.6px);
-  background-size: auto, 22px 22px;
+  /* fundo branco liso (no tema escuro, a superfície escura do tema) */
+  background: var(--cor-superficie);
 }
 .hero__grade { display: grid; gap: 16px; align-items: center; }
 .hero h1 { margin-top: 14px; max-width: 13ch; }
@@ -237,6 +232,8 @@ abbr[title] { text-decoration: none; }
 }
 .hero__sub { font-size: 1.12rem; color: var(--cor-texto-suave); max-width: 36ch; }
 .hero__acoes { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+/* Celular: botões empilhados com a mesma largura (soltos, cada um ficava de um tamanho). */
+@media (max-width: 520px) { .hero__acoes .botao, .rodape__chamada-acoes .botao { flex: 1 1 100%; } }
 .hero__status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 22px 0 0; color: var(--cor-texto-suave); font-weight: 700; font-size: .95rem; }
 .hero__status .status { margin: 0; }
 .hero__arte { position: relative; display: grid; place-items: center; order: -1; }
@@ -248,16 +245,14 @@ abbr[title] { text-decoration: none; }
   transition: rotate 1.4s cubic-bezier(.2, .8, .2, 1);
 }
 .hero__arte:hover .hero__anel { rotate: 120deg; }
-.hero__logo { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-claro-fixo); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
+.hero__logo { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-borda); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
 .hero__logo svg { width: 100%; height: 100%; }
 .hero__patinha { position: absolute; color: var(--cor-matcha); width: 34px; height: 34px; }
 .hero__patinha--1 { top: 4%; left: 12%; transform: rotate(-20deg); }
 .hero__patinha--2 { bottom: 6%; right: 12%; transform: rotate(18deg); width: 26px; height: 26px; color: var(--cor-rosa); }
 
 @media (min-width: 900px) {
-  .hero { padding: calc(64px + var(--topo-altura)) 0 88px; background-image:
-    radial-gradient(42% 60% at 80% 34%, color-mix(in srgb, var(--cor-matcha) 26%, transparent), transparent 75%),
-    radial-gradient(color-mix(in srgb, var(--cor-claro-fixo) 8%, transparent) 1.2px, transparent 1.6px); }
+  .hero { padding: calc(64px + var(--topo-altura)) 0 88px; }
   .hero__grade { grid-template-columns: 1.3fr 1fr; }
   .hero__arte { order: 0; }
   .hero__selo { width: 420px; }
@@ -373,7 +368,7 @@ abbr[title] { text-decoration: none; }
   border: 2px solid var(--cor-texto-suave); border-radius: 999px; font-size: .85rem; font-weight: 800;
 }
 .status__ponto { width: 9px; height: 9px; border-radius: 50%; background: var(--cor-fechado); }
-.status--aberto { border-color: var(--cor-matcha); color: var(--cor-claro-fixo); }
+.status--aberto { border-color: var(--cor-matcha); color: var(--cor-texto); }
 .status--aberto .status__ponto { background: var(--cor-matcha); box-shadow: 0 0 0 0 var(--cor-matcha); animation: pulso 2s infinite; }
 @keyframes pulso { 70% { box-shadow: 0 0 0 7px transparent; } }
 .rodape__nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 22px 0 0; }
@@ -448,74 +443,6 @@ abbr[title] { text-decoration: none; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
-
-/* ---------- Figurinhas do início (Flutuantes.jsx) ----------
-   Cada uma tem 3 camadas de movimento, em elementos diferentes para não brigarem pelo transform:
-   .figurinha (posição + parallax preso à rolagem) e .figurinha__corpo (entrada voando + boiar).
-   --vel: quanto ela desce (+) ou sobe (-) enquanto o início sai da tela; --de-x/--de-y: de onde
-   ela vem voando; --giro: inclinação final. As de baixo atravessam para a seção seguinte. */
-.figurinhas { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
-.hero__grade { position: relative; z-index: 2; }
-.figurinha { position: absolute; width: var(--tam, 64px); aspect-ratio: 1; }
-.figurinha__corpo {
-  display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%;
-  /* contorno escuro fixo: continua visível quando a figurinha desce para uma seção clara */
-  border: 2.5px solid var(--cor-escuro-fixo); box-shadow: 4px 4px 0 var(--cor-matcha); transform: rotate(var(--giro, 0deg));
-}
-.figurinha__corpo svg { width: 56%; height: auto; filter: drop-shadow(2px 2px 0 rgb(0 0 0 / .18)); }
-.figurinha__corpo svg[viewBox="36 50 132 98"] { width: 64%; fill: none; stroke: currentColor; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; }
-.figurinha__corpo--matcha { background: var(--cor-matcha); color: #FFFFFF; }
-.figurinha__corpo--rosa { background: var(--cor-rosa); color: var(--cor-botao-texto); }
-.figurinha__corpo--amarelo { background: var(--cor-destaque); color: var(--cor-botao-texto); border-radius: 26%; }
-.figurinha__corpo--claro { background: var(--cor-claro-fixo); color: #3B6500; }
-
-/* Celular: só 3, pequenas, nas bordas (longe do texto e do selo). */
-.figurinha--1 { --tam: 58px; --giro: -12deg; --vel: -140px; --de-x: -120px; --de-y: -60px; top: 6%; left: 3%; --gira: -14deg; }
-.figurinha--2 { --tam: 52px; --giro: 14deg; --vel: 120px; --de-x: 140px; --de-y: -40px; top: 33%; right: 2%; --gira: 16deg; }
-.figurinha--3 { --tam: 60px; --giro: 8deg; --vel: 40px; --de-x: -100px; --de-y: 120px; bottom: -30px; left: 6%; --gira: -10deg; }
-.figurinha--4 { --tam: 56px; --giro: -10deg; --vel: 60px; --de-x: 120px; --de-y: 140px; bottom: -28px; right: 8%; --gira: 20deg; }
-.figurinha--1, .figurinha--5, .figurinha--6 { display: none; }
-
-@media (min-width: 900px) {
-  .figurinha--1 { display: block; --tam: 104px; top: 10%; left: 49%; --vel: -180px; }
-  .figurinha--2 { --tam: 86px; top: 9%; right: 3%; --vel: 140px; }
-  .figurinha--3 { --tam: 112px; bottom: -56px; left: 2.5%; --vel: 50px; }
-  .figurinha--4 { --tam: 96px; bottom: -48px; right: 7%; --vel: 90px; }
-  .figurinha--5 { display: block; --tam: 78px; --giro: -6deg; --vel: -90px; --de-x: 0px; --de-y: 180px; top: 56%; left: 47%; }
-  .figurinha--6 { display: block; --tam: 70px; --giro: 18deg; --vel: 80px; --de-x: -160px; --de-y: 0px; top: 40%; left: 1%; }
-}
-
-/* Entrada: cada uma vem voando de um lado, girando, uma depois da outra; depois fica boiando. */
-.figurinha__corpo {
-  animation: figurinha-entra .9s cubic-bezier(.2, .9, .25, 1.25) var(--atraso, 0s) both,
-             figurinha-boia var(--boia, 6s) ease-in-out calc(var(--atraso, 0s) + .9s) infinite;
-}
-.figurinha--1 .figurinha__corpo { --atraso: .15s; --boia: 6.4s; }
-.figurinha--2 .figurinha__corpo { --atraso: .3s; --boia: 5.6s; }
-.figurinha--3 .figurinha__corpo { --atraso: .45s; --boia: 7.1s; }
-.figurinha--4 .figurinha__corpo { --atraso: .6s; --boia: 6.2s; }
-.figurinha--5 .figurinha__corpo { --atraso: .75s; --boia: 5.2s; }
-.figurinha--6 .figurinha__corpo { --atraso: .9s; --boia: 6.8s; }
-@keyframes figurinha-entra {
-  from { opacity: 0; transform: translate(var(--de-x), var(--de-y)) rotate(calc(var(--giro) - 50deg)) scale(.35); }
-  to { opacity: 1; transform: rotate(var(--giro)); }
-}
-@keyframes figurinha-boia {
-  0%, 100% { transform: rotate(var(--giro)) translateY(0); }
-  50% { transform: rotate(calc(var(--giro) + 5deg)) translateY(-10px); }
-}
-
-/* Parallax: ao rolar, cada uma anda numa velocidade e as de baixo invadem a próxima seção. */
-@supports (animation-timeline: scroll()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .figurinha {
-      animation: figurinha-parallax linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 110vh;
-    }
-  }
-}
-@keyframes figurinha-parallax { to { translate: 0 var(--vel); rotate: var(--gira, 12deg); } }
 
 /* ---------- Transições entre seções ----------
    Presas à rolagem (scroll-driven animations, sem JavaScript): cada seção "abre" como um cartão

@@ -31,7 +31,7 @@ export const IconeXicara = (p) => (
   <svg {...base} {...p}><path d="M4 9h13v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-6-6Z" /><path d="M17 10.5h1.5a2.5 2.5 0 0 1 0 5H16.5M8 3.5c0 1 1 1 1 2s-1 1-1 2M12 3.5c0 1 1 1 1 2s-1 1-1 2M5 21h12" /></svg>
 );
 
-/* Ilustrações temáticas (figurinhas do início e fotos que ainda não chegaram). */
+/* Ilustrações temáticas (aparecem no lugar das fotos que ainda não chegaram). */
 /** Tigela de matchá com o batedor (chasen). */
 export const IconeTigela = (p) => (
   <svg {...base} {...p}><path d="M3 11.5h18a9 7.5 0 0 1-18 0Z" /><path d="M9 21h6M6.5 14.5c1.2-1 2.3-1 3.5 0s2.3 1 3.5 0 2.3-1 3.5 0M15.5 9.5 19 2.5M17.2 8.5l2.8-1.4" /></svg>
