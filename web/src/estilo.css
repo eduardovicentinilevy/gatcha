@@ -239,15 +239,27 @@ abbr[title] { text-decoration: none; }
 .hero__status .status { margin: 0; }
 .hero__arte { position: relative; display: grid; place-items: center; order: -1; }
 /* Selo: logo no meio de um anel de texto que gira quando o cursor passa por cima. */
-.hero__selo { position: relative; width: min(46vw, 180px); aspect-ratio: 1; display: grid; place-items: center; }
+/* container: o carimbo mede o texto pela largura do selo (cqi), igual no celular e no computador */
+.hero__selo { position: relative; width: min(56vw, 220px); aspect-ratio: 1; display: grid; place-items: center; container-type: inline-size; }
 .hero__anel {
   position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
   fill: var(--cor-matcha-forte); font-family: var(--fonte-titulo); font-size: 16px; font-weight: 800;
   transition: rotate 1.4s cubic-bezier(.2, .8, .2, 1);
 }
-.hero__arte:hover .hero__anel { rotate: 120deg; }
+/* volta inteira: o anel termina onde começou e o vão continua embaixo do carimbo */
+.hero__arte:hover .hero__anel { rotate: 360deg; }
 .hero__logo { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-borda); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
 .hero__logo svg { width: 100%; height: 100%; }
+/* Carimbo "1º cat café de SP" no vão do anel (embaixo, à esquerda) */
+.hero__carimbo {
+  position: absolute; left: 1.5%; bottom: 1.5%; z-index: 1; width: 35%; aspect-ratio: 1; margin: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  border: var(--borda); border-radius: 50%; background: var(--cor-destaque); color: var(--cor-botao-texto);
+  box-shadow: 4px 4px 0 var(--cor-sombra); rotate: -12deg;
+  font-family: var(--fonte-titulo); font-weight: 800; font-size: .65rem; font-size: 4.6cqi; line-height: 1.05; letter-spacing: .04em; text-transform: uppercase;
+  padding: 0 6%;
+}
+.hero__carimbo strong { font-size: 1.8rem; font-size: 14cqi; line-height: .95; letter-spacing: -.02em; }
 .hero__patinha { position: absolute; color: var(--cor-matcha); width: 34px; height: 34px; }
 .hero__patinha--1 { top: 4%; left: 12%; transform: rotate(-20deg); }
 .hero__patinha--2 { bottom: 6%; right: 12%; transform: rotate(18deg); width: 26px; height: 26px; color: var(--cor-rosa); }
@@ -257,6 +269,7 @@ abbr[title] { text-decoration: none; }
   .hero__grade { grid-template-columns: 1.3fr 1fr; }
   .hero__arte { order: 0; }
   .hero__selo { width: 420px; }
+  .hero__carimbo { box-shadow: 6px 6px 0 var(--cor-sombra); }
 }
 
 /* ---------- Faixa entre o topo e o gatil ---------- */
