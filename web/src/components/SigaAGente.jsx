@@ -24,7 +24,9 @@ export default function SigaAGente() {
             const { foto, alt } = typeof post === 'string' ? { alt: post } : post;
             return (
               <li key={alt}>
-                <Foto src={foto} alt={alt} proporcao="1/1" icone={ICONES[i % ICONES.length]} tom={TONS[i % TONS.length]} />
+                <a className="feed__link" href={linkInstagram()} target="_blank" rel="noopener noreferrer" aria-label={`${alt} (abre o Instagram)`}>
+                  <Foto src={foto} alt={alt} proporcao="1/1" icone={ICONES[i % ICONES.length]} tom={TONS[i % TONS.length]} />
+                </a>
               </li>
             );
           })}

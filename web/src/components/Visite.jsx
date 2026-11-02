@@ -14,7 +14,7 @@ export default function Visite() {
   const { endereco, funcionamento, contato } = CONFIG;
 
   return (
-    <section id="visite" className="secao secao--escura" aria-labelledby="titulo-visite">
+    <section id="visite" className="secao secao--branca" aria-labelledby="titulo-visite">
       <div className="container visite">
         <div className="visite__info" data-revelar>
           <p className="sobretitulo">Visite</p>
