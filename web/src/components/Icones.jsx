@@ -44,8 +44,3 @@ export const IconeDoce = (p) => (
 export const IconeOnigiri = (p) => (
   <svg {...base} {...p}><path d="M12 3c1.1 0 1.9.6 2.6 1.7l5.9 10.1c1.3 2.3-.3 5.2-3 5.2H6.5c-2.7 0-4.3-2.9-3-5.2l5.9-10.1C10.1 3.6 10.9 3 12 3Z" /><path d="M9 20v-4.5h6V20" /></svg>
 );
-/** Copo gelado com canudo (bebidas). */
-export const IconeCopo = (p) => (
-  <svg {...base} {...p}><path d="M5.5 7h13l-1.7 14H7.2Z" /><path d="M13 7l2-5h3M6 10.5h12M9 13.5h2.5V16H9zM12.5 15.5H15V18h-2.5z" /></svg>
-);
-

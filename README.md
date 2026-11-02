@@ -34,6 +34,7 @@ Mexeu em algum arquivo? O site se atualiza sozinho no navegador. Para desligar, 
 |---|---|
 | Textos, preços do gatil, horários, regras, perguntas frequentes, contatos e cores | `web/src/config.js`. Procure por `[SUBSTITUIR]` e `[CONFIRMAR]`: são os pontos que ainda esperam o conteúdo de verdade. |
 | Fotos do "Siga a gente" | `web/public/img/instagram/`, e depois aponte para elas em `feedInstagram`, no `web/src/config.js` |
+| A frase "o primeiro cat café de São Paulo" (selo, anel, carimbo, faixa, rodapé e descrição no Google) | `pioneiro`, no `web/src/config.js`. Trocar por `null` tira a frase do site inteiro. |
 | Visual do site | `web/src/estilo.css` |
 | Imagem que aparece quando alguém compartilha o link | `web/public/og.png` |
 

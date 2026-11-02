@@ -92,7 +92,7 @@ export default function Topo({ tema, onAlternarTema, onEasterEgg }) {
 
   const escuro = tema === 'escuro';
   return (
-    <header ref={topo} className="topo" data-fundo="claro" data-no-topo="">
+    <header ref={topo} className="topo" data-fundo={tema === 'escuro' ? 'escuro' : 'claro'} data-no-topo="">
       <div className="topo__barra container">
         <a className="marca" href="#" aria-label="Gatchá, início" onClick={cliqueNoLogo}>
           <LogoGato tamanho={40} />

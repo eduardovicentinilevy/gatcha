@@ -57,9 +57,9 @@ abbr[title] { text-decoration: none; }
 .pular { position: absolute; left: 8px; top: -80px; z-index: 200; background: var(--cor-superficie); border: var(--borda); padding: 8px 14px; border-radius: var(--raio-p); }
 .pular:focus { top: 8px; }
 
-/* Blocos sempre escuros (visite, rodapé) e o topo quando passa por cima de um deles
+/* Blocos sempre escuros (o rodapé) e o topo quando passa por cima de um deles
    redefinem as variáveis localmente. */
-.secao--escura, .rodape, .topo[data-fundo="escuro"] {
+.rodape, .topo[data-fundo="escuro"] {
   --cor-texto: var(--cor-claro-fixo);
   --cor-texto-suave: #CBD3C0;
   --cor-borda: var(--cor-claro-fixo);
@@ -74,8 +74,7 @@ abbr[title] { text-decoration: none; }
   --sombra-g: 6px 6px 0 var(--cor-sombra);
   color: var(--cor-texto);
 }
-.secao--escura, .rodape { background: var(--cor-escuro-fixo); }
-.secao--escura { border-block: var(--borda); }
+.rodape { background: var(--cor-escuro-fixo); }
 .topo[data-fundo="escuro"] { --cor-fundo: var(--cor-escuro-fixo); } /* menu aberto no celular */
 
 /* ---------- Botões ---------- */
@@ -253,9 +252,9 @@ abbr[title] { text-decoration: none; }
 .hero__arte:hover .hero__anel { rotate: 360deg; }
 .hero__logo { width: 72%; aspect-ratio: 1; border-radius: 50%; border: 3px solid var(--cor-borda); box-shadow: 8px 8px 0 var(--cor-matcha); overflow: hidden; }
 .hero__logo svg { width: 100%; height: 100%; }
-/* Carimbo "1º cat café de SP" no vão do anel (embaixo, à esquerda) */
+/* Carimbo "1º cat café de SP" no vão do anel: posição e tamanho vêm do Hero.jsx (mesma geometria do anel) */
 .hero__carimbo {
-  position: absolute; left: 1.5%; bottom: 1.5%; z-index: 1; width: 35%; aspect-ratio: 1; margin: 0;
+  position: absolute; left: var(--carimbo-x); top: var(--carimbo-y); z-index: 1; width: var(--carimbo-tam); aspect-ratio: 1; margin: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
   border: var(--borda); border-radius: 50%; background: var(--cor-destaque); color: var(--cor-botao-texto);
   box-shadow: 4px 4px 0 var(--cor-sombra); rotate: -12deg;
@@ -334,14 +333,16 @@ abbr[title] { text-decoration: none; }
 .siga { display: grid; gap: 24px; }
 .siga .secao__topo .botao { margin-top: 8px; }
 .feed { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.feed > li:first-child { grid-column: span 2; grid-row: span 2; }
-.feed__link { display: block; border-radius: var(--raio-p); }
+.feed > li { position: relative; }
+.feed--mosaico > li:first-child { grid-column: span 2; grid-row: span 2; }
+.feed--mosaico > li:first-child .foto--placeholder svg { width: 24%; }
+/* link por cima da foto inteira (só para o clique; fora do Tab, ver SigaAGente.jsx) */
+.feed__link { position: absolute; inset: 0; border-radius: var(--raio-p); }
 .feed .foto {
   border: var(--borda); border-radius: var(--raio-p); box-shadow: 0 0 0 var(--cor-sombra);
   transition: transform var(--transicao), box-shadow var(--transicao);
 }
-.feed__link:hover .foto, .feed__link:focus-visible .foto { transform: translate(-3px, -3px) rotate(-1.2deg); box-shadow: var(--sombra); }
-.feed > li:first-child .foto--placeholder svg { width: 24%; }
+.feed > li:hover .foto { transform: translate(-3px, -3px) rotate(-1.2deg); box-shadow: var(--sombra); }
 @media (min-width: 900px) { .siga { grid-template-columns: 1fr 1.4fr; align-items: center; } .feed { gap: 14px; } }
 
 /* ---------- Visite ---------- */

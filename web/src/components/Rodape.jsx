@@ -9,7 +9,7 @@ const LINKS = [
 ];
 
 export default function Rodape() {
-  const { endereco, funcionamento, contato, marca, gatil } = CONFIG;
+  const { endereco, funcionamento, contato, marca, gatil, pioneiro } = CONFIG;
   const whatsapp = linkWhatsapp();
   const ano = new Date().getFullYear();
 
@@ -50,7 +50,7 @@ export default function Rodape() {
             <IconePatinha className="rodape__icone" />
             <div>
               <p className="rodape__destaque">Área dos gatos</p>
-              <p>Sessões de {Object.keys(gatil.precosCentavos).join(' ou ')} minutos, com reserva no balcão. {marca.pioneiro}, desde {marca.fundacao}.</p>
+              <p>Sessões de {Object.keys(gatil.precosCentavos).join(' ou ')} minutos, com reserva no balcão. {pioneiro ? `${pioneiro.frase}, desde ${marca.fundacao}.` : `Cat café de matchá desde ${marca.fundacao}.`}</p>
               <a className="rodape__link-seta" href="#gatil">Ver regras e preços →</a>
             </div>
           </li>

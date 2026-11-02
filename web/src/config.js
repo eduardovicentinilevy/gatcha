@@ -21,8 +21,17 @@ const DIAS_ABERTOS = [1, 2, 3, 4, 5, 6]; // 0 = domingo ... 6 = sábado
 const DIAS_TEXTO = 'Segunda a sábado';
 const CAFE = intervalo('10:00', '18:30');
 const JANELAS_GATOS = [intervalo('10:30', '11:50'), intervalo('13:10', '17:30')];
-/** [CONFIRMAR com o Gatchá] Aparece no início, na faixa, no rodapé e na descrição do site. */
-const PRIMEIRO = 'O primeiro cat café de São Paulo';
+/**
+ * [CONFIRMAR com o Gatchá] "O primeiro cat café de São Paulo".
+ * Fonte única da frase: o selo e o anel do início, o carimbo "1º", a faixa, o rodapé e a
+ * descrição do site (index.html, preenchida no build pelo vite.config.js) leem daqui.
+ * Para tirar a frase do site inteiro, troque por null.
+ */
+const PIONEIRO = {
+  frase: 'O primeiro cat café de São Paulo',
+  curta: 'Primeiro cat café de SP', // faixa
+  carimbo: ['1º', 'cat café de SP'], // [destaque, texto] do carimbo amarelo
+};
 
 export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
@@ -30,9 +39,9 @@ export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
   marca: {
     nome: 'Gatchá',
-    pioneiro: PRIMEIRO,
     fundacao: 'junho de 2022',
   },
+  pioneiro: PIONEIRO,
 
   /**
    * Paleta. [SUBSTITUIR pelas cores oficiais da marca]
@@ -144,14 +153,14 @@ export const CONFIG = Object.freeze({
   // ---------------------------------------------------------------------------
   textos: {
     hero: {
-      selo: PRIMEIRO,
+      selo: PIONEIRO?.frase ?? 'Galeria Metrópole · República · SP',
       titulo: 'Bora tomar um matchá com companhia peluda?',
       /** Palavra do título que ganha destaque (cor + traço). Precisa existir no título; senão, nada é destacado. */
       tituloDestaque: 'matchá',
       subtitulo: 'Matchá de verdade, comidinhas e uma área só dos gatos. Vem conhecer a turma peluda!',
     },
     /** Faixa decorativa entre o topo e o gatil (repete as frases para preencher a largura). */
-    faixa: ['Primeiro cat café de SP', 'Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
+    faixa: [...(PIONEIRO ? [PIONEIRO.curta] : []), 'Matchá de verdade', 'Gatos do Abrigo São Gabriel', 'Opções veganas', 'Galeria Metrópole, 2º piso', 'Desde 2022'],
     gatil: {
       titulo: 'Um tempinho com os gatos',
       subtitulo: 'O gatil é a casa deles: as vagas são limitadas pra todo mundo ficar de boa. Pagamento no local.',
@@ -159,6 +168,9 @@ export const CONFIG = Object.freeze({
       reservaTexto:
         'Chegou no café? Fale com a equipe no balcão e reserve seu horário na área dos gatos, na hora. Assim ninguém perde a vez por atraso.',
     },
+    /** Descrição do site no Google e na prévia de link (o vite.config.js coloca no index.html). */
+    descricao: `${PIONEIRO ? `${PIONEIRO.frase}, especializado em matchá,` : 'Cat café especializado em matchá'} na Galeria Metrópole. Horários, regras e preços da área dos gatos e como chegar.`,
+    descricaoCompartilhar: `${PIONEIRO ? `${PIONEIRO.frase}: matchá` : 'Matchá'} de verdade, comidinhas e uma área só dos gatos, na Galeria Metrópole.`,
     instagram: { titulo: 'Siga a gente', subtitulo: 'Bastidores, gato novo no pedaço e matchá do dia.' },
     visite: { titulo: 'Vem pro 2º andar da Galeria Metrópole' },
   },

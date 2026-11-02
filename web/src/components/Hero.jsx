@@ -16,12 +16,29 @@ function Titulo({ texto, destaque }) {
   );
 }
 
-/* O texto ocupa 290° do anel (textLength) e começa um pouco abaixo das 9h (rotate -10°):
-   sobra um vão embaixo, à esquerda, onde fica o carimbo "1º", sem cobrir nenhuma letra. */
-const TEXTO_DO_ANEL = 'O primeiro cat café de São Paulo';
+/**
+ * Geometria do anel de texto (unidades do viewBox 0 0 200 200). Com o carimbo "1º", o texto
+ * ocupa só `arco` graus e começa `inicio` graus antes das 9h; o vão que sobra fica embaixo, à
+ * esquerda, e o carimbo é posicionado no meio dele a partir destes mesmos números (nada de
+ * medida solta no CSS). Sem o carimbo, o texto dá a volta inteira.
+ */
+const ANEL = { raio: 86, inicio: -10, arco: 290, carimbo: 70 };
+const CIRCUNFERENCIA = 2 * Math.PI * ANEL.raio;
+const ANEL_INTEIRO = 'Matchá • Gatos • República • Galeria Metrópole • ';
+
+/** Centro do vão (ângulo no sentido horário a partir das 12h) e onde o carimbo fica, em % do selo. */
+function posicaoDoCarimbo() {
+  const angulo = ((270 + ANEL.inicio - (360 - ANEL.arco) / 2) * Math.PI) / 180;
+  const x = 100 + ANEL.raio * Math.sin(angulo);
+  const y = 100 - ANEL.raio * Math.cos(angulo);
+  const pct = (v) => `${((v - ANEL.carimbo / 2) / 2).toFixed(2)}%`;
+  return { '--carimbo-x': pct(x), '--carimbo-y': pct(y), '--carimbo-tam': `${ANEL.carimbo / 2}%` };
+}
+const ESTILO_DO_CARIMBO = posicaoDoCarimbo();
 
 export default function Hero() {
   const t = CONFIG.textos.hero;
+  const { pioneiro } = CONFIG;
   const [cafe] = CONFIG.funcionamento;
 
   return (
@@ -43,12 +60,20 @@ export default function Hero() {
         <div className="hero__arte" aria-hidden="true" data-revelar>
           <div className="hero__selo">
             <svg className="hero__anel" viewBox="0 0 200 200">
-              <path id="hero-anel" d="M100 100m-86 0a86 86 0 1 1 172 0a86 86 0 1 1-172 0" fill="none" />
-              <text transform="rotate(-10 100 100)"><textPath href="#hero-anel" textLength="435" lengthAdjust="spacing">{TEXTO_DO_ANEL.toUpperCase()}</textPath></text>
+              <path id="hero-anel" d={`M100 100m-${ANEL.raio} 0a${ANEL.raio} ${ANEL.raio} 0 1 1 ${2 * ANEL.raio} 0a${ANEL.raio} ${ANEL.raio} 0 1 1-${2 * ANEL.raio} 0`} fill="none" />
+              {pioneiro ? (
+                <text transform={`rotate(${ANEL.inicio} 100 100)`}>
+                  <textPath href="#hero-anel" textLength={((CIRCUNFERENCIA * ANEL.arco) / 360).toFixed(1)} lengthAdjust="spacing">{pioneiro.frase.toUpperCase()}</textPath>
+                </text>
+              ) : (
+                <text><textPath href="#hero-anel" textLength={(CIRCUNFERENCIA - 2).toFixed(1)} lengthAdjust="spacing">{ANEL_INTEIRO.toUpperCase()}</textPath></text>
+              )}
             </svg>
             <div className="hero__logo"><LogoGato tamanho={260} vivo /></div>
-            {/* Carimbo "1º cat café de SP" (a frase completa está no selo acima do título, para leitores de tela) */}
-            <p className="hero__carimbo"><strong>1º</strong> cat café de SP</p>
+            {/* Carimbo decorativo: a frase completa está no selo acima do título, para leitores de tela */}
+            {pioneiro && (
+              <p className="hero__carimbo" style={ESTILO_DO_CARIMBO}><strong>{pioneiro.carimbo[0]}</strong> {pioneiro.carimbo[1]}</p>
+            )}
           </div>
           <IconePatinha className="hero__patinha hero__patinha--1" />
           <IconePatinha className="hero__patinha hero__patinha--2" />

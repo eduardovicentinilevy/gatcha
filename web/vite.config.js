@@ -1,5 +1,29 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { CONFIG } from './src/config.js';
+
+const escaparAtributo = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * Textos e cores do index.html vêm do src/config.js (fonte única): a descrição do site
+ * acompanha a frase "primeiro cat café" e a barra do navegador acompanha a paleta.
+ */
+function textosDoConfig() {
+  const valores = {
+    GATCHA_DESCRICAO: CONFIG.textos.descricao,
+    GATCHA_DESCRICAO_COMPARTILHAR: CONFIG.textos.descricaoCompartilhar,
+    GATCHA_COR_CLARO: CONFIG.cores.claro.superficie,
+    GATCHA_COR_ESCURO: CONFIG.cores.escuro.superficie,
+  };
+  return {
+    name: 'gatcha-textos-do-config',
+    transformIndexHtml: (html) =>
+      html.replace(/%(GATCHA_[A-Z_]+)%/g, (marca, nome) => {
+        if (!(nome in valores)) throw new Error(`index.html usa ${marca}, que o vite.config.js não conhece`);
+        return escaparAtributo(valores[nome]);
+      }),
+  };
+}
 
 /**
  * Prévia de link (og:image/og:url) precisa de endereço ABSOLUTO. Com VITE_SITE_URL definido
@@ -28,7 +52,7 @@ function previaDeLink(siteUrl) {
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   return {
-    plugins: [react(), previaDeLink(env.VITE_SITE_URL)],
+    plugins: [react(), textosDoConfig(), previaDeLink(env.VITE_SITE_URL)],
     server: { port: 5173 },
     build: {
       outDir: 'dist',

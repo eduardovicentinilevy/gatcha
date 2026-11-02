@@ -1,8 +1,8 @@
-import { IconeCopo, IconeDoce, IconeOnigiri, IconePatinha, IconeTigela, IconeXicara } from './Icones.jsx';
+import { IconeDoce, IconeOnigiri, IconePatinha, IconeTigela, IconeXicara } from './Icones.jsx';
 import { TracoGato } from './LogoGato.jsx';
 
 const ICONES = {
-  gato: TracoGato, xicara: IconeXicara, patinha: IconePatinha, tigela: IconeTigela, doce: IconeDoce, onigiri: IconeOnigiri, copo: IconeCopo,
+  gato: TracoGato, xicara: IconeXicara, patinha: IconePatinha, tigela: IconeTigela, doce: IconeDoce, onigiri: IconeOnigiri,
 };
 
 /**

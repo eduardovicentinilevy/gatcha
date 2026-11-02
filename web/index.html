@@ -4,8 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Gatchá · Cat café de matchá na República</title>
-  <meta name="description" content="O primeiro cat café de São Paulo, especializado em matchá, na Galeria Metrópole. Horários, regras e preços da área dos gatos e como chegar.">
-  <meta name="theme-color" content="#FFFFFF">
+  <meta name="description" content="%GATCHA_DESCRICAO%">
+  <!-- Cor da barra do navegador = fundo do início em cada tema (cores vêm do config.js no build) -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="%GATCHA_COR_CLARO%">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="%GATCHA_COR_ESCURO%">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <!-- Prévia ao compartilhar o link (WhatsApp, Instagram, Facebook). A imagem e o endereço
@@ -14,7 +16,7 @@
   <meta property="og:locale" content="pt_BR">
   <meta property="og:site_name" content="Gatchá">
   <meta property="og:title" content="Gatchá · Cat café de matchá">
-  <meta property="og:description" content="O primeiro cat café de São Paulo: matchá de verdade, comidinhas e uma área só dos gatos, na Galeria Metrópole.">
+  <meta property="og:description" content="%GATCHA_DESCRICAO_COMPARTILHAR%">
   <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
